@@ -4,22 +4,10 @@ A new session should continue from here without reconstructing chat history.
 
 ## Current
 
-- Phase: 4 repeatability — observability (P4-02)
-- Branch: `feature/p4-02-observability`
-- Task: `P4-02` Observability and cost controls — DONE (compile + BFF tests; not deployed)
-
-## What changed
-
-- Workspace Application Insights; Java/BFF get `APPLICATIONINSIGHTS_CONNECTION_STRING`
-- Log Analytics 1 GB/day cap; optional monthly Consumption budget when `budgetContactEmail` is set
-- One `X-Correlation-Id` per BFF request; Java console pattern includes `traceId`; Kusto lookup in `infra/README.md`
-
-## Verification
-
-- `make bicep-build` — no BCP errors
-- BFF tests + typecheck pass (correlation header forwarded)
-- No Azure deploy; no live traces
+- Phase: 4 — CI Bicep job fix
+- Branch: `debug/ci-bicep-install`
+- `azure/setup-bicep` is not a public Action; CI now uses `az bicep install` on `ubuntu-latest`
 
 ## Next
 
-After merge: `feature/p4-03-user-device-cloud-tests`. `P0-01` and `P0-02` remain open.
+Merge this so `main` CI is green. Continue `feature/p4-02-observability` (or start it from updated `main` if not merged). `P0-01` and `P0-02` remain open.
