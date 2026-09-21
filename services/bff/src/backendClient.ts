@@ -109,6 +109,18 @@ export function createBackendClient(options: BackendClientOptions) {
         extraHeaders,
       });
     },
+    collectBooking(id: string, extraHeaders: Record<string, string>, correlationId: string) {
+      return request(`/v1/bookings/${id}/collect`, new URLSearchParams(), correlationId, {
+        method: "POST",
+        extraHeaders,
+      });
+    },
+    returnBooking(id: string, extraHeaders: Record<string, string>, correlationId: string) {
+      return request(`/v1/bookings/${id}/return`, new URLSearchParams(), correlationId, {
+        method: "POST",
+        extraHeaders,
+      });
+    },
     async ready(): Promise<boolean> {
       try {
         const response = await fetchImpl(`${base}/actuator/health/readiness`, {

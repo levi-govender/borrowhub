@@ -275,5 +275,55 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
     }
   });
 
+  app.post("/api/v1/bookings/:id/collect", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    const { id } = request.params as { id: string };
+    if (!UUID_PATTERN.test(id)) {
+      return reply.status(400).send({
+        code: "VALIDATION_ERROR",
+        message: "id must be a UUID.",
+        traceId,
+        fieldErrors: { id: "uuid" },
+      });
+    }
+    const headers = demoHeaders(request);
+    const idempotencyKey = requireIdempotencyKey(request, reply, traceId);
+    if (!idempotencyKey) {
+      return;
+    }
+    headers["idempotency-key"] = idempotencyKey;
+    try {
+      return await backend.collectBooking(id, headers, traceId);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
+  app.post("/api/v1/bookings/:id/return", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    const { id } = request.params as { id: string };
+    if (!UUID_PATTERN.test(id)) {
+      return reply.status(400).send({
+        code: "VALIDATION_ERROR",
+        message: "id must be a UUID.",
+        traceId,
+        fieldErrors: { id: "uuid" },
+      });
+    }
+    const headers = demoHeaders(request);
+    const idempotencyKey = requireIdempotencyKey(request, reply, traceId);
+    if (!idempotencyKey) {
+      return;
+    }
+    headers["idempotency-key"] = idempotencyKey;
+    try {
+      return await backend.returnBooking(id, headers, traceId);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
   return app;
 }

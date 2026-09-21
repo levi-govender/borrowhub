@@ -36,7 +36,7 @@ Exit: full local journey; concurrency and ownership tests pass.
 | P2-01 | Reservation transaction | DONE | Evidence 2026-09-21: `./gradlew test` pass including `BookingCreateTest` (create+audit, overlap vs adjacent half-open, policy, inactive equipment, missing demo identity, concurrent overlap → one 201 and one 409). `pnpm --filter @borrowhub/bff test` and `typecheck` pass. Idempotency deferred to P2-02. |
 | P2-02 | Idempotency | DONE | Evidence 2026-09-21: `./gradlew test` pass including `BookingIdempotencyTest` (same key+body replays one booking, different body → 409 `IDEMPOTENCY_KEY_REUSED`, missing/invalid key → 400, concurrent same key → one row). `pnpm --filter @borrowhub/bff test` and `typecheck` pass (BFF requires UUID `Idempotency-Key`). |
 | P2-03 | My bookings and cancel | DONE | Evidence 2026-09-21: `./gradlew test` pass including `BookingMineCancelTest` (list mine only, IDOR 404, cancel frees slot + idempotent replay, other user 404, too late / illegal transition). `pnpm --filter @borrowhub/bff test` and `typecheck` pass. |
-| P2-04 | Collection and return | TODO |
+| P2-04 | Collection and return | DONE | Evidence 2026-09-21: `./gradlew test` pass including `BookingCollectReturnTest` (collect+return+idempotent replay, too early/too late, IDOR 404, second loan blocked while CHECKED_OUT, overdue return). `pnpm --filter @borrowhub/bff test` and `typecheck` pass. |
 | P2-05 | Admin inventory, bookings, audit | TODO |
 
 ## Phase 3 — Identity and cloud foundation
