@@ -16,5 +16,41 @@ services:
       timeout: 5s
       retries: 10
 
+  backend:
+    profiles: ["apps"]
+    build:
+      context: ./services/backend
+      dockerfile: Dockerfile
+    image: borrowhub-backend:local
+    container_name: borrowhub-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/borrowhub
+      SPRING_DATASOURCE_USERNAME: borrowhub
+      SPRING_DATASOURCE_PASSWORD: borrowhub
+      SPRING_PROFILES_ACTIVE: dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+  bff:
+    profiles: ["apps"]
+    build:
+      context: .
+      dockerfile: services/bff/Dockerfile
+    image: borrowhub-bff:local
+    container_name: borrowhub-bff
+    environment:
+      JAVA_BASE_URL: http://backend:8080
+      HOST: 0.0.0.0
+      PORT: "3000"
+      ALLOWED_WEB_ORIGINS: http://localhost:5173
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
 volumes:
   borrowhub_pg:

@@ -1,0 +1,8 @@
+# Build context: services/backend
+.gradle
+build
+.git
+*.md
+.env
+.env.*
+!.env.example

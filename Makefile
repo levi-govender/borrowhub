@@ -15,6 +15,7 @@ WEB_URL := http://127.0.0.1:5173
 .PHONY: help install db-up db-down db-logs db-reset db-psql \
 	bff backend web mobile \
 	typecheck test test-backend test-bff test-mobile test-web build \
+	docker-build docker-up docker-down \
 	health clean
 
 help: ## Show this help
@@ -73,6 +74,15 @@ build: ## Production-build web, BFF, and Java jar
 	$(PNPM) build:web
 	$(PNPM) build:bff
 	cd $(BACKEND) && $(GRADLEW) bootJar
+
+docker-build: ## Build Java and BFF container images
+	$(COMPOSE) --profile apps build
+
+docker-up: ## Run Postgres, Java, and BFF from container images
+	$(COMPOSE) --profile apps up -d --wait --build
+
+docker-down: ## Stop Compose services including app containers (keep volume)
+	$(COMPOSE) --profile apps down
 
 health: ## Curl local BFF and Java health endpoints
 	@echo "BFF live:"; curl -sfS $(BFF_URL)/health/live; echo
