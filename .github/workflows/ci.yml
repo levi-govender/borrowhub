@@ -52,5 +52,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: azure/setup-bicep@v2
-      - run: bicep build infra/main.bicep --outfile /tmp/borrowhub-main.json
+      - name: Install Bicep CLI
+        run: az bicep install
+      - run: az bicep build --file infra/main.bicep --outfile /tmp/borrowhub-main.json
