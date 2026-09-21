@@ -5,20 +5,20 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: 1 local vertical slice
-- Branch: `feature/p1-02-java-catalogue`
-- Task: `P1-02` Java catalogue — DONE
+- Branch: `feature/p1-03-bff-catalogue`
+- Task: `P1-03` BFF catalogue — DONE
 
 ## What changed
 
-- `GET /v1/equipment` (search, category, pagination), `GET /v1/equipment/{id}`, `GET /v1/equipment/{id}/availability`
-- Archived assets are omitted / 404 for this employee catalogue
-- Dev profile seeds 10 assets (`make backend` sets `SPRING_PROFILES_ACTIVE=dev`)
-- Availability uses half-open overlap against RESERVED and CHECKED_OUT; ACTIVE-only
+- BFF `GET /api/v1/equipment`, `/{id}`, `/{id}/availability` proxy Java `/v1/*`
+- Maps Java 4xx, timeouts (504), and unavailability (503); forwards `X-Correlation-Id`
+- `/health/ready` checks Java readiness
+- `make test-bff` runs Fastify inject tests with a mock fetch
 
 ## Verification
 
-`cd services/backend && ./gradlew test` — pass (includes `EquipmentCatalogueTest`)
+`pnpm --filter @borrowhub/bff test` and `pnpm --filter @borrowhub/bff typecheck`
 
 ## Next
 
-After merge: `feature/p1-03-bff-catalogue` from updated `main`.
+After merge: `feature/p1-04-mobile-catalogue` (or web inventory `P1-05`) from updated `main`.

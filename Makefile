@@ -14,7 +14,7 @@ WEB_URL := http://127.0.0.1:5173
 
 .PHONY: help install db-up db-down db-logs db-reset db-psql \
 	bff backend web mobile \
-	typecheck test test-backend build \
+	typecheck test test-backend test-bff build \
 	health clean
 
 help: ## Show this help
@@ -58,7 +58,10 @@ typecheck: ## Typecheck BFF, web, and mobile
 test-backend: ## Run Java unit/context tests
 	cd $(BACKEND) && $(GRADLEW) test
 
-test: typecheck test-backend ## Typecheck clients/BFF and run Java tests
+test-bff: ## Run BFF catalogue proxy tests
+	$(PNPM) --filter @borrowhub/bff test
+
+test: typecheck test-backend test-bff ## Typecheck, Java tests, and BFF tests
 
 build: ## Production-build web, BFF, and Java jar
 	$(PNPM) build:web

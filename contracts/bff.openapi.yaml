@@ -19,15 +19,79 @@ paths:
                 $ref: "#/components/schemas/Health"
   /health/ready:
     get:
-      summary: Readiness
+      summary: Readiness (Java reachable)
       operationId: bffReadiness
       responses:
         "200":
           description: Ready to serve
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Health"
+        "503":
+          description: Java backend unavailable
+  /api/v1/equipment:
+    get:
+      summary: Employee catalogue
+      operationId: listEquipment
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated equipment from Java
+  /api/v1/equipment/{id}:
+    get:
+      summary: Equipment detail
+      operationId: getEquipment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Asset detail
+        "404":
+          description: Missing or archived
+  /api/v1/equipment/{id}/availability:
+    get:
+      summary: Time-window availability
+      operationId: getEquipmentAvailability
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: startAt
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: endAt
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Availability from Java; not a booking guarantee
 components:
   schemas:
     Health:
@@ -36,4 +100,4 @@ components:
       properties:
         status:
           type: string
-          enum: [ok]
+          enum: [ok, unavailable]
