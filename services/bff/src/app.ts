@@ -33,6 +33,33 @@ function applyCors(reply: FastifyReply, origin: string | undefined, allowed: str
   }
 }
 
+function demoHeaders(request: FastifyRequest): Record<string, string> {
+  const headers: Record<string, string> = {};
+  const objectId = request.headers["x-demo-object-id"];
+  const tenantId = request.headers["x-demo-tenant-id"];
+  if (typeof objectId === "string" && objectId.length > 0) {
+    headers["x-demo-object-id"] = objectId;
+  }
+  if (typeof tenantId === "string" && tenantId.length > 0) {
+    headers["x-demo-tenant-id"] = tenantId;
+  }
+  return headers;
+}
+
+function requireIdempotencyKey(request: FastifyRequest, reply: FastifyReply, traceId: string): string | undefined {
+  const idempotencyKey = request.headers["idempotency-key"];
+  if (typeof idempotencyKey !== "string" || !UUID_PATTERN.test(idempotencyKey)) {
+    reply.status(400).send({
+      code: "VALIDATION_ERROR",
+      message: "Idempotency-Key must be a UUID.",
+      traceId,
+      fieldErrors: { idempotencyKey: "uuid" },
+    });
+    return undefined;
+  }
+  return idempotencyKey;
+}
+
 function sendBackendError(reply: FastifyReply, error: unknown, traceId: string) {
   if (error instanceof BackendHttpError) {
     const body = error.body;
@@ -172,28 +199,77 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   app.post("/api/v1/bookings", async (request, reply) => {
     const traceId = correlationId(request);
     reply.header("x-correlation-id", traceId);
-    const headers: Record<string, string> = {};
-    const objectId = request.headers["x-demo-object-id"];
-    const tenantId = request.headers["x-demo-tenant-id"];
-    const idempotencyKey = request.headers["idempotency-key"];
-    if (typeof objectId === "string" && objectId.length > 0) {
-      headers["x-demo-object-id"] = objectId;
-    }
-    if (typeof tenantId === "string" && tenantId.length > 0) {
-      headers["x-demo-tenant-id"] = tenantId;
-    }
-    if (typeof idempotencyKey !== "string" || !UUID_PATTERN.test(idempotencyKey)) {
-      return reply.status(400).send({
-        code: "VALIDATION_ERROR",
-        message: "Idempotency-Key must be a UUID.",
-        traceId,
-        fieldErrors: { idempotencyKey: "uuid" },
-      });
+    const headers = demoHeaders(request);
+    const idempotencyKey = requireIdempotencyKey(request, reply, traceId);
+    if (!idempotencyKey) {
+      return;
     }
     headers["idempotency-key"] = idempotencyKey;
     try {
       const body = await backend.createBooking(request.body, headers, traceId);
       return reply.status(201).send(body);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
+  app.get("/api/v1/bookings", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    const query = request.query as Record<string, string | undefined>;
+    const search = new URLSearchParams();
+    for (const key of ["page", "pageSize"] as const) {
+      const value = query[key];
+      if (value) {
+        search.set(key, value);
+      }
+    }
+    try {
+      return await backend.listMine(search, demoHeaders(request), traceId);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
+  app.get("/api/v1/bookings/:id", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    const { id } = request.params as { id: string };
+    if (!UUID_PATTERN.test(id)) {
+      return reply.status(400).send({
+        code: "VALIDATION_ERROR",
+        message: "id must be a UUID.",
+        traceId,
+        fieldErrors: { id: "uuid" },
+      });
+    }
+    try {
+      return await backend.getBooking(id, demoHeaders(request), traceId);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
+  app.post("/api/v1/bookings/:id/cancel", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    const { id } = request.params as { id: string };
+    if (!UUID_PATTERN.test(id)) {
+      return reply.status(400).send({
+        code: "VALIDATION_ERROR",
+        message: "id must be a UUID.",
+        traceId,
+        fieldErrors: { id: "uuid" },
+      });
+    }
+    const headers = demoHeaders(request);
+    const idempotencyKey = requireIdempotencyKey(request, reply, traceId);
+    if (!idempotencyKey) {
+      return;
+    }
+    headers["idempotency-key"] = idempotencyKey;
+    try {
+      return await backend.cancelBooking(id, headers, traceId);
     } catch (error) {
       return sendBackendError(reply, error, traceId);
     }

@@ -104,6 +104,51 @@ test("rejects booking create without an idempotency key", async () => {
   await app.close();
 });
 
+test("lists own bookings and cancels through Java", async () => {
+  const bookingId = "22222222-2222-4222-8222-222222222222";
+  const app = await buildApp({
+    fetchImpl: async (input, init) => {
+      const url = String(input);
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get("x-demo-object-id"), "employee-a");
+      if (url.endsWith("/v1/bookings") && (init?.method ?? "GET") === "GET") {
+        return new Response(JSON.stringify({ items: [{ id: bookingId }], page: 1, pageSize: 20, total: 1 }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (url.endsWith(`/v1/bookings/${bookingId}/cancel`)) {
+        assert.equal(init?.method, "POST");
+        assert.equal(headers.get("idempotency-key"), "44444444-4444-4444-8444-444444444444");
+        return new Response(JSON.stringify({ id: bookingId, status: "CANCELLED" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      throw new Error(`unexpected ${init?.method} ${url}`);
+    },
+    javaBaseUrl: "http://java.test",
+  });
+  const list = await app.inject({
+    method: "GET",
+    url: "/api/v1/bookings",
+    headers: { "x-demo-object-id": "employee-a" },
+  });
+  assert.equal(list.statusCode, 200);
+  assert.equal(list.json().total, 1);
+  const cancel = await app.inject({
+    method: "POST",
+    url: `/api/v1/bookings/${bookingId}/cancel`,
+    headers: {
+      "x-demo-object-id": "employee-a",
+      "idempotency-key": "44444444-4444-4444-8444-444444444444",
+    },
+  });
+  assert.equal(cancel.statusCode, 200);
+  assert.equal(cancel.json().status, "CANCELLED");
+  await app.close();
+});
+
 test("readiness fails when Java is down", async () => {
   const app = await buildApp({
     fetchImpl: async () => {

@@ -97,6 +97,18 @@ export function createBackendClient(options: BackendClientOptions) {
         extraHeaders,
       });
     },
+    listMine(search: URLSearchParams, extraHeaders: Record<string, string>, correlationId: string) {
+      return request("/v1/bookings", search, correlationId, { extraHeaders });
+    },
+    getBooking(id: string, extraHeaders: Record<string, string>, correlationId: string) {
+      return request(`/v1/bookings/${id}`, new URLSearchParams(), correlationId, { extraHeaders });
+    },
+    cancelBooking(id: string, extraHeaders: Record<string, string>, correlationId: string) {
+      return request(`/v1/bookings/${id}/cancel`, new URLSearchParams(), correlationId, {
+        method: "POST",
+        extraHeaders,
+      });
+    },
     async ready(): Promise<boolean> {
       try {
         const response = await fetchImpl(`${base}/actuator/health/readiness`, {
