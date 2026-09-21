@@ -4,7 +4,7 @@ import com.borrowhub.backend.common.ApiException;
 import com.borrowhub.backend.common.BookingPolicyProperties;
 import com.borrowhub.backend.common.CorrelationIdFilter;
 import com.borrowhub.backend.common.PageResponse;
-import com.borrowhub.backend.identity.DemoIdentityService;
+import com.borrowhub.backend.identity.IdentityService;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -20,19 +20,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AdminEquipmentService {
 
-	private final DemoIdentityService demoIdentityService;
+	private final IdentityService identityService;
 	private final EquipmentRepository equipmentRepository;
 	private final BookingPolicyProperties policy;
 	private final Clock clock;
 	private final com.borrowhub.backend.audit.AuditEventRepository auditEventRepository;
 
 	public AdminEquipmentService(
-			DemoIdentityService demoIdentityService,
+			IdentityService identityService,
 			EquipmentRepository equipmentRepository,
 			BookingPolicyProperties policy,
 			Clock clock,
 			com.borrowhub.backend.audit.AuditEventRepository auditEventRepository) {
-		this.demoIdentityService = demoIdentityService;
+		this.identityService = identityService;
 		this.equipmentRepository = equipmentRepository;
 		this.policy = policy;
 		this.clock = clock;
@@ -42,7 +42,7 @@ public class AdminEquipmentService {
 	@Transactional(readOnly = true)
 	public PageResponse<EquipmentResponses.ListItem> list(
 			String tenantId, String objectId, String query, String category, Integer page, Integer pageSize) {
-		demoIdentityService.requireAdmin(tenantId, objectId);
+		identityService.requireAdmin(tenantId, objectId);
 		int resolvedPage = page == null ? EquipmentService.DEFAULT_PAGE : page;
 		int resolvedSize = pageSize == null ? EquipmentService.DEFAULT_PAGE_SIZE : pageSize;
 		if (resolvedPage < 1) {
@@ -66,7 +66,7 @@ public class AdminEquipmentService {
 
 	@Transactional(readOnly = true)
 	public EquipmentResponses.Detail get(String tenantId, String objectId, UUID id) {
-		demoIdentityService.requireAdmin(tenantId, objectId);
+		identityService.requireAdmin(tenantId, objectId);
 		Equipment equipment = equipmentRepository
 				.findById(id)
 				.orElseThrow(() -> ApiException.notFound("Equipment was not found."));
@@ -75,7 +75,7 @@ public class AdminEquipmentService {
 
 	@Transactional
 	public EquipmentResponses.Detail create(String tenantId, String objectId, AdminEquipmentRequest request) {
-		var actor = demoIdentityService.requireAdmin(tenantId, objectId);
+		var actor = identityService.requireAdmin(tenantId, objectId);
 		equipmentRepository
 				.findByAssetTag(request.assetTag().trim())
 				.ifPresent(existing -> {
@@ -97,7 +97,7 @@ public class AdminEquipmentService {
 
 	@Transactional
 	public EquipmentResponses.Detail update(String tenantId, String objectId, UUID id, AdminEquipmentRequest request) {
-		var actor = demoIdentityService.requireAdmin(tenantId, objectId);
+		var actor = identityService.requireAdmin(tenantId, objectId);
 		Equipment equipment = equipmentRepository
 				.lockById(id)
 				.orElseThrow(() -> ApiException.notFound("Equipment was not found."));

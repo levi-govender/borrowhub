@@ -61,7 +61,7 @@ Proposals from the blueprint are not team approval until confirmed in Phase 0.
 | Context | Workforce users; BFF and Java need distinct token audiences. |
 | Options | Entra PKCE + OBO; mock identity in cloud. |
 | Decision | **Microsoft Entra ID**: PKCE on clients, on-behalf-of from BFF to Java. Local mock auth only in an isolated development profile. |
-| Consequences | Four app registrations (web, mobile, BFF API, Java API). Cloud MVP is incomplete while mock auth is enabled. |
+| Consequences | Four app registrations (web, mobile, BFF API, Java API). Cloud MVP is incomplete while mock auth is enabled. Java validates JWTs when `borrowhub.demo-identity.enabled=false`. The BFF exchanges a user Bearer token with Entra OBO before calling Java. Local `dev` still uses `X-Demo-*` headers. Live PKCE needs `P0-01`. |
 | Revisit | When tenant/admin consent is available (`P0-01` / `P3-01`). |
 
 ## DEC-06 — Cloud data plane

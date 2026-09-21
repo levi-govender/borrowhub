@@ -71,8 +71,20 @@ public class AppUser {
 		return displayName;
 	}
 
+	public String getEmail() {
+		return email;
+	}
+
 	public UserRole getRole() {
 		return role;
+	}
+
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	public void setRole(UserRole role) {

@@ -34,6 +34,17 @@ test("maps BFF errors", async () => {
   });
 });
 
+test("loads the current user", async () => {
+  const api = createInventoryApi("http://bff.test", async (input, init) => {
+    assert.equal(String(input), "http://bff.test/api/v1/me");
+    const headers = new Headers(init?.headers);
+    assert.equal(headers.get("x-demo-role"), "ADMIN");
+    return new Response(JSON.stringify({ displayName: "admin-1", role: "ADMIN" }), { status: 200 });
+  });
+  const me = await api.me();
+  assert.equal(me.role, "ADMIN");
+});
+
 test("loads overdue bookings and cancels with a reason", async () => {
   const api = createInventoryApi("http://bff.test", async (input, init) => {
     const url = String(input);
