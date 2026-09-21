@@ -19,9 +19,10 @@ const CATEGORIES = ["phone", "monitor", "adapter", "camera"] as const;
 type Props = {
   api: CatalogueApi;
   onOpen: (id: string) => void;
+  onOpenProfile?: () => void;
 };
 
-export function CatalogueScreen({ api, onOpen }: Props) {
+export function CatalogueScreen({ api, onOpen, onOpenProfile }: Props) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | undefined>();
   const [items, setItems] = useState<EquipmentListItem[]>([]);
@@ -64,6 +65,11 @@ export function CatalogueScreen({ api, onOpen }: Props) {
       <Text style={styles.eyebrow} accessibilityRole="header">
         BorrowHub · catalogue
       </Text>
+      {onOpenProfile ? (
+        <Pressable accessibilityRole="button" onPress={onOpenProfile}>
+          <Text style={styles.profile}>Profile</Text>
+        </Pressable>
+      ) : null}
       <Text style={styles.title}>Find a specific asset</Text>
       <TextInput
         accessibilityLabel="Search by name or asset tag"
@@ -164,6 +170,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     letterSpacing: 1,
     textTransform: "uppercase",
+    marginBottom: 8,
+  },
+  profile: {
+    fontSize: 16,
+    textDecorationLine: "underline",
     marginBottom: 8,
   },
   title: {

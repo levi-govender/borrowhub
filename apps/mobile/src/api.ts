@@ -27,6 +27,15 @@ export type EquipmentPage = {
   total: number;
 };
 
+export type Me = {
+  id: string;
+  tenantId: string;
+  objectId: string;
+  displayName: string;
+  email: string;
+  role: "EMPLOYEE" | "ADMIN";
+};
+
 export type Availability = {
   equipmentId: string;
   available: boolean;
@@ -49,15 +58,21 @@ export class CatalogueApiError extends Error {
 
 export type FetchLike = typeof fetch;
 
-export function createCatalogueApi(baseUrl: string, fetchImpl: FetchLike = fetch) {
+export type DemoIdentity = {
+  objectId: string;
+};
+
+export function createCatalogueApi(baseUrl: string, fetchImpl: FetchLike = fetch, identity?: DemoIdentity) {
   const base = baseUrl.replace(/\/$/, "");
 
-  async function request<T>(path: string): Promise<T> {
+  async function request<T>(path: string, extraHeaders: Record<string, string> = {}): Promise<T> {
     let response: Response;
     try {
-      response = await fetchImpl(`${base}${path}`, {
-        headers: { accept: "application/json" },
-      });
+      const headers: Record<string, string> = { accept: "application/json", ...extraHeaders };
+      if (identity?.objectId) {
+        headers["x-demo-object-id"] = identity.objectId;
+      }
+      response = await fetchImpl(`${base}${path}`, { headers });
     } catch {
       throw new CatalogueApiError(0, "NETWORK_ERROR", "Could not reach BorrowHub. Check the BFF URL and retry.");
     }
@@ -91,6 +106,9 @@ export function createCatalogueApi(baseUrl: string, fetchImpl: FetchLike = fetch
     availability(id: string, startAt: string, endAt: string) {
       const search = new URLSearchParams({ startAt, endAt });
       return request<Availability>(`/api/v1/equipment/${id}/availability?${search.toString()}`);
+    },
+    me() {
+      return request<Me>("/api/v1/me");
     },
   };
 }

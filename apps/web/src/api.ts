@@ -81,13 +81,21 @@ export class InventoryApiError extends Error {
 
 export type FetchLike = typeof fetch;
 
-export const DEMO_ADMIN_HEADERS = {
-  "x-demo-object-id": "admin-1",
-  "x-demo-role": "ADMIN",
-} as const;
+export type DemoIdentity = {
+  objectId: string;
+  role: "EMPLOYEE" | "ADMIN";
+};
 
-export function createInventoryApi(baseUrl: string, fetchImpl: FetchLike = fetch) {
+export function createInventoryApi(
+  baseUrl: string,
+  fetchImpl: FetchLike = fetch,
+  identity: DemoIdentity = { objectId: "admin-1", role: "ADMIN" },
+) {
   const base = baseUrl.replace(/\/$/, "");
+  const demoHeaders = {
+    "x-demo-object-id": identity.objectId,
+    "x-demo-role": identity.role,
+  };
 
   async function request<T>(
     path: string,
@@ -97,7 +105,7 @@ export function createInventoryApi(baseUrl: string, fetchImpl: FetchLike = fetch
     try {
       const headers: Record<string, string> = {
         accept: "application/json",
-        ...DEMO_ADMIN_HEADERS,
+        ...demoHeaders,
         ...init.extraHeaders,
       };
       if (init.body !== undefined) {

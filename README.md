@@ -99,7 +99,7 @@ make bff
 make web
 ```
 
-Local admin requests send `X-Demo-Object-Id: admin-1` and `X-Demo-Role: ADMIN`. Java rejects employees with `403 FORBIDDEN`. The `dev` profile keeps that demo identity. Outside `dev`, Java expects an Entra JWT (`oid`, `tid`, app role `Admin`) and the BFF expects OBO settings in `services/bff/.env.example`. Live PKCE needs an Entra tenant (`P0-01`).
+Local admin requests send `X-Demo-Object-Id` from the Sign in screen (default `admin-1`, role `ADMIN`). Java rejects employees with `403 FORBIDDEN`. The `dev` profile keeps that demo identity. Outside `dev`, Java expects an Entra JWT (`oid`, `tid`, app role `Admin`) and the BFF expects OBO settings in `services/bff/.env.example`. Live PKCE needs an Entra tenant (`P0-01`).
 
 ## Container images
 
