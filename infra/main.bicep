@@ -72,12 +72,26 @@ param containerMinReplicas int = 0
 @description('Static Web Apps region. Free SKU is not available in every region (including some data-plane regions).')
 param staticWebAppLocation string = 'westeurope'
 
+@description('Log Analytics daily ingest cap in GB.')
+param logAnalyticsDailyQuotaGb int = 1
+
+@description('Monthly cost budget. Created only when budgetContactEmail is set.')
+param budgetAmount int = 40
+
+@description('Budget alert email. Leave empty to skip the budget resource.')
+param budgetContactEmail string = ''
+
+@description('Budget period start (first of a month, UTC).')
+param budgetStartDate string = '2026-09-01'
+
 var suffix = uniqueString(resourceGroup().id)
 var acrName = take('bh${replace(namePrefix, '-', '')}${suffix}', 50)
 var keyVaultName = take('bh${suffix}', 24)
 var postgresServerName = take('${namePrefix}-pg-${suffix}', 63)
 var identityName = '${namePrefix}-uami'
 var logAnalyticsName = take('${namePrefix}-law-${suffix}', 63)
+var appInsightsName = take('${namePrefix}-appi-${suffix}', 63)
+var budgetName = take('${namePrefix}-budget', 63)
 var containerEnvName = take('${namePrefix}-cae', 32)
 var javaAppName = take('${namePrefix}-java', 32)
 var bffAppName = take('${namePrefix}-bff', 32)
@@ -127,6 +141,8 @@ module monitoring 'modules/monitoring.bicep' = {
   params: {
     location: location
     name: logAnalyticsName
+    appInsightsName: appInsightsName
+    dailyQuotaGb: logAnalyticsDailyQuotaGb
   }
 }
 
@@ -241,6 +257,7 @@ module apps 'modules/apps.bicep' = {
     entraJavaScope: entraJavaScope
     allowedWebOrigins: '${allowedWebOrigins},${web.outputs.origin}'
     minReplicas: containerMinReplicas
+    applicationInsightsConnectionString: monitoring.outputs.appInsightsConnectionString
   }
   dependsOn: [
     acrPull
@@ -271,6 +288,16 @@ module migrationJob 'modules/migration-job.bicep' = {
   ]
 }
 
+module budget 'modules/budget.bicep' = if (!empty(budgetContactEmail)) {
+  name: 'budget'
+  params: {
+    name: budgetName
+    amount: budgetAmount
+    contactEmail: budgetContactEmail
+    startDate: budgetStartDate
+  }
+}
+
 output location string = location
 output vnetName string = network.outputs.vnetName
 output appsSubnetId string = network.outputs.appsSubnetId
@@ -282,6 +309,7 @@ output acrName string = registry.outputs.name
 output acrLoginServer string = registry.outputs.loginServer
 output keyVaultName string = secrets.outputs.name
 output logAnalyticsWorkspaceName string = monitoring.outputs.name
+output appInsightsName string = monitoring.outputs.appInsightsName
 output postgresServerName string = database.outputs.serverName
 output postgresFqdn string = database.outputs.fullyQualifiedDomainName
 output postgresDatabaseName string = database.outputs.databaseName
