@@ -4,22 +4,22 @@ A new session should continue from here without reconstructing chat history.
 
 ## Current
 
-- Phase: 4 — user/device/cloud tests (P4-03)
-- Branch: `feature/p4-03-e2e-tests`
-- Task: `P4-03` — DONE (Playwright local + Pixel 5; cloud skipped)
+- Phase: 4 — runbooks (P4-04)
+- Branch: `feature/p4-04-runbooks`
+- Task: `P4-04` README, rollback, demo runbooks — DONE
+- Phase 4 tracker is complete. Cloud booking still needs `P0-01`. Frontend spike `P0-02` is still open.
 
 ## What changed
 
-- Playwright admin journeys: dashboard signed in as `admin-1`, inventory search `PHONE-001`
-- Device: Pixel 5 project. Cloud spec skips without `CLOUD_WEB_URL` (`P0-01`)
-- CI Playwright job starts Compose `--profile apps`. Local uses installed Chrome (`channel: chrome`)
+- `docs/RUNBOOK.md`: local demo (`make docker-up` / `make test-e2e`), SHA rollback, Flyway is forward-only, cloud steps blocked on P0-01
+- README and `infra/README.md` point at the runbook
 
 ## Verification
 
-- Compose backend/BFF healthy
-- `pnpm --filter @borrowhub/web test:e2e` — 4 passed, 2 skipped
-- No cloud URL; no native mobile e2e
+- `make help` lists documented targets
+- Links to `docs/RUNBOOK.md` from README and infra README
+- No live Azure demo
 
 ## Next
 
-After merge: `feature/p4-04-runbooks`. `P0-01` and `P0-02` remain open.
+After merge: product MVP (`MVP-01` sign-in) **or** unblock `P0-01` / `P0-02`. Do not invent a cloud environment.

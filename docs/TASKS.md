@@ -60,7 +60,7 @@ Exit: merge-to-dev pipeline, trace lookup, teammate can reproduce from docs.
 | P4-01 | CI/CD and immutable deploys | DONE | Evidence 2026-09-21: local CI equivalent — `pnpm install --frozen-lockfile`, `pnpm typecheck`, BFF 12 tests, web 5, mobile 4, `pnpm` web+BFF build; `./gradlew test` BUILD SUCCESSFUL. Workflows: `.github/workflows/ci.yml`, `release.yml` (SHA tags; Azure skipped without P0-01 secrets). No Azure release was run. |
 | P4-02 | Observability and cost controls | DONE | Evidence 2026-09-21: `make bicep-build` — no BCP errors; ARM has Application Insights, Log Analytics `workspaceCapping`, conditional Consumption budget. `pnpm --filter @borrowhub/bff test` (12, including `X-Correlation-Id` echo) and typecheck pass. Java logs `traceId=%X{traceId}`. Not deployed; budget resource omitted until `budgetContactEmail` is set. |
 | P4-03 | User/device/cloud tests | DONE | Evidence 2026-09-21: `pnpm --filter @borrowhub/web test:e2e` — 4 passed (desktop + Pixel 5: dashboard admin-1, inventory PHONE-001), 2 skipped (`CLOUD_WEB_URL` unset, P0-01). Compose stack was healthy. Native Detox/Maestro not added (`DEC-01` Expo). |
-| P4-04 | README, rollback, demo runbooks | TODO |
+| P4-04 | README, rollback, demo runbooks | DONE | Evidence 2026-09-21: `docs/RUNBOOK.md` (local Compose demo, SHA rollback, Flyway forward-only, P0-01 cloud blockers). README and `infra/README.md` link it. `make help` lists `docker-up`, `test-e2e`, `health`. No Azure demo was run. |
 
 ## MVP product catalogue (implement after skeleton)
 

@@ -59,7 +59,7 @@ make bicep-build
 
 ## Deploy (operator, after P0-01)
 
-Push SHA-tagged images via GitHub Actions **Release** (see `.github/workflows/release.yml`) or the CLI below. The Flyway job must succeed before Java `ddl-auto=validate` will pass.
+Push SHA-tagged images via GitHub Actions **Release**. Rollback and the local demo path are in `docs/RUNBOOK.md`. The Flyway job must succeed before Java `ddl-auto=validate` will pass.
 
 Repository secrets (no values in git):
 

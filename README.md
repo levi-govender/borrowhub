@@ -2,7 +2,7 @@
 
 BorrowHub lets employees find and reserve individual workplace assets such as test phones, monitors, adapters and cameras. Employees use a mobile application. Office administrators use a browser dashboard to manage assets and oversee loans. Each reservation refers to one specific physical asset, not a pooled quantity of interchangeable items.
 
-This repository is the implementation of the learning blueprint in `BorrowHub_Project_Blueprint.pdf`. Cursor working files live under `docs/`.
+This repository is the implementation of the learning blueprint in `BorrowHub_Project_Blueprint.pdf`. Working tracker: `docs/TASKS.md`. **Teammate demo, rollback, and cloud blockers:** [docs/RUNBOOK.md](docs/RUNBOOK.md).
 
 ## Git workflow
 
@@ -126,7 +126,7 @@ GitHub Actions `CI` (`.github/workflows/ci.yml`) runs on pull requests and `main
 
 Cloud UI tests (`apps/web/e2e/cloud.spec.ts`) skip unless `CLOUD_WEB_URL` is set (`P0-01`). Employee device coverage is Expo unit tests plus Playwright **Pixel 5** viewport on the admin UI (not a native Detox/Maestro run).
 
-`Release` (`.github/workflows/release.yml`) is **manual**. It tags Container images with a **git SHA** (not `:latest` as the sole tag), updates Java/BFF/Flyway to that tag, starts the Flyway job, and optionally uploads `apps/web/dist`. Without `P0-01` Azure OIDC/ACR secrets the workflow skips Azure and exits 0. Rollback is re-running Release with a previous SHA.
+`Release` (`.github/workflows/release.yml`) is **manual**. Rollback is re-running it with a previous git SHA. Details: [docs/RUNBOOK.md](docs/RUNBOOK.md).
 
 ```bash
 make ci
@@ -153,5 +153,5 @@ services/backend     Spring Boot
 packages/            shared TS packages
 contracts/           OpenAPI
 infra/               Bicep (Phase 3)
-docs/                spec, tasks, decisions, handoff
+docs/                spec, tasks, decisions, handoff, runbook
 ```
