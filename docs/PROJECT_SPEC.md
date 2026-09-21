@@ -93,7 +93,7 @@ packages/api-client  generated TS clients
 packages/shared      portable schemas/formatting
 contracts/           OpenAPI
 infra/               Bicep including Static Web App (P3-05; not deployed)
-docs/                this tracker
+docs/                spec, tasks, decisions, handoff, runbook
 compose.yaml         local PostgreSQL
 ```
 
