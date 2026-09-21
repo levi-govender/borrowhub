@@ -4,22 +4,20 @@ A new session should continue from here without reconstructing chat history.
 
 ## Current
 
-- Phase: 1 local vertical slice
-- Branch: `feature/p1-04-mobile-catalogue`
-- Task: `P1-04` mobile list/detail — DONE
+- Phase: 1 local vertical slice — catalogue path complete (P1-01–P1-05)
+- Branch: `feature/p1-05-web-inventory`
+- Task: `P1-05` web inventory list — DONE
 
 ## What changed
 
-- Employee app catalogue: search, category chips, reset, loading/empty/error/retry
-- Detail: description, booking policy, availability check for tomorrow 09:00–12:00 office time
-- Client calls BFF only (`/api/v1/equipment`)
+- Admin Vite app loads `/api/v1/equipment` into a labelled table (search, category, pagination, loading/empty/error/retry)
+- Same seeded assets as mobile/Java via the BFF
 
 ## Verification
 
-`pnpm --filter @borrowhub/mobile typecheck` and `pnpm --filter @borrowhub/mobile test`
-
-Expo was not run on a device this session. Use `make backend`, `make bff`, `make mobile` after merge.
+- `pnpm --filter @borrowhub/web typecheck|test|build`
+- Playwright: 10 assets including MONITOR-001; search `PHONE-001` → Pixel test phone
 
 ## Next
 
-After merge: `feature/p1-05-web-inventory` from updated `main`.
+After merge: Phase 2 starts with `feature/p2-01-reservation-transaction`. `P0-01` (Azure tenancy) and `P0-02` (frontend spike) remain open.
