@@ -20,3 +20,72 @@ paths:
       responses:
         "200":
           description: Ready to serve
+  /v1/equipment:
+    get:
+      summary: Employee catalogue
+      operationId: listEquipment
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        "200":
+          description: Paginated equipment; archived assets are omitted
+  /v1/equipment/{id}:
+    get:
+      summary: Equipment detail
+      operationId: getEquipment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Asset detail and booking policy
+        "404":
+          description: Missing or archived
+  /v1/equipment/{id}/availability:
+    get:
+      summary: Time-window availability
+      operationId: getEquipmentAvailability
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: startAt
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: endAt
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: available is not a booking guarantee; creation revalidates

@@ -5,32 +5,20 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: 1 local vertical slice
-- Branch: `feature/p1-01-flyway-schema`
-- Task: `P1-01` (schema + Flyway)
+- Branch: `feature/p1-02-java-catalogue`
+- Task: `P1-02` Java catalogue — DONE
 
 ## What changed
 
-- Flyway `V001__initial_schema.sql`: users, equipment, bookings, audit, idempotency
-- Spring JDBC + Flyway against local Compose Postgres
-- Testcontainers Postgres tests for migration + checked-out unique index
-- `make db-up` waits for healthy Postgres; `make db-psql` opens a shell
+- `GET /v1/equipment` (search, category, pagination), `GET /v1/equipment/{id}`, `GET /v1/equipment/{id}/availability`
+- Archived assets are omitted / 404 for this employee catalogue
+- Dev profile seeds 10 assets (`make backend` sets `SPRING_PROFILES_ACTIVE=dev`)
+- Availability uses half-open overlap against RESERVED and CHECKED_OUT; ACTIVE-only
 
-## Verification performed
+## Verification
 
-| Check | Result |
-| --- | --- |
-| `cd services/backend && ./gradlew test` | pass (Docker/Testcontainers) |
-| `make db-up` then backend Flyway | `Migrating schema "public" to version "001 - initial schema"` |
-| `docker compose exec postgres psql … \dt` | five domain tables + flyway_schema_history |
-
-`make backend` then hit port 8080 failed in this session because 8080 was already in use; Flyway had already applied successfully.
-
-## Unresolved
-
-- `P0-01` tenancy/budget/region
-- `P0-02` frontend spike
-- Seed assets not in Flyway (dev seed comes with catalogue)
+`cd services/backend && ./gradlew test` — pass (includes `EquipmentCatalogueTest`)
 
 ## Next
 
-After merge: `feature/p1-02-java-catalogue` from updated `main`.
+After merge: `feature/p1-03-bff-catalogue` from updated `main`.
