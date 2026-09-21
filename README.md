@@ -132,7 +132,7 @@ Cloud UI tests (`apps/web/e2e/cloud.spec.ts`) skip unless `CLOUD_WEB_URL` is set
 make ci
 ```
 
-Employee app (Expo). Catalogue talks to the BFF (`EXPO_PUBLIC_BFF_BASE_URL`). Local defaults: iOS `localhost`, Android emulator `10.0.2.2`. For a physical device or cloud BFF, copy `apps/mobile/.env.example` and set the URL (HTTPS for Azure). Preview builds: `apps/mobile/eas.json` (no Expo project ID until an operator creates one).
+Employee app (Expo). Catalogue and **Reserve this window** talk to the BFF (`EXPO_PUBLIC_BFF_BASE_URL`). Local defaults: iOS `localhost`, Android emulator `10.0.2.2`. Sign in first so `X-Demo-Object-Id` is sent; each reserve uses a UUID `Idempotency-Key`. For a physical device or cloud BFF, copy `apps/mobile/.env.example` and set the URL (HTTPS for Azure). Preview builds: `apps/mobile/eas.json` (no Expo project ID until an operator creates one).
 
 ```bash
 make db-up

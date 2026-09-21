@@ -5,20 +5,21 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: MVP product
-- Branch: `feature/mvp-01-sign-in-profile`
-- Task: `MVP-01` Sign-in and profile — DONE (local demo identity; Entra still P0-01)
+- Branch: `feature/mvp-03-create-reservation`
+- Task: `MVP-03` Create reservation — DONE (mobile POST via BFF; Java still owns overlap)
 
 ## What changed
 
-- Admin web: Sign in (demo object id + role), profile line, Sign out
-- Employee mobile: Sign in, Profile screen via catalogue, Sign out
-- APIs send `X-Demo-Object-Id` from that session. Playwright local specs sign in as `admin-1` first
+- Mobile `createBooking` posts `{ equipmentId, startAt, endAt }` with UUID `Idempotency-Key` and session `X-Demo-Object-Id`
+- Detail screen **Reserve this window** (same tomorrow 07:00–10:00 UTC window as availability check); confirmation shows booking id and status
+- Inactive equipment cannot reserve from the UI
 
 ## Verification
 
-- Web/mobile unit tests and typecheck; web production build
-- Playwright not re-run in this slice (CI Playwright job will cover sign-in)
+- `pnpm --filter @borrowhub/mobile test` — 6 passed
+- `pnpm --filter @borrowhub/mobile typecheck`
+- Expo UI not launched this slice
 
 ## Next
 
-After merge: `MVP-03` create reservation on mobile (catalogue already exists). `P0-01` and `P0-02` remain open.
+After merge: `MVP-04` my bookings / cancel on mobile. `P0-01` and `P0-02` remain open. `MVP-02` catalogue polish still TODO.

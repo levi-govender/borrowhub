@@ -4,6 +4,7 @@ import {
   CatalogueApiError,
   defaultAvailabilityWindow,
   type Availability,
+  type Booking,
   type CatalogueApi,
   type EquipmentDetail,
 } from "../api";
@@ -19,6 +20,8 @@ export function DetailScreen({ api, id, onBack }: Props) {
   const [availability, setAvailability] = useState<Availability | null>(null);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
+  const [reserving, setReserving] = useState(false);
+  const [booking, setBooking] = useState<Booking | null>(null);
   const [error, setError] = useState<string | null>(null);
   const window = defaultAvailabilityWindow();
 
@@ -26,6 +29,7 @@ export function DetailScreen({ api, id, onBack }: Props) {
     setLoading(true);
     setError(null);
     setAvailability(null);
+    setBooking(null);
     try {
       setDetail(await api.get(id));
     } catch (caught) {
@@ -50,6 +54,19 @@ export function DetailScreen({ api, id, onBack }: Props) {
       setError(caught instanceof CatalogueApiError ? caught.message : "Could not check availability.");
     } finally {
       setChecking(false);
+    }
+  };
+
+  const reserve = async () => {
+    setReserving(true);
+    setError(null);
+    try {
+      setBooking(await api.createBooking({ equipmentId: id, startAt: window.startAt, endAt: window.endAt }));
+    } catch (caught) {
+      setBooking(null);
+      setError(caught instanceof CatalogueApiError ? caught.message : "Could not create the reservation.");
+    } finally {
+      setReserving(false);
     }
   };
 
@@ -102,6 +119,27 @@ export function DetailScreen({ api, id, onBack }: Props) {
               {availability.available
                 ? "That window looks free."
                 : `Not available (${availability.reason ?? "conflict"}).`}
+            </Text>
+          ) : null}
+          <Text style={styles.section}>Reserve</Text>
+          <Text style={styles.body}>
+            Creates a RESERVED booking for the same window. Java re-checks overlap. Requires you to be signed in
+            (demo object id).
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Reserve this window"
+            onPress={() => void reserve()}
+            style={styles.button}
+            disabled={reserving || detail.operationalStatus !== "ACTIVE"}
+          >
+            <Text style={styles.buttonLabel}>
+              {reserving ? "Reserving…" : "Reserve this window"}
+            </Text>
+          </Pressable>
+          {booking ? (
+            <Text style={styles.body} accessibilityLiveRegion="polite">
+              Reserved. Booking {booking.id} is {booking.status}.
             </Text>
           ) : null}
           {error ? <Text style={styles.body}>{error}</Text> : null}

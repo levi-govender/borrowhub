@@ -70,7 +70,7 @@ Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
 | --- | --- | --- |
 | MVP-01 | Sign-in and profile | DONE | Evidence 2026-09-21: web/mobile typecheck; `pnpm --filter @borrowhub/web test` (5); mobile tests (5, including `/me` demo header); `pnpm --filter @borrowhub/web build`. Demo object-id sign-in + profile/sign-out. Entra PKCE still `P0-01`. Playwright sign-in steps added; not re-run locally this slice. |
 | MVP-02 | Catalogue | TODO | Mobile list/detail exists (P1-04); remaining polish after sign-in. |
-| MVP-03 | Create reservation | TODO |
+| MVP-03 | Create reservation | DONE | Evidence 2026-09-21: `pnpm --filter @borrowhub/mobile test` (6, including POST `/api/v1/bookings` + `Idempotency-Key` + demo object id) and `typecheck` pass. Detail screen **Reserve this window** shows booking id/status. Native UI not run in Expo this slice. Java overlap still owns the write. |
 | MVP-04 | My bookings/cancel | TODO |
 | MVP-05 | Collection/return | TODO |
 | MVP-06 | Admin inventory | TODO | Web inventory exists (P2-05); remaining polish after sign-in. |
