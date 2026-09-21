@@ -20,9 +20,10 @@ type Props = {
   api: CatalogueApi;
   onOpen: (id: string) => void;
   onOpenProfile?: () => void;
+  onOpenBookings?: () => void;
 };
 
-export function CatalogueScreen({ api, onOpen, onOpenProfile }: Props) {
+export function CatalogueScreen({ api, onOpen, onOpenProfile, onOpenBookings }: Props) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | undefined>();
   const [items, setItems] = useState<EquipmentListItem[]>([]);
@@ -65,6 +66,11 @@ export function CatalogueScreen({ api, onOpen, onOpenProfile }: Props) {
       <Text style={styles.eyebrow} accessibilityRole="header">
         BorrowHub · catalogue
       </Text>
+      {onOpenBookings ? (
+        <Pressable accessibilityRole="button" onPress={onOpenBookings}>
+          <Text style={styles.profile}>My bookings</Text>
+        </Pressable>
+      ) : null}
       {onOpenProfile ? (
         <Pressable accessibilityRole="button" onPress={onOpenProfile}>
           <Text style={styles.profile}>Profile</Text>

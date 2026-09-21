@@ -4,6 +4,7 @@ import { Platform, SafeAreaView, StyleSheet } from "react-native";
 import { createCatalogueApi, resolveBffBaseUrl } from "./src/api";
 import { CatalogueScreen } from "./src/screens/CatalogueScreen";
 import { DetailScreen } from "./src/screens/DetailScreen";
+import { MyBookingsScreen } from "./src/screens/MyBookingsScreen";
 import { ProfileScreen } from "./src/screens/ProfileScreen";
 import { SignInScreen } from "./src/screens/SignInScreen";
 
@@ -11,6 +12,7 @@ export default function App() {
   const [objectId, setObjectId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [showBookings, setShowBookings] = useState(false);
   const api = useMemo(
     () =>
       createCatalogueApi(
@@ -31,14 +33,22 @@ export default function App() {
           onBack={() => setShowProfile(false)}
           onSignOut={() => {
             setShowProfile(false);
+            setShowBookings(false);
             setSelectedId(null);
             setObjectId(null);
           }}
         />
+      ) : showBookings ? (
+        <MyBookingsScreen api={api} onBack={() => setShowBookings(false)} />
       ) : selectedId ? (
         <DetailScreen api={api} id={selectedId} onBack={() => setSelectedId(null)} />
       ) : (
-        <CatalogueScreen api={api} onOpen={setSelectedId} onOpenProfile={() => setShowProfile(true)} />
+        <CatalogueScreen
+          api={api}
+          onOpen={setSelectedId}
+          onOpenProfile={() => setShowProfile(true)}
+          onOpenBookings={() => setShowBookings(true)}
+        />
       )}
       <StatusBar style="auto" />
     </SafeAreaView>
