@@ -66,7 +66,7 @@ BFF routes: `/api/v1/mobile/*` and `/api/v1/admin/*` on one deployment. BFF has 
 
 ## Data
 
-Tables: `AppUser`, `Equipment`, `Booking`, `AuditEvent`, `IdempotencyRecord`.
+Tables (SQL): `app_user`, `equipment`, `booking`, `audit_event`, `idempotency_record`. Flyway: `services/backend/src/main/resources/db/migration/V001__initial_schema.sql`.
 
 Booking states: `RESERVED` → `CHECKED_OUT` | `CANCELLED`; `CHECKED_OUT` → `RETURNED`. Terminal: `RETURNED`, `CANCELLED`.
 

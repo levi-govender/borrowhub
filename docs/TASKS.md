@@ -21,7 +21,7 @@ Exit: both apps show the same seeded asset through BFF and Java. Local demo auth
 
 | ID | Title | Status |
 | --- | --- | --- |
-| P1-01 | Database schema and Flyway | TODO |
+| P1-01 | Database schema and Flyway | DONE | Evidence 2026-09-21: `./gradlew test` pass (Testcontainers Postgres 16). Compose: Flyway `V001` applied; `\dt` shows app_user, equipment, booking, audit_event, idempotency_record; partial unique index `booking_one_checked_out_per_equipment` present. |
 | P1-02 | Java catalogue | TODO |
 | P1-03 | BFF catalogue | TODO |
 | P1-04 | Mobile list/detail | TODO |

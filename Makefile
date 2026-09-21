@@ -12,7 +12,7 @@ BFF_URL := http://127.0.0.1:3000
 JAVA_URL := http://127.0.0.1:8080
 WEB_URL := http://127.0.0.1:5173
 
-.PHONY: help install db-up db-down db-logs db-reset \
+.PHONY: help install db-up db-down db-logs db-reset db-psql \
 	bff backend web mobile \
 	typecheck test test-backend build \
 	health clean
@@ -24,8 +24,8 @@ help: ## Show this help
 install: ## Install JS workspace dependencies (pnpm)
 	$(PNPM) install
 
-db-up: ## Start local PostgreSQL
-	$(COMPOSE) up -d
+db-up: ## Start local PostgreSQL and wait until healthy
+	$(COMPOSE) up -d --wait
 
 db-down: ## Stop local PostgreSQL (keep volume)
 	$(COMPOSE) down
@@ -35,6 +35,9 @@ db-logs: ## Tail PostgreSQL logs
 
 db-reset: ## Stop PostgreSQL and delete the named volume
 	$(COMPOSE) down -v
+
+db-psql: ## Open psql in the Compose Postgres container
+	$(COMPOSE) exec postgres psql -U borrowhub -d borrowhub
 
 bff: ## Run the TypeScript BFF on :3000
 	$(PNPM) dev:bff
