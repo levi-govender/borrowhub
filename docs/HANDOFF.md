@@ -4,23 +4,23 @@ A new session should continue from here without reconstructing chat history.
 
 ## Current
 
-- Phase: 3 identity and cloud foundation — Docker images (P3-02)
-- Branch: `feature/p3-02-docker-images`
-- Task: `P3-02` Docker images — DONE
+- Phase: 3 identity and cloud foundation — Bicep (P3-03)
+- Branch: `feature/p3-03-bicep-foundation`
+- Task: `P3-03` Bicep network/data/identity foundation — DONE (compile only)
 
 ## What changed
 
-- `services/backend/Dockerfile` (Java 21 JRE, bootJar, non-root)
-- `services/bff/Dockerfile` (Node 22, pnpm 10.28, `pnpm deploy --legacy`)
-- Compose profile `apps` runs backend + BFF against Postgres; `make db-up` still starts Postgres only
-- Local `docker-up` uses Spring `dev` profile so the container can start without an Entra JWT issuer. Cloud must set issuer (demo identity stays off in the image default)
+- `infra/main.bicep` plus modules: network, identity, registry, secrets, monitoring, database
+- Private PostgreSQL 16 Flexible Server (`DEC-06`), ACR, UAMI, Key Vault, Log Analytics
+- `make bicep-build` compiles with Azure CLI or the `mcr.microsoft.com/azure-cli` image
+- Container Apps remain P3-04
 
 ## Verification
 
-- `make docker-up` — containers healthy
-- `make health` — BFF `ok`, Java `UP`
-- `GET http://127.0.0.1:3000/api/v1/equipment?pageSize=1` returned catalogue JSON
+- Host has no `az` on PATH
+- `make bicep-build` pulled/used `mcr.microsoft.com/azure-cli:latest` and compiled with no BCP errors
+- `infra/main.json` emitted (gitignored); not an Azure deployment
 
 ## Next
 
-After merge: `feature/p3-03-bicep-foundation`. `P0-01` and `P0-02` remain open.
+After merge: `feature/p3-04-container-apps`. `P0-01` and `P0-02` remain open.

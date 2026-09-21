@@ -179,6 +179,7 @@ docker-compose.override.yml
 # --- Azure / Bicep / infra local ---
 .azure/
 *.bicepparam.local
+infra/main.json
 az.sess.json
 
 # --- Test / browser automation ---

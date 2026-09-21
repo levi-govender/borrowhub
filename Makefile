@@ -16,6 +16,7 @@ WEB_URL := http://127.0.0.1:5173
 	bff backend web mobile \
 	typecheck test test-backend test-bff test-mobile test-web build \
 	docker-build docker-up docker-down \
+	bicep-build \
 	health clean
 
 help: ## Show this help
@@ -83,6 +84,16 @@ docker-up: ## Run Postgres, Java, and BFF from container images
 
 docker-down: ## Stop Compose services including app containers (keep volume)
 	$(COMPOSE) --profile apps down
+
+bicep-build: ## Compile infra/main.bicep (az CLI, or Azure CLI container if az is missing)
+	@if command -v az >/dev/null 2>&1; then \
+		az bicep build --file infra/main.bicep; \
+	elif command -v docker >/dev/null 2>&1; then \
+		docker run --rm -v "$(CURDIR)/infra:/infra" -w /infra mcr.microsoft.com/azure-cli:latest az bicep build --file main.bicep; \
+	else \
+		echo "Neither az nor docker is available to compile Bicep." >&2; \
+		exit 1; \
+	fi
 
 health: ## Curl local BFF and Java health endpoints
 	@echo "BFF live:"; curl -sfS $(BFF_URL)/health/live; echo
