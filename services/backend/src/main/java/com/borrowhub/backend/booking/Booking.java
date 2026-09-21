@@ -111,9 +111,10 @@ public class Booking {
 		return createdAt;
 	}
 
-	public void cancel(Instant at) {
+	public void cancel(Instant at, String reason) {
 		this.status = BookingStatus.CANCELLED;
 		this.cancelledAt = at;
+		this.cancellationReason = reason;
 		this.updatedAt = at;
 	}
 

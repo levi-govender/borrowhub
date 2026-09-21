@@ -265,7 +265,7 @@ public class BookingService {
 		if (!now.isBefore(booking.getStartAt())) {
 			throw ApiException.conflict("TOO_LATE_TO_CANCEL", "A reservation can only be cancelled before it starts.");
 		}
-		booking.cancel(now);
+		booking.cancel(now, null);
 		bookingRepository.save(booking);
 		Map<String, Object> summary = new LinkedHashMap<>();
 		summary.put("status", BookingStatus.CANCELLED.name());

@@ -121,6 +121,42 @@ export function createBackendClient(options: BackendClientOptions) {
         extraHeaders,
       });
     },
+    listAdminEquipment(search: URLSearchParams, extraHeaders: Record<string, string>, correlationId: string) {
+      return request("/v1/admin/equipment", search, correlationId, { extraHeaders });
+    },
+    getAdminEquipment(id: string, extraHeaders: Record<string, string>, correlationId: string) {
+      return request(`/v1/admin/equipment/${id}`, new URLSearchParams(), correlationId, { extraHeaders });
+    },
+    createAdminEquipment(body: unknown, extraHeaders: Record<string, string>, correlationId: string) {
+      return request("/v1/admin/equipment", new URLSearchParams(), correlationId, {
+        method: "POST",
+        body,
+        extraHeaders,
+      });
+    },
+    updateAdminEquipment(id: string, body: unknown, extraHeaders: Record<string, string>, correlationId: string) {
+      return request(`/v1/admin/equipment/${id}`, new URLSearchParams(), correlationId, {
+        method: "PATCH",
+        body,
+        extraHeaders,
+      });
+    },
+    adminSummary(extraHeaders: Record<string, string>, correlationId: string) {
+      return request("/v1/admin/summary", new URLSearchParams(), correlationId, { extraHeaders });
+    },
+    listAdminBookings(search: URLSearchParams, extraHeaders: Record<string, string>, correlationId: string) {
+      return request("/v1/admin/bookings", search, correlationId, { extraHeaders });
+    },
+    getAdminBooking(id: string, extraHeaders: Record<string, string>, correlationId: string) {
+      return request(`/v1/admin/bookings/${id}`, new URLSearchParams(), correlationId, { extraHeaders });
+    },
+    adminCancelBooking(id: string, body: unknown, extraHeaders: Record<string, string>, correlationId: string) {
+      return request(`/v1/admin/bookings/${id}/cancel`, new URLSearchParams(), correlationId, {
+        method: "POST",
+        body,
+        extraHeaders,
+      });
+    },
     async ready(): Promise<boolean> {
       try {
         const response = await fetchImpl(`${base}/actuator/health/readiness`, {

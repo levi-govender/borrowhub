@@ -74,7 +74,19 @@ public class AuditEvent {
 		return action;
 	}
 
-	public UUID getEntityId() {
-		return entityId;
+	public Instant getOccurredAt() {
+		return occurredAt;
+	}
+
+	public AppUser getActor() {
+		return actor;
+	}
+
+	public Map<String, Object> getChangeSummary() {
+		return changeSummary;
+	}
+
+	public String getCorrelationId() {
+		return correlationId;
 	}
 }

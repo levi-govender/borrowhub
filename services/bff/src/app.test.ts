@@ -196,6 +196,87 @@ test("collects and returns a booking through Java", async () => {
   await app.close();
 });
 
+test("admin routes forward demo role and PATCH", async () => {
+  const equipmentId = "11111111-1111-4111-8111-111111111111";
+  const bookingId = "22222222-2222-4222-8222-222222222222";
+  const app = await buildApp({
+    fetchImpl: async (input, init) => {
+      const url = String(input);
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get("x-demo-object-id"), "admin-1");
+      assert.equal(headers.get("x-demo-role"), "ADMIN");
+      if (url.endsWith("/v1/admin/summary")) {
+        return new Response(JSON.stringify({ reserved: 1, checkedOut: 2, overdue: 1, activeEquipment: 10 }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (url.includes("/v1/admin/equipment") && (init?.method ?? "GET") === "GET" && !url.includes(equipmentId)) {
+        return new Response(JSON.stringify({ items: [{ id: equipmentId, operationalStatus: "ARCHIVED" }], total: 1 }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (url.endsWith(`/v1/admin/equipment/${equipmentId}`) && init?.method === "PATCH") {
+        return new Response(JSON.stringify({ id: equipmentId, operationalStatus: "MAINTENANCE" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (url.endsWith(`/v1/admin/bookings/${bookingId}/cancel`)) {
+        assert.equal(init?.method, "POST");
+        assert.equal(headers.get("idempotency-key"), "77777777-7777-4777-8777-777777777777");
+        assert.equal(init?.body, JSON.stringify({ reason: "Needed for repair" }));
+        return new Response(JSON.stringify({ id: bookingId, status: "CANCELLED" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      throw new Error(`unexpected ${init?.method} ${url}`);
+    },
+    javaBaseUrl: "http://java.test",
+  });
+  const summary = await app.inject({
+    method: "GET",
+    url: "/api/v1/admin/summary",
+    headers: { "x-demo-object-id": "admin-1", "x-demo-role": "ADMIN" },
+  });
+  assert.equal(summary.statusCode, 200);
+  assert.equal(summary.json().overdue, 1);
+  const list = await app.inject({
+    method: "GET",
+    url: "/api/v1/admin/equipment",
+    headers: { "x-demo-object-id": "admin-1", "x-demo-role": "ADMIN" },
+  });
+  assert.equal(list.statusCode, 200);
+  assert.equal(list.json().items[0].operationalStatus, "ARCHIVED");
+  const patch = await app.inject({
+    method: "PATCH",
+    url: `/api/v1/admin/equipment/${equipmentId}`,
+    headers: {
+      "x-demo-object-id": "admin-1",
+      "x-demo-role": "ADMIN",
+      "content-type": "application/json",
+    },
+    payload: { operationalStatus: "MAINTENANCE" },
+  });
+  assert.equal(patch.statusCode, 200);
+  const cancel = await app.inject({
+    method: "POST",
+    url: `/api/v1/admin/bookings/${bookingId}/cancel`,
+    headers: {
+      "x-demo-object-id": "admin-1",
+      "x-demo-role": "ADMIN",
+      "content-type": "application/json",
+      "idempotency-key": "77777777-7777-4777-8777-777777777777",
+    },
+    payload: { reason: "Needed for repair" },
+  });
+  assert.equal(cancel.statusCode, 200);
+  assert.equal(cancel.json().status, "CANCELLED");
+  await app.close();
+});
+
 test("readiness fails when Java is down", async () => {
   const app = await buildApp({
     fetchImpl: async () => {

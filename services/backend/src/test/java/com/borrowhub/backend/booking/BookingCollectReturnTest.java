@@ -13,6 +13,7 @@ import com.borrowhub.backend.equipment.OperationalStatus;
 import com.borrowhub.backend.idempotency.IdempotencyRecordRepository;
 import com.borrowhub.backend.identity.AppUser;
 import com.borrowhub.backend.identity.AppUserRepository;
+import com.borrowhub.backend.identity.UserRole;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,9 +63,21 @@ class BookingCollectReturnTest extends PostgresIntegrationTest {
 				OperationalStatus.ACTIVE,
 				now));
 		owner = appUserRepository.save(new AppUser(
-				UUID.randomUUID(), "dev-tenant", "employee-a", "employee-a", "employee-a@demo.borrowhub.local", now));
+				UUID.randomUUID(),
+				"dev-tenant",
+				"employee-a",
+				"employee-a",
+				"employee-a@demo.borrowhub.local",
+				UserRole.EMPLOYEE,
+				now));
 		other = appUserRepository.save(new AppUser(
-				UUID.randomUUID(), "dev-tenant", "employee-b", "employee-b", "employee-b@demo.borrowhub.local", now));
+				UUID.randomUUID(),
+				"dev-tenant",
+				"employee-b",
+				"employee-b",
+				"employee-b@demo.borrowhub.local",
+				UserRole.EMPLOYEE,
+				now));
 	}
 
 	@Test

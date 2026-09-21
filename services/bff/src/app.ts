@@ -43,6 +43,10 @@ function demoHeaders(request: FastifyRequest): Record<string, string> {
   if (typeof tenantId === "string" && tenantId.length > 0) {
     headers["x-demo-tenant-id"] = tenantId;
   }
+  const role = request.headers["x-demo-role"];
+  if (typeof role === "string" && role.length > 0) {
+    headers["x-demo-role"] = role;
+  }
   return headers;
 }
 
@@ -114,10 +118,10 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
 
   app.options("/*", async (request, reply) => {
     applyCors(reply, request.headers.origin, allowedWebOrigins);
-    reply.header("access-control-allow-methods", "GET,POST,OPTIONS");
+    reply.header("access-control-allow-methods", "GET,POST,PATCH,OPTIONS");
     reply.header(
       "access-control-allow-headers",
-      "content-type,x-correlation-id,authorization,x-demo-object-id,x-demo-tenant-id,idempotency-key",
+      "content-type,x-correlation-id,authorization,x-demo-object-id,x-demo-tenant-id,x-demo-role,idempotency-key",
     );
     return reply.status(204).send();
   });
@@ -320,6 +324,145 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
     headers["idempotency-key"] = idempotencyKey;
     try {
       return await backend.returnBooking(id, headers, traceId);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
+  app.get("/api/v1/admin/summary", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    try {
+      return await backend.adminSummary(demoHeaders(request), traceId);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
+  app.get("/api/v1/admin/equipment", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    const query = request.query as Record<string, string | undefined>;
+    const search = new URLSearchParams();
+    for (const key of ["query", "category", "page", "pageSize"] as const) {
+      const value = query[key];
+      if (value) {
+        search.set(key, value);
+      }
+    }
+    try {
+      return await backend.listAdminEquipment(search, demoHeaders(request), traceId);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
+  app.get("/api/v1/admin/equipment/:id", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    const { id } = request.params as { id: string };
+    if (!UUID_PATTERN.test(id)) {
+      return reply.status(400).send({
+        code: "VALIDATION_ERROR",
+        message: "id must be a UUID.",
+        traceId,
+        fieldErrors: { id: "uuid" },
+      });
+    }
+    try {
+      return await backend.getAdminEquipment(id, demoHeaders(request), traceId);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
+  app.post("/api/v1/admin/equipment", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    try {
+      const body = await backend.createAdminEquipment(request.body, demoHeaders(request), traceId);
+      return reply.status(201).send(body);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
+  app.patch("/api/v1/admin/equipment/:id", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    const { id } = request.params as { id: string };
+    if (!UUID_PATTERN.test(id)) {
+      return reply.status(400).send({
+        code: "VALIDATION_ERROR",
+        message: "id must be a UUID.",
+        traceId,
+        fieldErrors: { id: "uuid" },
+      });
+    }
+    try {
+      return await backend.updateAdminEquipment(id, request.body, demoHeaders(request), traceId);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
+  app.get("/api/v1/admin/bookings", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    const query = request.query as Record<string, string | undefined>;
+    const search = new URLSearchParams();
+    for (const key of ["query", "status", "overdue", "page", "pageSize"] as const) {
+      const value = query[key];
+      if (value) {
+        search.set(key, value);
+      }
+    }
+    try {
+      return await backend.listAdminBookings(search, demoHeaders(request), traceId);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
+  app.get("/api/v1/admin/bookings/:id", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    const { id } = request.params as { id: string };
+    if (!UUID_PATTERN.test(id)) {
+      return reply.status(400).send({
+        code: "VALIDATION_ERROR",
+        message: "id must be a UUID.",
+        traceId,
+        fieldErrors: { id: "uuid" },
+      });
+    }
+    try {
+      return await backend.getAdminBooking(id, demoHeaders(request), traceId);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
+  app.post("/api/v1/admin/bookings/:id/cancel", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    const { id } = request.params as { id: string };
+    if (!UUID_PATTERN.test(id)) {
+      return reply.status(400).send({
+        code: "VALIDATION_ERROR",
+        message: "id must be a UUID.",
+        traceId,
+        fieldErrors: { id: "uuid" },
+      });
+    }
+    const headers = demoHeaders(request);
+    const idempotencyKey = requireIdempotencyKey(request, reply, traceId);
+    if (!idempotencyKey) {
+      return;
+    }
+    headers["idempotency-key"] = idempotencyKey;
+    try {
+      return await backend.adminCancelBooking(id, request.body, headers, traceId);
     } catch (error) {
       return sendBackendError(reply, error, traceId);
     }

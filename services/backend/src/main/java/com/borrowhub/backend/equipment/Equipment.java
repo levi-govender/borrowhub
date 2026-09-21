@@ -96,7 +96,20 @@ public class Equipment {
 		return operationalStatus;
 	}
 
-	public long getVersion() {
-		return version;
+	public void apply(
+			String assetTag,
+			String name,
+			String category,
+			String description,
+			String location,
+			OperationalStatus status,
+			Instant now) {
+		this.assetTag = assetTag;
+		this.name = name;
+		this.category = category;
+		this.description = description;
+		this.location = location;
+		this.operationalStatus = status;
+		this.updatedAt = now;
 	}
 }

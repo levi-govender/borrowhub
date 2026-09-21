@@ -59,6 +59,13 @@ make bff
 # POST http://localhost:3000/api/v1/bookings/{id}/cancel  (Idempotency-Key)
 # POST http://localhost:3000/api/v1/bookings/{id}/collect (Idempotency-Key)
 # POST http://localhost:3000/api/v1/bookings/{id}/return  (Idempotency-Key)
+# GET  http://localhost:3000/api/v1/admin/summary           (X-Demo-Object-Id, X-Demo-Role: ADMIN)
+# GET  http://localhost:3000/api/v1/admin/equipment
+# POST http://localhost:3000/api/v1/admin/equipment
+# PATCH http://localhost:3000/api/v1/admin/equipment/{id}
+# GET  http://localhost:3000/api/v1/admin/bookings?overdue=true
+# GET  http://localhost:3000/api/v1/admin/bookings/{id}
+# POST http://localhost:3000/api/v1/admin/bookings/{id}/cancel  (Idempotency-Key, body { reason })
 # make health
 ```
 
@@ -75,9 +82,13 @@ make backend
 # POST http://localhost:8080/v1/bookings/{id}/cancel
 # POST http://localhost:8080/v1/bookings/{id}/collect
 # POST http://localhost:8080/v1/bookings/{id}/return
+# GET  http://localhost:8080/v1/admin/summary
+# GET  http://localhost:8080/v1/admin/equipment
+# GET  http://localhost:8080/v1/admin/bookings
+# POST http://localhost:8080/v1/admin/bookings/{id}/cancel
 ```
 
-Admin web inventory (http://localhost:5173):
+Admin web (http://localhost:5173) — dashboard, inventory (including archived), bookings, overdue, audit:
 
 ```bash
 make db-up
@@ -85,6 +96,8 @@ make backend
 make bff
 make web
 ```
+
+Local admin requests send `X-Demo-Object-Id: admin-1` and `X-Demo-Role: ADMIN`. Java rejects employees with `403 FORBIDDEN`.
 
 Employee app (Expo). Catalogue talks to the BFF (`EXPO_PUBLIC_BFF_BASE_URL`, default localhost / Android emulator `10.0.2.2`):
 

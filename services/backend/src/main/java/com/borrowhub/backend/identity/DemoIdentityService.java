@@ -7,7 +7,10 @@ import java.util.UUID;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Service
 public class DemoIdentityService {
@@ -26,6 +29,7 @@ public class DemoIdentityService {
 		this.appUserRepository = appUserRepository;
 		this.clock = clock;
 		this.transactionTemplate = new TransactionTemplate(transactionManager);
+		this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 	}
 
 	public AppUser requireUser(String tenantIdHeader, String objectIdHeader) {
@@ -39,12 +43,30 @@ public class DemoIdentityService {
 				? properties.defaultTenantId()
 				: tenantIdHeader.trim();
 		String objectId = objectIdHeader.trim();
-		return appUserRepository
+		UserRole role = parseRole(currentRoleHeader());
+		AppUser user = appUserRepository
 				.findByTenantIdAndObjectId(tenantId, objectId)
-				.orElseGet(() -> createOrLoad(tenantId, objectId));
+				.orElseGet(() -> createOrLoad(tenantId, objectId, role));
+		if (user.getRole() != role) {
+			UUID userId = user.getId();
+			user = transactionTemplate.execute(status -> {
+				AppUser managed = appUserRepository.findById(userId).orElseThrow();
+				managed.setRole(role);
+				return appUserRepository.save(managed);
+			});
+		}
+		return user;
 	}
 
-	private AppUser createOrLoad(String tenantId, String objectId) {
+	public AppUser requireAdmin(String tenantIdHeader, String objectIdHeader) {
+		AppUser user = requireUser(tenantIdHeader, objectIdHeader);
+		if (!user.isAdmin()) {
+			throw ApiException.forbidden("Administrator access is required.");
+		}
+		return user;
+	}
+
+	private AppUser createOrLoad(String tenantId, String objectId, UserRole role) {
 		try {
 			return transactionTemplate.execute(status -> appUserRepository.saveAndFlush(new AppUser(
 					UUID.randomUUID(),
@@ -52,6 +74,7 @@ public class DemoIdentityService {
 					objectId,
 					objectId,
 					objectId + "@demo.borrowhub.local",
+					role,
 					Instant.now(clock))));
 		}
 		catch (RuntimeException ex) {
@@ -60,6 +83,25 @@ public class DemoIdentityService {
 			}
 			return appUserRepository.findByTenantIdAndObjectId(tenantId, objectId).orElseThrow(() -> ex);
 		}
+	}
+
+	private static UserRole parseRole(String header) {
+		if (header == null || header.isBlank()) {
+			return UserRole.EMPLOYEE;
+		}
+		try {
+			return UserRole.valueOf(header.trim().toUpperCase());
+		}
+		catch (IllegalArgumentException ex) {
+			throw ApiException.badRequest("VALIDATION_ERROR", "X-Demo-Role must be EMPLOYEE or ADMIN.");
+		}
+	}
+
+	private static String currentRoleHeader() {
+		if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes) {
+			return attributes.getRequest().getHeader("X-Demo-Role");
+		}
+		return null;
 	}
 
 	private static boolean isUniqueConstraint(Throwable error) {
