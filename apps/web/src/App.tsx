@@ -7,6 +7,7 @@ import {
   type BookingDetail,
   type BookingListItem,
   type EquipmentListItem,
+  type Me,
   type OperationalStatus,
 } from "./api";
 
@@ -31,6 +32,7 @@ export function App() {
   const api = useMemo(() => createInventoryApi(resolveBffBaseUrl()), []);
   const [tab, setTab] = useState<Tab>("dashboard");
   const [summary, setSummary] = useState<AdminSummary | null>(null);
+  const [me, setMe] = useState<Me | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
 
@@ -61,9 +63,12 @@ export function App() {
     setSummaryLoading(true);
     setSummaryError(null);
     try {
-      setSummary(await api.summary());
+      const [nextSummary, nextMe] = await Promise.all([api.summary(), api.me()]);
+      setSummary(nextSummary);
+      setMe(nextMe);
     } catch (caught) {
       setSummary(null);
+      setMe(null);
       setSummaryError(caught instanceof InventoryApiError ? caught.message : "Could not load the dashboard.");
     } finally {
       setSummaryLoading(false);
@@ -136,7 +141,10 @@ export function App() {
     <main className="inventory">
       <p className="eyebrow">BorrowHub · admin</p>
       <h1>Office dashboard</h1>
-      <p>Local demo identity uses <code>X-Demo-Role: ADMIN</code>. Java still enforces the role.</p>
+      <p>
+        Signed in as {me ? `${me.displayName} (${me.role})` : "…"}. Local demo identity uses{" "}
+        <code>X-Demo-Role: ADMIN</code>. Java still enforces the role.
+      </p>
       <nav className="tabs" aria-label="Admin sections">
         <button type="button" aria-current={tab === "dashboard" ? "page" : undefined} onClick={() => setTab("dashboard")}>
           Dashboard

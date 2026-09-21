@@ -81,6 +81,9 @@ export function createBackendClient(options: BackendClientOptions) {
   }
 
   return {
+    getMe(extraHeaders: Record<string, string>, correlationId: string) {
+      return request("/v1/me", new URLSearchParams(), correlationId, { extraHeaders });
+    },
     listEquipment(search: URLSearchParams, correlationId: string) {
       return request("/v1/equipment", search, correlationId);
     },

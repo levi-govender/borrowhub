@@ -13,7 +13,7 @@ import com.borrowhub.backend.idempotency.IdempotencyRecord;
 import com.borrowhub.backend.idempotency.IdempotencyRecordRepository;
 import com.borrowhub.backend.idempotency.RequestHash;
 import com.borrowhub.backend.identity.AppUser;
-import com.borrowhub.backend.identity.DemoIdentityService;
+import com.borrowhub.backend.identity.IdentityService;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -44,7 +44,7 @@ public class BookingService {
 	static final int DEFAULT_PAGE_SIZE = 20;
 	static final int MAX_PAGE_SIZE = 100;
 
-	private final DemoIdentityService demoIdentityService;
+	private final IdentityService identityService;
 	private final EquipmentRepository equipmentRepository;
 	private final BookingRepository bookingRepository;
 	private final AuditEventRepository auditEventRepository;
@@ -55,7 +55,7 @@ public class BookingService {
 	private final Duration idempotencyTtl;
 
 	public BookingService(
-			DemoIdentityService demoIdentityService,
+			IdentityService identityService,
 			EquipmentRepository equipmentRepository,
 			BookingRepository bookingRepository,
 			AuditEventRepository auditEventRepository,
@@ -64,7 +64,7 @@ public class BookingService {
 			Clock clock,
 			PlatformTransactionManager transactionManager,
 			@Value("${borrowhub.idempotency.ttl-hours:24}") int ttlHours) {
-		this.demoIdentityService = demoIdentityService;
+		this.identityService = identityService;
 		this.equipmentRepository = equipmentRepository;
 		this.bookingRepository = bookingRepository;
 		this.auditEventRepository = auditEventRepository;
@@ -77,7 +77,7 @@ public class BookingService {
 
 	public BookingResponse create(
 			String tenantIdHeader, String objectIdHeader, String idempotencyKeyHeader, CreateBookingRequest request) {
-		AppUser user = demoIdentityService.requireUser(tenantIdHeader, objectIdHeader);
+		AppUser user = identityService.requireUser(tenantIdHeader, objectIdHeader);
 		UUID key = parseIdempotencyKey(idempotencyKeyHeader);
 		String hash = RequestHash.forCreateBooking(request);
 		Optional<IdempotencyRecord> existing =
@@ -190,7 +190,7 @@ public class BookingService {
 
 	@Transactional(readOnly = true)
 	public PageResponse<BookingResponse> listMine(String tenantIdHeader, String objectIdHeader, Integer page, Integer pageSize) {
-		AppUser user = demoIdentityService.requireUser(tenantIdHeader, objectIdHeader);
+		AppUser user = identityService.requireUser(tenantIdHeader, objectIdHeader);
 		int resolvedPage = page == null ? DEFAULT_PAGE : page;
 		int resolvedSize = pageSize == null ? DEFAULT_PAGE_SIZE : pageSize;
 		if (resolvedPage < 1) {
@@ -217,7 +217,7 @@ public class BookingService {
 
 	@Transactional(readOnly = true)
 	public BookingResponse getMine(String tenantIdHeader, String objectIdHeader, UUID bookingId) {
-		AppUser user = demoIdentityService.requireUser(tenantIdHeader, objectIdHeader);
+		AppUser user = identityService.requireUser(tenantIdHeader, objectIdHeader);
 		Booking booking = requireOwned(bookingId, user.getId());
 		return BookingResponse.from(
 				booking, BookingActions.allowed(booking, Instant.now(clock), policy.collectionLeadMinutes()));
@@ -225,7 +225,7 @@ public class BookingService {
 
 	public BookingResponse cancel(
 			String tenantIdHeader, String objectIdHeader, String idempotencyKeyHeader, UUID bookingId) {
-		AppUser user = demoIdentityService.requireUser(tenantIdHeader, objectIdHeader);
+		AppUser user = identityService.requireUser(tenantIdHeader, objectIdHeader);
 		UUID key = parseIdempotencyKey(idempotencyKeyHeader);
 		String hash = RequestHash.forCancel(bookingId);
 		Optional<IdempotencyRecord> existing =
@@ -297,7 +297,7 @@ public class BookingService {
 
 	public BookingResponse collect(
 			String tenantIdHeader, String objectIdHeader, String idempotencyKeyHeader, UUID bookingId) {
-		AppUser user = demoIdentityService.requireUser(tenantIdHeader, objectIdHeader);
+		AppUser user = identityService.requireUser(tenantIdHeader, objectIdHeader);
 		UUID key = parseIdempotencyKey(idempotencyKeyHeader);
 		String hash = RequestHash.forCollect(bookingId);
 		Optional<IdempotencyRecord> existing =
@@ -321,7 +321,7 @@ public class BookingService {
 
 	public BookingResponse returnBooking(
 			String tenantIdHeader, String objectIdHeader, String idempotencyKeyHeader, UUID bookingId) {
-		AppUser user = demoIdentityService.requireUser(tenantIdHeader, objectIdHeader);
+		AppUser user = identityService.requireUser(tenantIdHeader, objectIdHeader);
 		UUID key = parseIdempotencyKey(idempotencyKeyHeader);
 		String hash = RequestHash.forReturn(bookingId);
 		Optional<IdempotencyRecord> existing =

@@ -18,6 +18,15 @@ export type EquipmentPage = {
   total: number;
 };
 
+export type Me = {
+  id: string;
+  tenantId: string;
+  objectId: string;
+  displayName: string;
+  email: string;
+  role: "EMPLOYEE" | "ADMIN";
+};
+
 export type AdminSummary = {
   reserved: number;
   checkedOut: number;
@@ -119,6 +128,9 @@ export function createInventoryApi(baseUrl: string, fetchImpl: FetchLike = fetch
   return {
     summary() {
       return request<AdminSummary>("/api/v1/admin/summary");
+    },
+    me() {
+      return request<Me>("/api/v1/me");
     },
     list(params: { query?: string; category?: string; page?: number; pageSize?: number } = {}) {
       const search = new URLSearchParams();

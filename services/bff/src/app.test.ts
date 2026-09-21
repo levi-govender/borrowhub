@@ -277,6 +277,87 @@ test("admin routes forward demo role and PATCH", async () => {
   await app.close();
 });
 
+test("exchanges a bearer token on behalf of the user", async () => {
+  const app = await buildApp({
+    fetchImpl: async (input, init) => {
+      const url = String(input);
+      if (url === "https://login.microsoftonline.com/tenant-a/oauth2/v2.0/token") {
+        assert.equal(init?.method, "POST");
+        const body = String(init?.body);
+        assert.match(body, /requested_token_use=on_behalf_of/);
+        assert.match(body, /assertion=user-token/);
+        return new Response(JSON.stringify({ access_token: "java-token" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (url.endsWith("/v1/me")) {
+        const headers = new Headers(init?.headers);
+        assert.equal(headers.get("authorization"), "Bearer java-token");
+        return new Response(JSON.stringify({ displayName: "Ada Admin", role: "ADMIN" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      throw new Error(`unexpected ${url}`);
+    },
+    javaBaseUrl: "http://java.test",
+    entraTenantId: "tenant-a",
+    entraBffClientId: "bff-client",
+    entraBffClientSecret: "bff-secret",
+    entraJavaScope: "api://java/.default",
+  });
+  const response = await app.inject({
+    method: "GET",
+    url: "/api/v1/me",
+    headers: { authorization: "Bearer user-token" },
+  });
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.json().role, "ADMIN");
+  await app.close();
+});
+
+test("returns 503 when a bearer token is sent without OBO config", async () => {
+  const app = await buildApp({
+    fetchImpl: async () => {
+      throw new Error("Java should not be called");
+    },
+    javaBaseUrl: "http://java.test",
+  });
+  const response = await app.inject({
+    method: "GET",
+    url: "/api/v1/me",
+    headers: { authorization: "Bearer user-token" },
+  });
+  assert.equal(response.statusCode, 503);
+  assert.equal(response.json().code, "IDENTITY_NOT_CONFIGURED");
+  await app.close();
+});
+
+test("loads demo me through Java", async () => {
+  const app = await buildApp({
+    fetchImpl: async (input, init) => {
+      assert.match(String(input), /\/v1\/me$/);
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get("x-demo-object-id"), "admin-1");
+      assert.equal(headers.get("x-demo-role"), "ADMIN");
+      return new Response(JSON.stringify({ displayName: "admin-1", role: "ADMIN" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    },
+    javaBaseUrl: "http://java.test",
+  });
+  const response = await app.inject({
+    method: "GET",
+    url: "/api/v1/me",
+    headers: { "x-demo-object-id": "admin-1", "x-demo-role": "ADMIN" },
+  });
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.json().role, "ADMIN");
+  await app.close();
+});
+
 test("readiness fails when Java is down", async () => {
   const app = await buildApp({
     fetchImpl: async () => {

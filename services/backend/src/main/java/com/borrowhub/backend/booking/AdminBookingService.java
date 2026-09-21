@@ -12,7 +12,7 @@ import com.borrowhub.backend.idempotency.IdempotencyRecord;
 import com.borrowhub.backend.idempotency.IdempotencyRecordRepository;
 import com.borrowhub.backend.idempotency.RequestHash;
 import com.borrowhub.backend.identity.AppUser;
-import com.borrowhub.backend.identity.DemoIdentityService;
+import com.borrowhub.backend.identity.IdentityService;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -37,7 +37,7 @@ public class AdminBookingService {
 
 	static final String ADMIN_CANCEL_ROUTE = "POST /v1/admin/bookings/cancel";
 
-	private final DemoIdentityService demoIdentityService;
+	private final IdentityService identityService;
 	private final BookingRepository bookingRepository;
 	private final EquipmentRepository equipmentRepository;
 	private final AuditEventRepository auditEventRepository;
@@ -47,7 +47,7 @@ public class AdminBookingService {
 	private final Duration idempotencyTtl;
 
 	public AdminBookingService(
-			DemoIdentityService demoIdentityService,
+			IdentityService identityService,
 			BookingRepository bookingRepository,
 			EquipmentRepository equipmentRepository,
 			AuditEventRepository auditEventRepository,
@@ -55,7 +55,7 @@ public class AdminBookingService {
 			Clock clock,
 			PlatformTransactionManager transactionManager,
 			@Value("${borrowhub.idempotency.ttl-hours:24}") int ttlHours) {
-		this.demoIdentityService = demoIdentityService;
+		this.identityService = identityService;
 		this.bookingRepository = bookingRepository;
 		this.equipmentRepository = equipmentRepository;
 		this.auditEventRepository = auditEventRepository;
@@ -67,7 +67,7 @@ public class AdminBookingService {
 
 	@Transactional(readOnly = true)
 	public AdminBookingResponses.Summary summary(String tenantId, String objectId) {
-		demoIdentityService.requireAdmin(tenantId, objectId);
+		identityService.requireAdmin(tenantId, objectId);
 		Instant now = Instant.now(clock);
 		return new AdminBookingResponses.Summary(
 				bookingRepository.countByStatus(BookingStatus.RESERVED),
@@ -85,7 +85,7 @@ public class AdminBookingService {
 			boolean overdue,
 			Integer page,
 			Integer pageSize) {
-		demoIdentityService.requireAdmin(tenantId, objectId);
+		identityService.requireAdmin(tenantId, objectId);
 		int resolvedPage = page == null ? BookingService.DEFAULT_PAGE : page;
 		int resolvedSize = pageSize == null ? BookingService.DEFAULT_PAGE_SIZE : pageSize;
 		if (resolvedPage < 1) {
@@ -111,13 +111,13 @@ public class AdminBookingService {
 
 	@Transactional(readOnly = true)
 	public AdminBookingResponses.Detail get(String tenantId, String objectId, UUID bookingId) {
-		demoIdentityService.requireAdmin(tenantId, objectId);
+		identityService.requireAdmin(tenantId, objectId);
 		return toDetail(requireBooking(bookingId), Instant.now(clock));
 	}
 
 	public AdminBookingResponses.Detail cancel(
 			String tenantId, String objectId, String idempotencyKeyHeader, UUID bookingId, AdminCancelRequest request) {
-		AppUser admin = demoIdentityService.requireAdmin(tenantId, objectId);
+		AppUser admin = identityService.requireAdmin(tenantId, objectId);
 		if (request == null || request.reason() == null || request.reason().isBlank()) {
 			throw ApiException.badRequest("VALIDATION_ERROR", "A cancellation reason is required.");
 		}

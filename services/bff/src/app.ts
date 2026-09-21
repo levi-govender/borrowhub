@@ -8,6 +8,7 @@ import {
   type BackendClient,
   type FetchLike,
 } from "./backendClient.js";
+import { OboError, createOboExchanger, type OboExchanger } from "./obo.js";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -17,6 +18,12 @@ export type AppOptions = {
   timeoutMs?: number;
   allowedWebOrigins?: string[];
   backend?: BackendClient;
+  obo?: OboExchanger;
+  entraTenantId?: string;
+  entraBffClientId?: string;
+  entraBffClientSecret?: string;
+  entraJavaScope?: string;
+  entraTokenUrl?: string;
   logger?: boolean;
 };
 
@@ -93,6 +100,14 @@ function sendBackendError(reply: FastifyReply, error: unknown, traceId: string) 
       fieldErrors: {},
     });
   }
+  if (error instanceof OboError) {
+    return reply.status(error.status).send({
+      code: error.code,
+      message: error.message,
+      traceId,
+      fieldErrors: {},
+    });
+  }
   throw error;
 }
 
@@ -109,6 +124,47 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
       fetchImpl: options.fetchImpl,
       timeoutMs: options.timeoutMs,
     });
+  const tenantId = options.entraTenantId ?? process.env.ENTRA_TENANT_ID;
+  const obo =
+    options.obo
+    ?? createOboExchanger({
+      tokenUrl:
+        options.entraTokenUrl
+        ?? process.env.ENTRA_TOKEN_URL
+        ?? (tenantId ? `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token` : undefined),
+      clientId: options.entraBffClientId ?? process.env.ENTRA_BFF_CLIENT_ID,
+      clientSecret: options.entraBffClientSecret ?? process.env.ENTRA_BFF_CLIENT_SECRET,
+      scope: options.entraJavaScope ?? process.env.ENTRA_JAVA_SCOPE,
+      fetchImpl: options.fetchImpl,
+    });
+
+  async function identityHeaders(
+    request: FastifyRequest,
+    reply: FastifyReply,
+    traceId: string,
+  ): Promise<Record<string, string> | undefined> {
+    const authorization = request.headers.authorization;
+    if (typeof authorization === "string" && authorization.toLowerCase().startsWith("bearer ")) {
+      const userToken = authorization.slice("bearer ".length).trim();
+      if (userToken.length === 0) {
+        reply.status(401).send({
+          code: "UNAUTHORIZED",
+          message: "Sign-in is required.",
+          traceId,
+          fieldErrors: {},
+        });
+        return undefined;
+      }
+      try {
+        const accessToken = await obo.exchange(userToken, traceId);
+        return { authorization: `Bearer ${accessToken}` };
+      } catch (error) {
+        sendBackendError(reply, error, traceId);
+        return undefined;
+      }
+    }
+    return demoHeaders(request);
+  }
 
   const app = Fastify({ logger: options.logger ?? false });
 
@@ -134,6 +190,20 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
       return reply.status(503).send({ status: "unavailable" as const });
     }
     return { status: "ok" as const };
+  });
+
+  app.get("/api/v1/me", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    const headers = await identityHeaders(request, reply, traceId);
+    if (!headers) {
+      return;
+    }
+    try {
+      return await backend.getMe(headers, traceId);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
   });
 
   app.get("/api/v1/equipment", async (request, reply) => {
@@ -203,7 +273,10 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   app.post("/api/v1/bookings", async (request, reply) => {
     const traceId = correlationId(request);
     reply.header("x-correlation-id", traceId);
-    const headers = demoHeaders(request);
+    const headers = await identityHeaders(request, reply, traceId);
+    if (!headers) {
+      return;
+    }
     const idempotencyKey = requireIdempotencyKey(request, reply, traceId);
     if (!idempotencyKey) {
       return;
@@ -228,8 +301,12 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
         search.set(key, value);
       }
     }
+    const headers = await identityHeaders(request, reply, traceId);
+    if (!headers) {
+      return;
+    }
     try {
-      return await backend.listMine(search, demoHeaders(request), traceId);
+      return await backend.listMine(search, headers, traceId);
     } catch (error) {
       return sendBackendError(reply, error, traceId);
     }
@@ -248,7 +325,11 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
       });
     }
     try {
-      return await backend.getBooking(id, demoHeaders(request), traceId);
+      const headers = await identityHeaders(request, reply, traceId);
+      if (!headers) {
+        return;
+      }
+      return await backend.getBooking(id, headers, traceId);
     } catch (error) {
       return sendBackendError(reply, error, traceId);
     }
@@ -266,7 +347,10 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
         fieldErrors: { id: "uuid" },
       });
     }
-    const headers = demoHeaders(request);
+    const headers = await identityHeaders(request, reply, traceId);
+    if (!headers) {
+      return;
+    }
     const idempotencyKey = requireIdempotencyKey(request, reply, traceId);
     if (!idempotencyKey) {
       return;
@@ -291,7 +375,10 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
         fieldErrors: { id: "uuid" },
       });
     }
-    const headers = demoHeaders(request);
+    const headers = await identityHeaders(request, reply, traceId);
+    if (!headers) {
+      return;
+    }
     const idempotencyKey = requireIdempotencyKey(request, reply, traceId);
     if (!idempotencyKey) {
       return;
@@ -316,7 +403,10 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
         fieldErrors: { id: "uuid" },
       });
     }
-    const headers = demoHeaders(request);
+    const headers = await identityHeaders(request, reply, traceId);
+    if (!headers) {
+      return;
+    }
     const idempotencyKey = requireIdempotencyKey(request, reply, traceId);
     if (!idempotencyKey) {
       return;
@@ -332,8 +422,12 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   app.get("/api/v1/admin/summary", async (request, reply) => {
     const traceId = correlationId(request);
     reply.header("x-correlation-id", traceId);
+    const headers = await identityHeaders(request, reply, traceId);
+    if (!headers) {
+      return;
+    }
     try {
-      return await backend.adminSummary(demoHeaders(request), traceId);
+      return await backend.adminSummary(headers, traceId);
     } catch (error) {
       return sendBackendError(reply, error, traceId);
     }
@@ -351,7 +445,11 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
       }
     }
     try {
-      return await backend.listAdminEquipment(search, demoHeaders(request), traceId);
+      const headers = await identityHeaders(request, reply, traceId);
+      if (!headers) {
+        return;
+      }
+      return await backend.listAdminEquipment(search, headers, traceId);
     } catch (error) {
       return sendBackendError(reply, error, traceId);
     }
@@ -370,7 +468,11 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
       });
     }
     try {
-      return await backend.getAdminEquipment(id, demoHeaders(request), traceId);
+      const headers = await identityHeaders(request, reply, traceId);
+      if (!headers) {
+        return;
+      }
+      return await backend.getAdminEquipment(id, headers, traceId);
     } catch (error) {
       return sendBackendError(reply, error, traceId);
     }
@@ -380,7 +482,11 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
     const traceId = correlationId(request);
     reply.header("x-correlation-id", traceId);
     try {
-      const body = await backend.createAdminEquipment(request.body, demoHeaders(request), traceId);
+      const headers = await identityHeaders(request, reply, traceId);
+      if (!headers) {
+        return;
+      }
+      const body = await backend.createAdminEquipment(request.body, headers, traceId);
       return reply.status(201).send(body);
     } catch (error) {
       return sendBackendError(reply, error, traceId);
@@ -400,7 +506,11 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
       });
     }
     try {
-      return await backend.updateAdminEquipment(id, request.body, demoHeaders(request), traceId);
+      const headers = await identityHeaders(request, reply, traceId);
+      if (!headers) {
+        return;
+      }
+      return await backend.updateAdminEquipment(id, request.body, headers, traceId);
     } catch (error) {
       return sendBackendError(reply, error, traceId);
     }
@@ -418,7 +528,11 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
       }
     }
     try {
-      return await backend.listAdminBookings(search, demoHeaders(request), traceId);
+      const headers = await identityHeaders(request, reply, traceId);
+      if (!headers) {
+        return;
+      }
+      return await backend.listAdminBookings(search, headers, traceId);
     } catch (error) {
       return sendBackendError(reply, error, traceId);
     }
@@ -437,7 +551,11 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
       });
     }
     try {
-      return await backend.getAdminBooking(id, demoHeaders(request), traceId);
+      const headers = await identityHeaders(request, reply, traceId);
+      if (!headers) {
+        return;
+      }
+      return await backend.getAdminBooking(id, headers, traceId);
     } catch (error) {
       return sendBackendError(reply, error, traceId);
     }
@@ -455,7 +573,10 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
         fieldErrors: { id: "uuid" },
       });
     }
-    const headers = demoHeaders(request);
+    const headers = await identityHeaders(request, reply, traceId);
+    if (!headers) {
+      return;
+    }
     const idempotencyKey = requireIdempotencyKey(request, reply, traceId);
     if (!idempotencyKey) {
       return;

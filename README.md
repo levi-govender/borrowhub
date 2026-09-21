@@ -48,6 +48,7 @@ BFF (http://localhost:3000) — clients call this, not Java:
 
 ```bash
 make bff
+# GET  http://localhost:3000/api/v1/me
 # GET http://localhost:3000/api/v1/equipment
 # GET http://localhost:3000/api/v1/equipment/{id}
 # GET http://localhost:3000/api/v1/equipment/{id}/availability?startAt=...&endAt=...
@@ -73,6 +74,7 @@ Java backend (http://localhost:8080), `dev` profile seeds 10 demo assets:
 
 ```bash
 make backend
+# GET http://localhost:8080/v1/me
 # GET http://localhost:8080/v1/equipment
 # GET http://localhost:8080/v1/equipment/{id}
 # GET http://localhost:8080/v1/equipment/{id}/availability?startAt=...&endAt=...
@@ -97,7 +99,7 @@ make bff
 make web
 ```
 
-Local admin requests send `X-Demo-Object-Id: admin-1` and `X-Demo-Role: ADMIN`. Java rejects employees with `403 FORBIDDEN`.
+Local admin requests send `X-Demo-Object-Id: admin-1` and `X-Demo-Role: ADMIN`. Java rejects employees with `403 FORBIDDEN`. The `dev` profile keeps that demo identity. Outside `dev`, Java expects an Entra JWT (`oid`, `tid`, app role `Admin`) and the BFF expects OBO settings in `services/bff/.env.example`. Live PKCE needs an Entra tenant (`P0-01`).
 
 Employee app (Expo). Catalogue talks to the BFF (`EXPO_PUBLIC_BFF_BASE_URL`, default localhost / Android emulator `10.0.2.2`):
 

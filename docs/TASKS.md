@@ -10,7 +10,7 @@ Exit: both clients render a starter screen, services expose local health endpoin
 
 | ID | Title | Status | Notes |
 | --- | --- | --- | --- |
-| P0-01 | Confirm tenancy, budget, region | TODO | Operator: Entra tenant, Azure subscription, South Africa North candidate, cost approval. |
+| P0-01 | Confirm tenancy, budget, region | TODO | Operator: Entra tenant, Azure subscription, South Africa North candidate, cost approval. Live PKCE against Entra is blocked until this exists. Java JWT + BFF OBO are implemented against mocks in P3-01. |
 | P0-02 | Frontend spike: separate vs universal | TODO | Default remains separate apps (`DEC-01`). Spike before frontend work is far along. |
 | P0-03 | Pin frameworks and toolchains | DONE | Evidence 2026-09-21: pnpm 10.28.0, Node v26.8.2, Java 21, Spring Boot 4.1.1 (start.spring.io), Fastify 5.12.x, Vite 8.3, Expo 57. See DEC-07. |
 | P0-04 | Establish repo, contracts, tracker | DONE | Evidence 2026-09-21: `pnpm --filter @borrowhub/bff typecheck`; `pnpm --filter @borrowhub/web build`; `pnpm --filter @borrowhub/mobile exec tsc --noEmit`; `./gradlew test`; curl BFF `/health/live` and `/health/ready` → `{"status":"ok"}`; curl Java `/actuator/health/liveness` and `/readiness` → `{"status":"UP"}`; Playwright loaded http://localhost:5173 with title BorrowHub Admin and starter copy. |
@@ -45,7 +45,7 @@ Exit: real users complete a secured cloud booking. Mock auth disabled in cloud.
 
 | ID | Title | Status |
 | --- | --- | --- |
-| P3-01 | Entra PKCE/OBO and Java authorization | TODO |
+| P3-01 | Entra PKCE/OBO and Java authorization | DONE | Evidence 2026-09-21: `./gradlew test` pass including `JwtIdentityTest` (401 without JWT when demo off, oid/tid mapped on `/v1/me`, Admin app role for `/v1/admin/summary`, Employee 403). `pnpm --filter @borrowhub/bff test` and `typecheck` pass (OBO exchange, 503 without OBO config, demo `/me`). `pnpm --filter @borrowhub/web test`, `typecheck`, `build` pass. Playwright: dashboard “Signed in as admin-1 (ADMIN)”. Live Entra PKCE still needs `P0-01`. |
 | P3-02 | Docker images | TODO |
 | P3-03 | Bicep network/data/identity foundation | TODO |
 | P3-04 | Container Apps and migration job | TODO |

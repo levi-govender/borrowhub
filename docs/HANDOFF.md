@@ -4,26 +4,25 @@ A new session should continue from here without reconstructing chat history.
 
 ## Current
 
-- Phase: 2 booking correctness — admin inventory, bookings, audit (P2-05)
-- Branch: `feature/p2-05-admin-inventory-bookings-audit`
-- Task: `P2-05` admin inventory, bookings, audit — DONE
+- Phase: 3 identity and cloud foundation — Entra JWT/OBO (P3-01)
+- Branch: `feature/p3-01-entra-pkce-obo`
+- Task: `P3-01` Entra PKCE/OBO and Java authorization — DONE (live tenant still `P0-01`)
 
 ## What changed
 
-- Flyway `V002` persists `app_user.role` (`EMPLOYEE`/`ADMIN`)
-- Local demo identity reads `X-Demo-Role`; Java `requireAdmin()` enforces independently
-- Admin equipment list includes archived; create/update with audit
-- Admin booking summary, list (including overdue), detail+audit, cancel-with-reason after start
-- BFF `/api/v1/admin/*` forwards demo headers including role; CORS allows PATCH
-- Admin web: dashboard, inventory create, bookings, overdue, audit
+- Java resource server: when demo identity is off, `/v1/**` requires a JWT; `oid`/`tid`/`roles` upsert `app_user`; Admin app role required for admin APIs
+- `GET /v1/me` and BFF `GET /api/v1/me`
+- BFF exchanges `Authorization: Bearer` via Entra OBO when client id/secret/scope/token URL are set; local demo headers still work without Bearer
+- Admin web shows the signed-in user from `/me`
+- `.env.example` placeholders for four Entra app registrations (no secrets)
 
 ## Verification
 
-- `cd services/backend && ./gradlew test` — including `AdminApiTest`
+- `cd services/backend && ./gradlew test` — including `JwtIdentityTest`
 - `pnpm --filter @borrowhub/bff test` and `typecheck`
 - `pnpm --filter @borrowhub/web test`, `typecheck`, `build`
-- Browser at http://localhost:5173: dashboard 10 active assets; inventory listed 10 then created `HUB-ADMIN-01`; search PHONE-001 filtered to one row; bookings empty state. Employee BFF call without `X-Demo-Role: ADMIN` returned `403 FORBIDDEN`.
+- Browser at http://localhost:5173: “Signed in as admin-1 (ADMIN)”
 
 ## Next
 
-After merge: Phase 3 `P3-01` Entra PKCE/OBO. `P0-01` and `P0-02` remain open. Mobile/web employee booking UI still later.
+After merge: `feature/p3-02-docker-images`. `P0-01` blocks live PKCE. `P0-02` remains open.
