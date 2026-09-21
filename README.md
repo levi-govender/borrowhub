@@ -113,7 +113,7 @@ make docker-down
 
 ## Azure Bicep (compile only)
 
-`infra/` is a resource-group template for private PostgreSQL, Container Apps (internal Java, public BFF, manual Flyway), and a Free Static Web App for the admin UI. Default data-plane location is `southafricanorth` (P0-01 candidate). Static Web Apps default to `westeurope` (Free SKU). Vite `VITE_BFF_BASE_URL` and Expo `EXPO_PUBLIC_BFF_BASE_URL` must be set at client build time to the BFF HTTPS FQDN. This does **not** deploy anything.
+`infra/` is a resource-group template for private PostgreSQL, Container Apps, a Free Static Web App, workspace Application Insights, a 1 GB/day Log Analytics cap, and an optional monthly cost budget (`budgetContactEmail`). Look up a failed request by pasting `traceId` / `X-Correlation-Id` into the Kusto query in `infra/README.md`. This does **not** deploy anything.
 
 ```bash
 make bicep-build

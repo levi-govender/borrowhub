@@ -55,6 +55,9 @@ param minReplicas int = 0
 @description('Maximum replicas.')
 param maxReplicas int = 1
 
+@description('Workspace-based Application Insights connection string.')
+param applicationInsightsConnectionString string
+
 var postgresPasswordSecretName = 'postgres-password'
 var kvSecretUri = '${keyVaultUri}secrets/postgres-admin-password'
 
@@ -104,6 +107,7 @@ resource javaApp 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'BORROWHUB_DEMO_IDENTITY_ENABLED', value: 'false' }
             { name: 'SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI', value: jwtIssuerUri }
             { name: 'SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_AUDIENCES', value: jwtAudience }
+            { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: applicationInsightsConnectionString }
           ]
           resources: {
             cpu: json('0.25')
@@ -177,6 +181,7 @@ resource bffApp 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'ENTRA_TENANT_ID', value: entraTenantId }
             { name: 'ENTRA_BFF_CLIENT_ID', value: entraBffClientId }
             { name: 'ENTRA_JAVA_SCOPE', value: entraJavaScope }
+            { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: applicationInsightsConnectionString }
           ]
           resources: {
             cpu: json('0.25')

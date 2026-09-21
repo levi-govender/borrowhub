@@ -6,9 +6,11 @@ const equipmentId = "11111111-1111-4111-8111-111111111111";
 
 test("lists equipment from Java", async () => {
   const app = await buildApp({
-    fetchImpl: async (input) => {
+    fetchImpl: async (input, init) => {
       const url = String(input);
       assert.match(url, /\/v1\/equipment\?query=phone$/);
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get("x-correlation-id"), "trace-lookup-1");
       return new Response(JSON.stringify({ items: [{ id: equipmentId, name: "Pixel" }], page: 1, pageSize: 20, total: 1 }), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -16,10 +18,15 @@ test("lists equipment from Java", async () => {
     },
     javaBaseUrl: "http://java.test",
   });
-  const response = await app.inject({ method: "GET", url: "/api/v1/equipment?query=phone" });
+  const response = await app.inject({
+    method: "GET",
+    url: "/api/v1/equipment?query=phone",
+    headers: { "x-correlation-id": "trace-lookup-1" },
+  });
   assert.equal(response.statusCode, 200);
   assert.equal(response.json().total, 1);
   assert.equal(response.json().items[0].name, "Pixel");
+  assert.equal(response.headers["x-correlation-id"], "trace-lookup-1");
   await app.close();
 });
 
