@@ -50,6 +50,12 @@ public class Booking {
 	@Column(name = "updated_at", nullable = false)
 	private Instant updatedAt;
 
+	@Column(name = "cancelled_at")
+	private Instant cancelledAt;
+
+	@Column(name = "cancellation_reason")
+	private String cancellationReason;
+
 	protected Booking() {
 	}
 
@@ -97,5 +103,11 @@ public class Booking {
 
 	public Instant getCreatedAt() {
 		return createdAt;
+	}
+
+	public void cancel(Instant at) {
+		this.status = BookingStatus.CANCELLED;
+		this.cancelledAt = at;
+		this.updatedAt = at;
 	}
 }

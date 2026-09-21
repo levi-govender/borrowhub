@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
+import java.util.UUID;
 
 public final class RequestHash {
 
@@ -12,7 +13,14 @@ public final class RequestHash {
 	}
 
 	public static String forCreateBooking(CreateBookingRequest request) {
-		String canonical = request.equipmentId() + "\n" + request.startAt() + "\n" + request.endAt();
+		return sha256(request.equipmentId() + "\n" + request.startAt() + "\n" + request.endAt());
+	}
+
+	public static String forCancel(UUID bookingId) {
+		return sha256("cancel\n" + bookingId);
+	}
+
+	private static String sha256(String canonical) {
 		try {
 			byte[] digest = MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8));
 			return HexFormat.of().formatHex(digest);

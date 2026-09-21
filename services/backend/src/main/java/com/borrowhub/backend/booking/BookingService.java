@@ -5,6 +5,7 @@ import com.borrowhub.backend.audit.AuditEventRepository;
 import com.borrowhub.backend.common.ApiException;
 import com.borrowhub.backend.common.BookingPolicyProperties;
 import com.borrowhub.backend.common.CorrelationIdFilter;
+import com.borrowhub.backend.common.PageResponse;
 import com.borrowhub.backend.equipment.Equipment;
 import com.borrowhub.backend.equipment.EquipmentRepository;
 import com.borrowhub.backend.equipment.OperationalStatus;
@@ -24,14 +25,22 @@ import java.util.UUID;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 public class BookingService {
 
 	static final String CREATE_ROUTE = "POST /v1/bookings";
+	static final String CANCEL_ROUTE = "POST /v1/bookings/cancel";
+	static final int DEFAULT_PAGE = 1;
+	static final int DEFAULT_PAGE_SIZE = 20;
+	static final int MAX_PAGE_SIZE = 100;
 
 	private final DemoIdentityService demoIdentityService;
 	private final EquipmentRepository equipmentRepository;
@@ -175,6 +184,123 @@ public class BookingService {
 		catch (IllegalArgumentException ex) {
 			throw ApiException.badRequest("VALIDATION_ERROR", "Idempotency-Key must be a UUID.");
 		}
+	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<BookingResponse> listMine(String tenantIdHeader, String objectIdHeader, Integer page, Integer pageSize) {
+		AppUser user = demoIdentityService.requireUser(tenantIdHeader, objectIdHeader);
+		int resolvedPage = page == null ? DEFAULT_PAGE : page;
+		int resolvedSize = pageSize == null ? DEFAULT_PAGE_SIZE : pageSize;
+		if (resolvedPage < 1) {
+			throw ApiException.badRequest("VALIDATION_ERROR", "page must be 1 or greater.");
+		}
+		if (resolvedSize < 1 || resolvedSize > MAX_PAGE_SIZE) {
+			throw ApiException.badRequest("VALIDATION_ERROR", "pageSize must be between 1 and 100.");
+		}
+		Instant now = Instant.now(clock);
+		PageRequest pageable = PageRequest.of(
+				resolvedPage - 1,
+				resolvedSize,
+				Sort.by("startAt").descending().and(Sort.by("id").ascending()));
+		Page<Booking> result = bookingRepository.findByUser_Id(user.getId(), pageable);
+		return new PageResponse<>(
+				result.getContent().stream()
+						.map(booking -> BookingResponse.from(
+								booking, BookingActions.allowed(booking, now, policy.collectionLeadMinutes())))
+						.toList(),
+				resolvedPage,
+				resolvedSize,
+				result.getTotalElements());
+	}
+
+	@Transactional(readOnly = true)
+	public BookingResponse getMine(String tenantIdHeader, String objectIdHeader, UUID bookingId) {
+		AppUser user = demoIdentityService.requireUser(tenantIdHeader, objectIdHeader);
+		Booking booking = requireOwned(bookingId, user.getId());
+		return BookingResponse.from(
+				booking, BookingActions.allowed(booking, Instant.now(clock), policy.collectionLeadMinutes()));
+	}
+
+	public BookingResponse cancel(
+			String tenantIdHeader, String objectIdHeader, String idempotencyKeyHeader, UUID bookingId) {
+		AppUser user = demoIdentityService.requireUser(tenantIdHeader, objectIdHeader);
+		UUID key = parseIdempotencyKey(idempotencyKeyHeader);
+		String hash = RequestHash.forCancel(bookingId);
+		Optional<IdempotencyRecord> existing =
+				idempotencyRecordRepository.findByUserIdAndRouteAndKey(user.getId(), CANCEL_ROUTE, key.toString());
+		if (existing.isPresent()) {
+			return replay(existing.get(), hash);
+		}
+		try {
+			return transactionTemplate.execute(status -> persistCancel(user, key, hash, bookingId));
+		}
+		catch (RuntimeException ex) {
+			if (!isUniqueConstraint(ex)) {
+				throw ex;
+			}
+			IdempotencyRecord stored = idempotencyRecordRepository
+					.findByUserIdAndRouteAndKey(user.getId(), CANCEL_ROUTE, key.toString())
+					.orElseThrow(() -> ex);
+			return replay(stored, hash);
+		}
+	}
+
+	private BookingResponse persistCancel(AppUser user, UUID key, String hash, UUID bookingId) {
+		Booking booking = requireOwned(bookingId, user.getId());
+		Equipment equipment = equipmentRepository
+				.lockById(booking.getEquipment().getId())
+				.orElseThrow(() -> ApiException.notFound("Equipment was not found."));
+		Optional<IdempotencyRecord> raced =
+				idempotencyRecordRepository.findByUserIdAndRouteAndKey(user.getId(), CANCEL_ROUTE, key.toString());
+		if (raced.isPresent()) {
+			return replay(raced.get(), hash);
+		}
+		booking = requireOwned(bookingId, user.getId());
+		Instant now = Instant.now(clock);
+		if (booking.getStatus() != BookingStatus.RESERVED) {
+			throw ApiException.conflict("ILLEGAL_TRANSITION", "Only a reserved booking can be cancelled.");
+		}
+		if (!now.isBefore(booking.getStartAt())) {
+			throw ApiException.conflict("TOO_LATE_TO_CANCEL", "A reservation can only be cancelled before it starts.");
+		}
+		booking.cancel(now);
+		bookingRepository.save(booking);
+		Map<String, Object> summary = new LinkedHashMap<>();
+		summary.put("status", BookingStatus.CANCELLED.name());
+		summary.put("equipmentId", equipment.getId().toString());
+		String traceId = MDC.get(CorrelationIdFilter.MDC_KEY);
+		auditEventRepository.save(new AuditEvent(
+				UUID.randomUUID(),
+				user,
+				"booking",
+				booking.getId(),
+				"BOOKING_CANCELLED",
+				now,
+				traceId == null ? "" : traceId,
+				summary));
+		BookingResponse response =
+				BookingResponse.from(booking, BookingActions.allowed(booking, now, policy.collectionLeadMinutes()));
+		idempotencyRecordRepository.saveAndFlush(new IdempotencyRecord(
+				UUID.randomUUID(),
+				user,
+				CANCEL_ROUTE,
+				key.toString(),
+				hash,
+				200,
+				response.toStoredMap(),
+				now,
+				now.plus(idempotencyTtl)));
+		return response;
+	}
+
+	private Booking requireOwned(UUID bookingId, UUID userId) {
+		Booking booking = bookingRepository
+				.findDetailedById(bookingId)
+				.orElseThrow(() -> ApiException.notFound("Booking was not found."));
+		if (!booking.getUser().getId().equals(userId)) {
+			throw ApiException.notFound("Booking was not found.");
+		}
+		return booking;
 	}
 
 	private void validatePolicy(Instant startAt, Instant endAt, Instant now) {
