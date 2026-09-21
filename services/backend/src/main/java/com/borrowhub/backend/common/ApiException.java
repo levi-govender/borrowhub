@@ -34,4 +34,8 @@ public class ApiException extends RuntimeException {
 	public static ApiException unauthorized(String message) {
 		return new ApiException(401, "UNAUTHORIZED", message);
 	}
+
+	public static ApiException forbidden(String message) {
+		return new ApiException(403, "FORBIDDEN", message);
+	}
 }

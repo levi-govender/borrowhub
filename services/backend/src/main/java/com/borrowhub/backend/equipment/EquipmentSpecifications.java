@@ -26,4 +26,20 @@ final class EquipmentSpecifications {
 			return cb.and(predicates.toArray(Predicate[]::new));
 		};
 	}
+
+	static Specification<Equipment> adminCatalogue(String query, String category) {
+		return (root, criteriaQuery, cb) -> {
+			List<Predicate> predicates = new ArrayList<>();
+			if (category != null && !category.isBlank()) {
+				predicates.add(cb.equal(root.get("category"), category.trim()));
+			}
+			if (query != null && !query.isBlank()) {
+				String pattern = "%" + query.trim().toLowerCase() + "%";
+				predicates.add(cb.or(
+						cb.like(cb.lower(root.get("name")), pattern),
+						cb.like(cb.lower(root.get("assetTag")), pattern)));
+			}
+			return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(Predicate[]::new));
+		};
+	}
 }

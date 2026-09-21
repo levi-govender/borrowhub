@@ -15,6 +15,8 @@ public interface EquipmentRepository extends JpaRepository<Equipment, UUID>, Jpa
 
 	Optional<Equipment> findByAssetTag(String assetTag);
 
+	long countByOperationalStatus(OperationalStatus operationalStatus);
+
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "5000"))
 	@Query("select e from Equipment e where e.id = :id")

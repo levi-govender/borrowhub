@@ -4,21 +4,26 @@ A new session should continue from here without reconstructing chat history.
 
 ## Current
 
-- Phase: 2 booking correctness — collection and return (P2-04) complete
-- Branch: `feature/p2-04-collection-return`
-- Task: `P2-04` collection and return — DONE
+- Phase: 2 booking correctness — admin inventory, bookings, audit (P2-05)
+- Branch: `feature/p2-05-admin-inventory-bookings-audit`
+- Task: `P2-05` admin inventory, bookings, audit — DONE
 
 ## What changed
 
-- Java `POST /v1/bookings/{id}/collect` locks equipment, allows collection from 15 minutes before start until reserved end, blocks a second CHECKED_OUT on the same asset, audits `BOOKING_COLLECTED`
-- `POST /v1/bookings/{id}/return` returns a CHECKED_OUT loan (including overdue), audits `BOOKING_RETURNED`
-- Both are owner-only, idempotent, and proxied by the BFF
+- Flyway `V002` persists `app_user.role` (`EMPLOYEE`/`ADMIN`)
+- Local demo identity reads `X-Demo-Role`; Java `requireAdmin()` enforces independently
+- Admin equipment list includes archived; create/update with audit
+- Admin booking summary, list (including overdue), detail+audit, cancel-with-reason after start
+- BFF `/api/v1/admin/*` forwards demo headers including role; CORS allows PATCH
+- Admin web: dashboard, inventory create, bookings, overdue, audit
 
 ## Verification
 
-- `cd services/backend && ./gradlew test` — including `BookingCollectReturnTest`
+- `cd services/backend && ./gradlew test` — including `AdminApiTest`
 - `pnpm --filter @borrowhub/bff test` and `typecheck`
+- `pnpm --filter @borrowhub/web test`, `typecheck`, `build`
+- Browser at http://localhost:5173: dashboard 10 active assets; inventory listed 10 then created `HUB-ADMIN-01`; search PHONE-001 filtered to one row; bookings empty state. Employee BFF call without `X-Demo-Role: ADMIN` returned `403 FORBIDDEN`.
 
 ## Next
 
-After merge: `feature/p2-05-admin-inventory-bookings-audit`. `P0-01` and `P0-02` remain open. Mobile/web booking UI still later.
+After merge: Phase 3 `P3-01` Entra PKCE/OBO. `P0-01` and `P0-02` remain open. Mobile/web employee booking UI still later.

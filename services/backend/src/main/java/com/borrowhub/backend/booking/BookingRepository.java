@@ -7,10 +7,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface BookingRepository extends JpaRepository<Booking, UUID> {
+public interface BookingRepository extends JpaRepository<Booking, UUID>, JpaSpecificationExecutor<Booking> {
 
 	@EntityGraph(attributePaths = {"equipment", "user"})
 	Page<Booking> findByUser_Id(UUID userId, Pageable pageable);
@@ -39,4 +40,8 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
 			@Param("endAt") Instant endAt);
 
 	boolean existsByEquipment_IdAndStatusAndIdNot(UUID equipmentId, BookingStatus status, UUID bookingId);
+
+	long countByStatus(BookingStatus status);
+
+	long countByStatusAndEndAtBefore(BookingStatus status, Instant endAt);
 }

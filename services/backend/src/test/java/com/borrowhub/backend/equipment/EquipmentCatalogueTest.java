@@ -14,6 +14,7 @@ import com.borrowhub.backend.booking.BookingStatus;
 import com.borrowhub.backend.idempotency.IdempotencyRecordRepository;
 import com.borrowhub.backend.identity.AppUser;
 import com.borrowhub.backend.identity.AppUserRepository;
+import com.borrowhub.backend.identity.UserRole;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -146,6 +147,7 @@ class EquipmentCatalogueTest extends PostgresIntegrationTest {
 				"obj-1",
 				"Employee A",
 				"a@example.com",
+				UserRole.EMPLOYEE,
 				Instant.parse("2026-09-01T00:00:00Z")));
 		bookingRepository.save(new Booking(
 				UUID.randomUUID(),

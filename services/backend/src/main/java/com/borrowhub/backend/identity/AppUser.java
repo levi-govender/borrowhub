@@ -2,6 +2,8 @@ package com.borrowhub.backend.identity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
@@ -26,18 +28,30 @@ public class AppUser {
 	@Column(nullable = false)
 	private String email;
 
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private UserRole role;
+
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
 	protected AppUser() {
 	}
 
-	public AppUser(UUID id, String tenantId, String objectId, String displayName, String email, Instant createdAt) {
+	public AppUser(
+			UUID id,
+			String tenantId,
+			String objectId,
+			String displayName,
+			String email,
+			UserRole role,
+			Instant createdAt) {
 		this.id = id;
 		this.tenantId = tenantId;
 		this.objectId = objectId;
 		this.displayName = displayName;
 		this.email = email;
+		this.role = role == null ? UserRole.EMPLOYEE : role;
 		this.createdAt = createdAt;
 	}
 
@@ -51,5 +65,21 @@ public class AppUser {
 
 	public String getObjectId() {
 		return objectId;
+	}
+
+	public String getDisplayName() {
+		return displayName;
+	}
+
+	public UserRole getRole() {
+		return role;
+	}
+
+	public void setRole(UserRole role) {
+		this.role = role;
+	}
+
+	public boolean isAdmin() {
+		return role == UserRole.ADMIN;
 	}
 }

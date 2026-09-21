@@ -28,6 +28,10 @@ public final class RequestHash {
 		return sha256("return\n" + bookingId);
 	}
 
+	public static String forAdminCancel(UUID bookingId, String reason) {
+		return sha256("admin-cancel\n" + bookingId + "\n" + reason);
+	}
+
 	private static String sha256(String canonical) {
 		try {
 			byte[] digest = MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8));
