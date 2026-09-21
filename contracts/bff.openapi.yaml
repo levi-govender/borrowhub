@@ -1,0 +1,39 @@
+openapi: 3.0.3
+info:
+  title: BorrowHub BFF
+  version: 0.0.1
+  description: Client-facing API. Booking rules are owned by the Java backend.
+servers:
+  - url: http://localhost:3000
+paths:
+  /health/live:
+    get:
+      summary: Liveness
+      operationId: bffLiveness
+      responses:
+        "200":
+          description: Process is up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /health/ready:
+    get:
+      summary: Readiness
+      operationId: bffReadiness
+      responses:
+        "200":
+          description: Ready to serve
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+components:
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]

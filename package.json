@@ -1,0 +1,15 @@
+{
+  "name": "borrowhub",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @borrowhub/web dev",
+    "dev:bff": "pnpm --filter @borrowhub/bff dev",
+    "build:web": "pnpm --filter @borrowhub/web build",
+    "build:bff": "pnpm --filter @borrowhub/bff build",
+    "typecheck": "pnpm --filter @borrowhub/web typecheck && pnpm --filter @borrowhub/bff typecheck"
+  }
+}

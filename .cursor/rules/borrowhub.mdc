@@ -1,0 +1,39 @@
+---
+description: BorrowHub operating contract — spec, tasks, architecture, git workflow
+alwaysApply: true
+---
+
+# BorrowHub
+
+Read `docs/PROJECT_SPEC.md`, `docs/TASKS.md`, `docs/DECISIONS.md`, and `docs/HANDOFF.md` before implementing. Inspect the repository; do not assume listed files exist.
+
+## Git workflow
+
+- Never commit or develop on `main`. Start from updated `main`, then create a branch.
+- Branch prefixes: `setup/`, `feature/`, `debug/`, `misc/`.
+- One reviewable slice per branch. Commit when asked; the operator pushes and merges to `main`.
+- After merge, start the next slice from updated `main`.
+
+## Session behaviour
+
+1. Select the next unblocked task. Mark only that task `IN_PROGRESS`.
+2. Explain the intended change, implement it, run relevant verification, update the task with files, exact commands, outcomes, and remaining limitations.
+3. Never mark a task `DONE` because code was generated. Evidence is required.
+4. If Azure access, tenant consent, or a secret is missing, record a precise blocker and continue only with independent work.
+5. Do not invent resource IDs, endpoints, test results, or deployment success.
+6. Do not silently switch frontend strategy, authentication flow, or technology stack. Record ADRs in `docs/DECISIONS.md`.
+7. Ask only when a missing decision changes scope or requires unavailable credentials.
+
+## Architecture (do not violate)
+
+- Employees: React Native (`apps/mobile`). Admins: React web (`apps/web`).
+- Clients call the TypeScript BFF only. BFF has no booking database and does not own overlap/lifecycle rules.
+- Spring Boot owns domain validation, authorization, transactions, persistence, and audit.
+- Default frontend: separate web and mobile apps until `DEC-01` is confirmed by a spike.
+- Proposed BFF: Fastify. Java: modular monolith (identity, equipment, booking, audit).
+- Office timezone: `Africa/Johannesburg`. Store UTC instants. APIs use ISO 8601 with offsets.
+- One organisation, one office, two roles (`EMPLOYEE`, `ADMIN`), one physical asset per booking.
+
+## Status model
+
+Use `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`. A `DONE` entry needs evidence. Keep planning notes distinct from observed facts.
