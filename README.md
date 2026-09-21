@@ -113,14 +113,14 @@ make docker-down
 
 ## Azure Bicep (compile only)
 
-`infra/` is a resource-group template for VNet, ACR, managed identity, Key Vault, Log Analytics, private PostgreSQL 16 (`DEC-06`), a VNet-joined Container Apps environment, internal Java, external BFF, and a **manual** Flyway job. Default location is `southafricanorth` (P0-01 candidate). Java in cloud does not run Flyway; start the job first. This does **not** deploy anything. Images default to `:unpushed` tags until ACR is populated.
+`infra/` is a resource-group template for private PostgreSQL, Container Apps (internal Java, public BFF, manual Flyway), and a Free Static Web App for the admin UI. Default data-plane location is `southafricanorth` (P0-01 candidate). Static Web Apps default to `westeurope` (Free SKU). Vite `VITE_BFF_BASE_URL` and Expo `EXPO_PUBLIC_BFF_BASE_URL` must be set at client build time to the BFF HTTPS FQDN. This does **not** deploy anything.
 
 ```bash
 make bicep-build
 make docker-build-migrate
 ```
 
-Employee app (Expo). Catalogue talks to the BFF (`EXPO_PUBLIC_BFF_BASE_URL`, default localhost / Android emulator `10.0.2.2`):
+Employee app (Expo). Catalogue talks to the BFF (`EXPO_PUBLIC_BFF_BASE_URL`). Local defaults: iOS `localhost`, Android emulator `10.0.2.2`. For a physical device or cloud BFF, copy `apps/mobile/.env.example` and set the URL (HTTPS for Azure). Preview builds: `apps/mobile/eas.json` (no Expo project ID until an operator creates one).
 
 ```bash
 make db-up

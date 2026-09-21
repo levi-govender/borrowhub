@@ -4,6 +4,10 @@ import { CatalogueApiError, createCatalogueApi, defaultAvailabilityWindow, resol
 
 test("resolveBffBaseUrl prefers env then android emulator loopback", () => {
   assert.equal(resolveBffBaseUrl({ EXPO_PUBLIC_BFF_BASE_URL: "http://10.0.0.5:3000/" }, "android"), "http://10.0.0.5:3000");
+  assert.equal(
+    resolveBffBaseUrl({ EXPO_PUBLIC_BFF_BASE_URL: "https://borrowhub-bff.example.azurecontainerapps.io/" }, "ios"),
+    "https://borrowhub-bff.example.azurecontainerapps.io",
+  );
   assert.equal(resolveBffBaseUrl({}, "android"), "http://10.0.2.2:3000");
   assert.equal(resolveBffBaseUrl({}, "ios"), "http://localhost:3000");
 });

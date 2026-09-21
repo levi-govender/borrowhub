@@ -69,6 +69,9 @@ param allowedWebOrigins string = 'http://localhost:5173'
 @description('Container Apps minimum replicas (0 reduces idle cost).')
 param containerMinReplicas int = 0
 
+@description('Static Web Apps region. Free SKU is not available in every region (including some data-plane regions).')
+param staticWebAppLocation string = 'westeurope'
+
 var suffix = uniqueString(resourceGroup().id)
 var acrName = take('bh${replace(namePrefix, '-', '')}${suffix}', 50)
 var keyVaultName = take('bh${suffix}', 24)
@@ -79,6 +82,7 @@ var containerEnvName = take('${namePrefix}-cae', 32)
 var javaAppName = take('${namePrefix}-java', 32)
 var bffAppName = take('${namePrefix}-bff', 32)
 var flywayJobName = take('${namePrefix}-flyway', 32)
+var staticWebAppName = take('${namePrefix}-web-${suffix}', 60)
 var acrLoginHost = '${acrName}.azurecr.io'
 var managedIdentityId = resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', identityName)
 var postgresJdbcUrl = 'jdbc:postgresql://${postgresServerName}.postgres.database.azure.com:5432/${postgresDatabaseName}?sslmode=require'
@@ -208,6 +212,14 @@ module containerEnvironment 'modules/container-environment.bicep' = {
   ]
 }
 
+module web 'modules/web.bicep' = {
+  name: 'web'
+  params: {
+    location: staticWebAppLocation
+    name: staticWebAppName
+  }
+}
+
 module apps 'modules/apps.bicep' = {
   name: 'apps'
   params: {
@@ -227,7 +239,7 @@ module apps 'modules/apps.bicep' = {
     entraTenantId: entraTenantId
     entraBffClientId: entraBffClientId
     entraJavaScope: entraJavaScope
-    allowedWebOrigins: allowedWebOrigins
+    allowedWebOrigins: '${allowedWebOrigins},${web.outputs.origin}'
     minReplicas: containerMinReplicas
   }
   dependsOn: [
@@ -278,3 +290,6 @@ output javaAppName string = apps.outputs.javaAppName
 output bffAppName string = apps.outputs.bffAppName
 output bffFqdn string = apps.outputs.bffFqdn
 output flywayJobName string = migrationJob.outputs.jobName
+output staticWebAppName string = web.outputs.name
+output staticWebAppHostname string = web.outputs.defaultHostname
+output staticWebAppOrigin string = web.outputs.origin
