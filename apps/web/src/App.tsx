@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { SignIn } from "./SignIn";
 import {
   InventoryApiError,
   createInventoryApi,
@@ -6,6 +7,7 @@ import {
   type AdminSummary,
   type BookingDetail,
   type BookingListItem,
+  type DemoIdentity,
   type EquipmentListItem,
   type Me,
   type OperationalStatus,
@@ -29,7 +31,11 @@ function formatInstant(value: string): string {
 }
 
 export function App() {
-  const api = useMemo(() => createInventoryApi(resolveBffBaseUrl()), []);
+  const [identity, setIdentity] = useState<DemoIdentity | null>(null);
+  const api = useMemo(
+    () => (identity ? createInventoryApi(resolveBffBaseUrl(), fetch, identity) : null),
+    [identity],
+  );
   const [tab, setTab] = useState<Tab>("dashboard");
   const [summary, setSummary] = useState<AdminSummary | null>(null);
   const [me, setMe] = useState<Me | null>(null);
@@ -60,6 +66,9 @@ export function App() {
   const [cancelReason, setCancelReason] = useState("");
 
   const loadSummary = useCallback(async () => {
+    if (!api) {
+      return;
+    }
     setSummaryLoading(true);
     setSummaryError(null);
     try {
@@ -76,6 +85,9 @@ export function App() {
   }, [api]);
 
   const loadInventory = useCallback(async () => {
+    if (!api) {
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -97,6 +109,9 @@ export function App() {
   }, [api, category, page, submittedQuery]);
 
   const loadBookings = useCallback(async () => {
+    if (!api) {
+      return;
+    }
     setBookingsLoading(true);
     setBookingsError(null);
     try {
@@ -119,8 +134,11 @@ export function App() {
   }, [api, bookingPage, bookingStatus, overdueOnly, submittedBookingQuery]);
 
   useEffect(() => {
+    if (!identity) {
+      return;
+    }
     void loadSummary();
-  }, [loadSummary]);
+  }, [identity, loadSummary]);
 
   useEffect(() => {
     if (tab === "inventory") {
@@ -137,13 +155,27 @@ export function App() {
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const bookingPageCount = Math.max(1, Math.ceil(bookingTotal / PAGE_SIZE));
 
+  if (!identity || !api) {
+    return <SignIn onContinue={setIdentity} />;
+  }
+
   return (
     <main className="inventory">
       <p className="eyebrow">BorrowHub · admin</p>
       <h1>Office dashboard</h1>
       <p>
-        Signed in as {me ? `${me.displayName} (${me.role})` : "…"}. Local demo identity uses{" "}
-        <code>X-Demo-Role: ADMIN</code>. Java still enforces the role.
+        Signed in as {me ? `${me.displayName} (${me.role})` : "…"}. Demo identity until Entra (`P0-01`).
+        <button
+          type="button"
+          onClick={() => {
+            setIdentity(null);
+            setMe(null);
+            setSummary(null);
+            setTab("dashboard");
+          }}
+        >
+          Sign out
+        </button>
       </p>
       <nav className="tabs" aria-label="Admin sections">
         <button type="button" aria-current={tab === "dashboard" ? "page" : undefined} onClick={() => setTab("dashboard")}>

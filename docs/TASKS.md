@@ -62,9 +62,20 @@ Exit: merge-to-dev pipeline, trace lookup, teammate can reproduce from docs.
 | P4-03 | User/device/cloud tests | DONE | Evidence 2026-09-21: `pnpm --filter @borrowhub/web test:e2e` — 4 passed (desktop + Pixel 5: dashboard admin-1, inventory PHONE-001), 2 skipped (`CLOUD_WEB_URL` unset, P0-01). Compose stack was healthy. Native Detox/Maestro not added (`DEC-01` Expo). |
 | P4-04 | README, rollback, demo runbooks | DONE | Evidence 2026-09-21: `docs/RUNBOOK.md` (local Compose demo, SHA rollback, Flyway forward-only, P0-01 cloud blockers). README and `infra/README.md` link it. `make help` lists `docker-up`, `test-e2e`, `health`. No Azure demo was run. |
 
-## MVP product catalogue (implement after skeleton)
+## MVP product catalogue
 
-MVP-01 Sign-in and profile · MVP-02 Catalogue · MVP-03 Create reservation · MVP-04 My bookings/cancel · MVP-05 Collection/return · MVP-06 Admin inventory · MVP-07 Admin bookings/overdue · MVP-08 Audit and failure handling.
+Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
+
+| ID | Title | Status |
+| --- | --- | --- |
+| MVP-01 | Sign-in and profile | DONE | Evidence 2026-09-21: web/mobile typecheck; `pnpm --filter @borrowhub/web test` (5); mobile tests (5, including `/me` demo header); `pnpm --filter @borrowhub/web build`. Demo object-id sign-in + profile/sign-out. Entra PKCE still `P0-01`. Playwright sign-in steps added; not re-run locally this slice. |
+| MVP-02 | Catalogue | TODO | Mobile list/detail exists (P1-04); remaining polish after sign-in. |
+| MVP-03 | Create reservation | TODO |
+| MVP-04 | My bookings/cancel | TODO |
+| MVP-05 | Collection/return | TODO |
+| MVP-06 | Admin inventory | TODO | Web inventory exists (P2-05); remaining polish after sign-in. |
+| MVP-07 | Admin bookings/overdue | TODO |
+| MVP-08 | Audit and failure handling | TODO |
 
 ## Enhancements (after MVP)
 

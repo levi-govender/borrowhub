@@ -37,6 +37,19 @@ test("maps BFF 404", async () => {
   });
 });
 
+test("me sends demo object id", async () => {
+  const api = createCatalogueApi("http://bff.test", async (input, init) => {
+    assert.equal(String(input), "http://bff.test/api/v1/me");
+    const headers = new Headers(init?.headers);
+    assert.equal(headers.get("x-demo-object-id"), "employee-a");
+    return new Response(JSON.stringify({ displayName: "employee-a", role: "EMPLOYEE", objectId: "employee-a" }), {
+      status: 200,
+    });
+  }, { objectId: "employee-a" });
+  const me = await api.me();
+  assert.equal(me.role, "EMPLOYEE");
+});
+
 test("default availability window is 3 hours from tomorrow 07:00 UTC", () => {
   const window = defaultAvailabilityWindow(new Date("2026-09-21T15:00:00Z"));
   assert.equal(window.startAt, "2026-09-22T07:00:00.000Z");

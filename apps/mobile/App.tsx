@@ -4,20 +4,41 @@ import { Platform, SafeAreaView, StyleSheet } from "react-native";
 import { createCatalogueApi, resolveBffBaseUrl } from "./src/api";
 import { CatalogueScreen } from "./src/screens/CatalogueScreen";
 import { DetailScreen } from "./src/screens/DetailScreen";
+import { ProfileScreen } from "./src/screens/ProfileScreen";
+import { SignInScreen } from "./src/screens/SignInScreen";
 
 export default function App() {
-  const api = useMemo(
-    () => createCatalogueApi(resolveBffBaseUrl(process.env as Record<string, string | undefined>, Platform.OS)),
-    [],
-  );
+  const [objectId, setObjectId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
+  const api = useMemo(
+    () =>
+      createCatalogueApi(
+        resolveBffBaseUrl(process.env as Record<string, string | undefined>, Platform.OS),
+        fetch,
+        objectId ? { objectId } : undefined,
+      ),
+    [objectId],
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
-      {selectedId ? (
+      {!objectId ? (
+        <SignInScreen onContinue={setObjectId} />
+      ) : showProfile ? (
+        <ProfileScreen
+          api={api}
+          onBack={() => setShowProfile(false)}
+          onSignOut={() => {
+            setShowProfile(false);
+            setSelectedId(null);
+            setObjectId(null);
+          }}
+        />
+      ) : selectedId ? (
         <DetailScreen api={api} id={selectedId} onBack={() => setSelectedId(null)} />
       ) : (
-        <CatalogueScreen api={api} onOpen={setSelectedId} />
+        <CatalogueScreen api={api} onOpen={setSelectedId} onOpenProfile={() => setShowProfile(true)} />
       )}
       <StatusBar style="auto" />
     </SafeAreaView>
