@@ -15,6 +15,7 @@ public class BookingController {
 
 	public static final String DEMO_OBJECT_HEADER = "X-Demo-Object-Id";
 	public static final String DEMO_TENANT_HEADER = "X-Demo-Tenant-Id";
+	public static final String IDEMPOTENCY_HEADER = "Idempotency-Key";
 
 	private final BookingService bookingService;
 
@@ -27,7 +28,8 @@ public class BookingController {
 	public BookingResponse create(
 			@Valid @RequestBody CreateBookingRequest request,
 			@RequestHeader(value = DEMO_TENANT_HEADER, required = false) String tenantId,
-			@RequestHeader(value = DEMO_OBJECT_HEADER, required = false) String objectId) {
-		return bookingService.create(tenantId, objectId, request);
+			@RequestHeader(value = DEMO_OBJECT_HEADER, required = false) String objectId,
+			@RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey) {
+		return bookingService.create(tenantId, objectId, idempotencyKey, request);
 	}
 }

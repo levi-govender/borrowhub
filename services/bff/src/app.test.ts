@@ -59,6 +59,7 @@ test("creates a booking through Java", async () => {
       assert.equal(init?.method, "POST");
       const headers = new Headers(init?.headers);
       assert.equal(headers.get("x-demo-object-id"), "employee-a");
+      assert.equal(headers.get("idempotency-key"), "33333333-3333-4333-8333-333333333333");
       return new Response(
         JSON.stringify({
           id: "22222222-2222-4222-8222-222222222222",
@@ -73,11 +74,33 @@ test("creates a booking through Java", async () => {
   const response = await app.inject({
     method: "POST",
     url: "/api/v1/bookings",
-    headers: { "x-demo-object-id": "employee-a", "content-type": "application/json" },
+    headers: {
+      "x-demo-object-id": "employee-a",
+      "content-type": "application/json",
+      "idempotency-key": "33333333-3333-4333-8333-333333333333",
+    },
     payload: { equipmentId, startAt: "2026-09-22T07:00:00Z", endAt: "2026-09-22T10:00:00Z" },
   });
   assert.equal(response.statusCode, 201);
   assert.equal(response.json().status, "RESERVED");
+  await app.close();
+});
+
+test("rejects booking create without an idempotency key", async () => {
+  const app = await buildApp({
+    fetchImpl: async () => {
+      throw new Error("Java should not be called");
+    },
+    javaBaseUrl: "http://java.test",
+  });
+  const response = await app.inject({
+    method: "POST",
+    url: "/api/v1/bookings",
+    headers: { "x-demo-object-id": "employee-a", "content-type": "application/json" },
+    payload: { equipmentId, startAt: "2026-09-22T07:00:00Z", endAt: "2026-09-22T10:00:00Z" },
+  });
+  assert.equal(response.statusCode, 400);
+  assert.equal(response.json().code, "VALIDATION_ERROR");
   await app.close();
 });
 

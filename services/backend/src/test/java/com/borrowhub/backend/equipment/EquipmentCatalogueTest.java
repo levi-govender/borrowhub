@@ -7,9 +7,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.borrowhub.backend.PostgresIntegrationTest;
+import com.borrowhub.backend.audit.AuditEventRepository;
 import com.borrowhub.backend.booking.Booking;
 import com.borrowhub.backend.booking.BookingRepository;
 import com.borrowhub.backend.booking.BookingStatus;
+import com.borrowhub.backend.idempotency.IdempotencyRecordRepository;
 import com.borrowhub.backend.identity.AppUser;
 import com.borrowhub.backend.identity.AppUserRepository;
 import java.time.Instant;
@@ -33,12 +35,20 @@ class EquipmentCatalogueTest extends PostgresIntegrationTest {
 	@Autowired
 	AppUserRepository appUserRepository;
 
+	@Autowired
+	AuditEventRepository auditEventRepository;
+
+	@Autowired
+	IdempotencyRecordRepository idempotencyRecordRepository;
+
 	private Equipment phone;
 	private Equipment archived;
 	private Equipment maintenance;
 
 	@BeforeEach
 	void seed() {
+		idempotencyRecordRepository.deleteAll();
+		auditEventRepository.deleteAll();
 		bookingRepository.deleteAll();
 		equipmentRepository.deleteAll();
 		appUserRepository.deleteAll();
