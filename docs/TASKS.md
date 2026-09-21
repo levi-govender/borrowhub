@@ -58,7 +58,7 @@ Exit: merge-to-dev pipeline, trace lookup, teammate can reproduce from docs.
 | ID | Title | Status |
 | --- | --- | --- |
 | P4-01 | CI/CD and immutable deploys | DONE | Evidence 2026-09-21: local CI equivalent — `pnpm install --frozen-lockfile`, `pnpm typecheck`, BFF 12 tests, web 5, mobile 4, `pnpm` web+BFF build; `./gradlew test` BUILD SUCCESSFUL. Workflows: `.github/workflows/ci.yml`, `release.yml` (SHA tags; Azure skipped without P0-01 secrets). No Azure release was run. |
-| P4-02 | Observability and cost controls | TODO |
+| P4-02 | Observability and cost controls | DONE | Evidence 2026-09-21: `make bicep-build` — no BCP errors; ARM has Application Insights, Log Analytics `workspaceCapping`, conditional Consumption budget. `pnpm --filter @borrowhub/bff test` (12, including `X-Correlation-Id` echo) and typecheck pass. Java logs `traceId=%X{traceId}`. Not deployed; budget resource omitted until `budgetContactEmail` is set. |
 | P4-03 | User/device/cloud tests | TODO |
 | P4-04 | README, rollback, demo runbooks | TODO |
 

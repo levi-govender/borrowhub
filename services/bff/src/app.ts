@@ -27,6 +27,12 @@ export type AppOptions = {
   logger?: boolean;
 };
 
+declare module "fastify" {
+  interface FastifyRequest {
+    traceId: string;
+  }
+}
+
 function correlationId(request: FastifyRequest): string {
   const header = request.headers["x-correlation-id"];
   const value = Array.isArray(header) ? header[0] : header;
@@ -167,9 +173,13 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   }
 
   const app = Fastify({ logger: options.logger ?? false });
+  app.decorateRequest("traceId", "");
 
   app.addHook("onRequest", async (request, reply) => {
+    request.traceId = correlationId(request);
+    reply.header("x-correlation-id", request.traceId);
     applyCors(reply, request.headers.origin, allowedWebOrigins);
+    request.log.info({ traceId: request.traceId, method: request.method, url: request.url }, "request");
   });
 
   app.options("/*", async (request, reply) => {
@@ -193,8 +203,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.get("/api/v1/me", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const headers = await identityHeaders(request, reply, traceId);
     if (!headers) {
       return;
@@ -207,8 +216,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.get("/api/v1/equipment", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const query = request.query as Record<string, string | undefined>;
     const search = new URLSearchParams();
     for (const key of ["query", "category", "page", "pageSize"] as const) {
@@ -225,8 +233,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.get("/api/v1/equipment/:id", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const { id } = request.params as { id: string };
     if (!UUID_PATTERN.test(id)) {
       return reply.status(400).send({
@@ -244,8 +251,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.get("/api/v1/equipment/:id/availability", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const { id } = request.params as { id: string };
     const query = request.query as Record<string, string | undefined>;
     if (!UUID_PATTERN.test(id)) {
@@ -271,8 +277,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.post("/api/v1/bookings", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const headers = await identityHeaders(request, reply, traceId);
     if (!headers) {
       return;
@@ -291,8 +296,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.get("/api/v1/bookings", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const query = request.query as Record<string, string | undefined>;
     const search = new URLSearchParams();
     for (const key of ["page", "pageSize"] as const) {
@@ -313,8 +317,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.get("/api/v1/bookings/:id", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const { id } = request.params as { id: string };
     if (!UUID_PATTERN.test(id)) {
       return reply.status(400).send({
@@ -336,8 +339,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.post("/api/v1/bookings/:id/cancel", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const { id } = request.params as { id: string };
     if (!UUID_PATTERN.test(id)) {
       return reply.status(400).send({
@@ -364,8 +366,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.post("/api/v1/bookings/:id/collect", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const { id } = request.params as { id: string };
     if (!UUID_PATTERN.test(id)) {
       return reply.status(400).send({
@@ -392,8 +393,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.post("/api/v1/bookings/:id/return", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const { id } = request.params as { id: string };
     if (!UUID_PATTERN.test(id)) {
       return reply.status(400).send({
@@ -420,8 +420,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.get("/api/v1/admin/summary", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const headers = await identityHeaders(request, reply, traceId);
     if (!headers) {
       return;
@@ -434,8 +433,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.get("/api/v1/admin/equipment", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const query = request.query as Record<string, string | undefined>;
     const search = new URLSearchParams();
     for (const key of ["query", "category", "page", "pageSize"] as const) {
@@ -456,8 +454,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.get("/api/v1/admin/equipment/:id", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const { id } = request.params as { id: string };
     if (!UUID_PATTERN.test(id)) {
       return reply.status(400).send({
@@ -479,8 +476,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.post("/api/v1/admin/equipment", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     try {
       const headers = await identityHeaders(request, reply, traceId);
       if (!headers) {
@@ -494,8 +490,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.patch("/api/v1/admin/equipment/:id", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const { id } = request.params as { id: string };
     if (!UUID_PATTERN.test(id)) {
       return reply.status(400).send({
@@ -517,8 +512,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.get("/api/v1/admin/bookings", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const query = request.query as Record<string, string | undefined>;
     const search = new URLSearchParams();
     for (const key of ["query", "status", "overdue", "page", "pageSize"] as const) {
@@ -539,8 +533,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.get("/api/v1/admin/bookings/:id", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const { id } = request.params as { id: string };
     if (!UUID_PATTERN.test(id)) {
       return reply.status(400).send({
@@ -562,8 +555,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   app.post("/api/v1/admin/bookings/:id/cancel", async (request, reply) => {
-    const traceId = correlationId(request);
-    reply.header("x-correlation-id", traceId);
+    const traceId = request.traceId;
     const { id } = request.params as { id: string };
     if (!UUID_PATTERN.test(id)) {
       return reply.status(400).send({
