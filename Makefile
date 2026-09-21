@@ -18,6 +18,7 @@ WEB_URL := http://127.0.0.1:5173
 	docker-build docker-build-migrate docker-up docker-down \
 	bicep-build \
 	ci \
+	test-e2e \
 	health clean
 
 help: ## Show this help
@@ -103,6 +104,9 @@ ci: test ## Same automated checks as GitHub Actions CI (no Azure deploy)
 	$(PNPM) build:web
 	$(PNPM) build:bff
 	$(MAKE) bicep-build
+
+test-e2e: ## Playwright admin UI against local Compose apps (needs docker-up)
+	$(PNPM) --filter @borrowhub/web test:e2e
 
 health: ## Curl local BFF and Java health endpoints
 	@echo "BFF live:"; curl -sfS $(BFF_URL)/health/live; echo

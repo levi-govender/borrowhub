@@ -55,3 +55,26 @@ jobs:
       - name: Install Bicep CLI
         run: az bicep install
       - run: az bicep build --file infra/main.bicep --outfile /tmp/borrowhub-main.json
+
+  e2e:
+    name: Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @borrowhub/web exec playwright install --with-deps chromium
+      - name: Start Postgres, Java, and BFF
+        run: docker compose --profile apps up -d --wait --build
+      - name: Admin UI journeys
+        run: pnpm --filter @borrowhub/web test:e2e
+      - name: Stop Compose
+        if: always()
+        run: docker compose --profile apps down

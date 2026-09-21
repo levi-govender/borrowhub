@@ -122,7 +122,9 @@ make docker-build-migrate
 
 ## CI / release
 
-GitHub Actions `CI` (`.github/workflows/ci.yml`) runs on pull requests and `main`: JavaScript tests and builds, Gradle Testcontainers tests, and `bicep build`. Locally: `make ci`.
+GitHub Actions `CI` (`.github/workflows/ci.yml`) runs on pull requests and `main`: JavaScript tests and builds, Gradle Testcontainers tests, `bicep build`, and Playwright against Compose app containers. Locally: `make ci` (no Playwright) and `make test-e2e` after `make docker-up`.
+
+Cloud UI tests (`apps/web/e2e/cloud.spec.ts`) skip unless `CLOUD_WEB_URL` is set (`P0-01`). Employee device coverage is Expo unit tests plus Playwright **Pixel 5** viewport on the admin UI (not a native Detox/Maestro run).
 
 `Release` (`.github/workflows/release.yml`) is **manual**. It tags Container images with a **git SHA** (not `:latest` as the sole tag), updates Java/BFF/Flyway to that tag, starts the Flyway job, and optionally uploads `apps/web/dist`. Without `P0-01` Azure OIDC/ACR secrets the workflow skips Azure and exits 0. Rollback is re-running Release with a previous SHA.
 
