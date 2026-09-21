@@ -63,9 +63,12 @@ make backend
 # GET http://localhost:8080/v1/equipment/{id}/availability?startAt=...&endAt=...
 ```
 
-Admin web:
+Admin web inventory (http://localhost:5173):
 
 ```bash
+make db-up
+make backend
+make bff
 make web
 ```
 

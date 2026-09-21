@@ -25,7 +25,7 @@ Exit: both apps show the same seeded asset through BFF and Java. Local demo auth
 | P1-02 | Java catalogue | DONE | Evidence 2026-09-21: `./gradlew test` pass, including `EquipmentCatalogueTest` (list/search/category, archived 404, availability overlap). |
 | P1-03 | BFF catalogue | DONE | Evidence 2026-09-21: `pnpm --filter @borrowhub/bff test` and `typecheck` pass. Routes proxy `/api/v1/equipment` to Java `/v1/equipment`. |
 | P1-04 | Mobile list/detail | DONE | Evidence 2026-09-21: `pnpm --filter @borrowhub/mobile typecheck` and `test` pass (API URL, 404 mapping, availability window). Screens: catalogue search/filter + detail/policy/availability with loading/empty/error/retry. |
-| P1-05 | Web inventory list | TODO |
+| P1-05 | Web inventory list | DONE | Evidence 2026-09-21: `pnpm --filter @borrowhub/web typecheck`, `test`, `build` pass. Playwright at http://localhost:5173 showed 10 BFF-seeded assets; search PHONE-001 filtered to Pixel test phone. |
 
 ## Phase 2 — Booking correctness
 
