@@ -69,9 +69,12 @@ Admin web:
 make web
 ```
 
-Employee app (Expo):
+Employee app (Expo). Catalogue talks to the BFF (`EXPO_PUBLIC_BFF_BASE_URL`, default localhost / Android emulator `10.0.2.2`):
 
 ```bash
+make db-up
+make backend
+make bff
 make mobile
 ```
 
