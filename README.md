@@ -29,45 +29,43 @@ One slice per branch. Push and merge via PR; start the next slice from `main`.
 
 ## Local commands
 
-Install JS dependencies from the repo root:
+From the repo root, `make help` lists targets (`install`, `bff`, `backend`, `web`, `mobile`, `test`, `health`, and others).
+
+Install JS dependencies:
 
 ```bash
-pnpm install
+make install
 ```
 
 PostgreSQL (not required for the Phase 0 health skeleton):
 
 ```bash
-docker compose up -d
+make db-up
 ```
 
 BFF (http://localhost:3000):
 
 ```bash
-pnpm dev:bff
-# curl -s http://localhost:3000/health/live
-# curl -s http://localhost:3000/health/ready
+make bff
+# make health
 ```
 
 Java backend (http://localhost:8080):
 
 ```bash
-cd services/backend
-./gradlew bootRun
-# curl -s http://localhost:8080/actuator/health/liveness
-# curl -s http://localhost:8080/actuator/health/readiness
+make backend
 ```
 
 Admin web:
 
 ```bash
-pnpm dev:web
+make web
 ```
 
 Employee app (Expo):
 
 ```bash
-pnpm --filter @borrowhub/mobile start
+make mobile
 ```
 
 Copy `**/.env.example` files to ignored `.env` files before adding real configuration. Never commit secrets.

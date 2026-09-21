@@ -5,7 +5,7 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: 0 (skeleton on branch; tenancy and frontend spike still open)
-- Branch: `setup/phase-0-repo-skeleton` — do not continue on `main`
+- Branch: `setup/gitignore-and-makefile` (from the unmerged Phase 0 skeleton). Do not continue on `main`.
 - Tasks: `P0-03` and `P0-04` DONE with evidence. Next unblocked product task after merge is `P1-01` unless you want `P0-02` first.
 
 ## What changed
