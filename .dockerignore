@@ -1,0 +1,17 @@
+# Build context: repository root
+node_modules
+**/node_modules
+.git
+.cursor
+apps
+packages
+docs
+infra
+services/backend
+**/.env
+**/.env.*
+!**/.env.example
+**/dist
+**/.gradle
+**/build
+.pnpm-store

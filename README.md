@@ -101,6 +101,16 @@ make web
 
 Local admin requests send `X-Demo-Object-Id: admin-1` and `X-Demo-Role: ADMIN`. Java rejects employees with `403 FORBIDDEN`. The `dev` profile keeps that demo identity. Outside `dev`, Java expects an Entra JWT (`oid`, `tid`, app role `Admin`) and the BFF expects OBO settings in `services/bff/.env.example`. Live PKCE needs an Entra tenant (`P0-01`).
 
+## Container images
+
+Java and BFF Dockerfiles ship with this repo. `make db-up` still starts only Postgres. App containers use Compose profile `apps`. The image default leaves demo identity off (cloud must set the JWT issuer). Local `make docker-up` sets the `dev` profile so health and Flyway work without Entra.
+
+```bash
+make docker-up
+make health
+make docker-down
+```
+
 Employee app (Expo). Catalogue talks to the BFF (`EXPO_PUBLIC_BFF_BASE_URL`, default localhost / Android emulator `10.0.2.2`):
 
 ```bash
