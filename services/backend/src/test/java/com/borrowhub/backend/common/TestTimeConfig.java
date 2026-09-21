@@ -1,0 +1,20 @@
+package com.borrowhub.backend.common;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+
+@TestConfiguration
+public class TestTimeConfig {
+
+	public static final Instant NOW = Instant.parse("2026-09-21T10:00:00Z");
+
+	@Bean
+	@Primary
+	Clock testClock() {
+		return Clock.fixed(NOW, ZoneOffset.UTC);
+	}
+}

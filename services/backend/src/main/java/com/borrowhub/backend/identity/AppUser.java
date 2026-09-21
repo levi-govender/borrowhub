@@ -44,4 +44,12 @@ public class AppUser {
 	public UUID getId() {
 		return id;
 	}
+
+	public String getTenantId() {
+		return tenantId;
+	}
+
+	public String getObjectId() {
+		return objectId;
+	}
 }

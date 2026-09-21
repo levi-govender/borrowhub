@@ -51,6 +51,36 @@ test("rejects a non-uuid equipment id", async () => {
   await app.close();
 });
 
+test("creates a booking through Java", async () => {
+  const app = await buildApp({
+    fetchImpl: async (input, init) => {
+      const url = String(input);
+      assert.match(url, /\/v1\/bookings$/);
+      assert.equal(init?.method, "POST");
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get("x-demo-object-id"), "employee-a");
+      return new Response(
+        JSON.stringify({
+          id: "22222222-2222-4222-8222-222222222222",
+          status: "RESERVED",
+          allowedActions: ["CANCEL"],
+        }),
+        { status: 201, headers: { "content-type": "application/json" } },
+      );
+    },
+    javaBaseUrl: "http://java.test",
+  });
+  const response = await app.inject({
+    method: "POST",
+    url: "/api/v1/bookings",
+    headers: { "x-demo-object-id": "employee-a", "content-type": "application/json" },
+    payload: { equipmentId, startAt: "2026-09-22T07:00:00Z", endAt: "2026-09-22T10:00:00Z" },
+  });
+  assert.equal(response.statusCode, 201);
+  assert.equal(response.json().status, "RESERVED");
+  await app.close();
+});
+
 test("readiness fails when Java is down", async () => {
   const app = await buildApp({
     fetchImpl: async () => {

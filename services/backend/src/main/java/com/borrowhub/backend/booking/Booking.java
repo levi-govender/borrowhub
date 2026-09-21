@@ -86,4 +86,16 @@ public class Booking {
 	public BookingStatus getStatus() {
 		return status;
 	}
+
+	public Equipment getEquipment() {
+		return equipment;
+	}
+
+	public AppUser getUser() {
+		return user;
+	}
+
+	public Instant getCreatedAt() {
+		return createdAt;
+	}
 }

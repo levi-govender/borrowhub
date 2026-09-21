@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -30,6 +31,12 @@ public class ApiExceptionHandler {
 
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
 	ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+		return ResponseEntity.badRequest()
+				.body(ApiError.of("VALIDATION_ERROR", "Request is invalid.", traceId()));
+	}
+
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	ResponseEntity<ApiError> handleUnreadable(HttpMessageNotReadableException ex) {
 		return ResponseEntity.badRequest()
 				.body(ApiError.of("VALIDATION_ERROR", "Request is invalid.", traceId()));
 	}

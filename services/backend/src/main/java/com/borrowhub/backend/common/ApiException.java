@@ -26,4 +26,12 @@ public class ApiException extends RuntimeException {
 	public static ApiException badRequest(String code, String message) {
 		return new ApiException(400, code, message);
 	}
+
+	public static ApiException conflict(String code, String message) {
+		return new ApiException(409, code, message);
+	}
+
+	public static ApiException unauthorized(String message) {
+		return new ApiException(401, "UNAUTHORIZED", message);
+	}
 }

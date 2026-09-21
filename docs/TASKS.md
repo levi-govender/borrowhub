@@ -33,7 +33,7 @@ Exit: full local journey; concurrency and ownership tests pass.
 
 | ID | Title | Status |
 | --- | --- | --- |
-| P2-01 | Reservation transaction | TODO |
+| P2-01 | Reservation transaction | DONE | Evidence 2026-09-21: `./gradlew test` pass including `BookingCreateTest` (create+audit, overlap vs adjacent half-open, policy, inactive equipment, missing demo identity, concurrent overlap → one 201 and one 409). `pnpm --filter @borrowhub/bff test` and `typecheck` pass. Idempotency deferred to P2-02. |
 | P2-02 | Idempotency | TODO |
 | P2-03 | My bookings and cancel | TODO |
 | P2-04 | Collection and return | TODO |

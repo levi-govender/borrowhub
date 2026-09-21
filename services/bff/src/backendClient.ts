@@ -37,17 +37,28 @@ export function createBackendClient(options: BackendClientOptions) {
   const timeoutMs = options.timeoutMs ?? 8_000;
   const base = options.javaBaseUrl.replace(/\/$/, "");
 
-  async function request(path: string, search: URLSearchParams, correlationId: string): Promise<unknown> {
+  async function request(
+    path: string,
+    search: URLSearchParams,
+    correlationId: string,
+    init: { method?: string; body?: unknown; extraHeaders?: Record<string, string> } = {},
+  ): Promise<unknown> {
     const url = `${base}${path}${search.size > 0 ? `?${search.toString()}` : ""}`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
+      const headers: Record<string, string> = {
+        accept: "application/json",
+        "x-correlation-id": correlationId,
+        ...init.extraHeaders,
+      };
+      if (init.body !== undefined) {
+        headers["content-type"] = "application/json";
+      }
       const response = await fetchImpl(url, {
-        method: "GET",
-        headers: {
-          accept: "application/json",
-          "x-correlation-id": correlationId,
-        },
+        method: init.method ?? "GET",
+        headers,
+        body: init.body === undefined ? undefined : JSON.stringify(init.body),
         signal: controller.signal,
       });
       const text = await response.text();
@@ -78,6 +89,13 @@ export function createBackendClient(options: BackendClientOptions) {
     },
     getAvailability(id: string, search: URLSearchParams, correlationId: string) {
       return request(`/v1/equipment/${id}/availability`, search, correlationId);
+    },
+    createBooking(body: unknown, extraHeaders: Record<string, string>, correlationId: string) {
+      return request("/v1/bookings", new URLSearchParams(), correlationId, {
+        method: "POST",
+        body,
+        extraHeaders,
+      });
     },
     async ready(): Promise<boolean> {
       try {
