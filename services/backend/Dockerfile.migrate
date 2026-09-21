@@ -1,0 +1,2 @@
+FROM flyway/flyway:10.22.0
+COPY src/main/resources/db/migration /flyway/sql

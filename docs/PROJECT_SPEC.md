@@ -92,7 +92,7 @@ services/backend     Spring Boot
 packages/api-client  generated TS clients
 packages/shared      portable schemas/formatting
 contracts/           OpenAPI
-infra/               Bicep foundation (P3-03); Container Apps in P3-04
+infra/               Bicep (P3-03 foundation + P3-04 Container Apps; not deployed)
 docs/                this tracker
 compose.yaml         local PostgreSQL
 ```

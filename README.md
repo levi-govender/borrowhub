@@ -113,10 +113,11 @@ make docker-down
 
 ## Azure Bicep (compile only)
 
-`infra/` defines a resource-group template for VNet, ACR, managed identity, Key Vault, Log Analytics, and private PostgreSQL 16 (`DEC-06`). Default location is `southafricanorth` (P0-01 candidate). Container Apps are P3-04. This does **not** deploy anything.
+`infra/` is a resource-group template for VNet, ACR, managed identity, Key Vault, Log Analytics, private PostgreSQL 16 (`DEC-06`), a VNet-joined Container Apps environment, internal Java, external BFF, and a **manual** Flyway job. Default location is `southafricanorth` (P0-01 candidate). Java in cloud does not run Flyway; start the job first. This does **not** deploy anything. Images default to `:unpushed` tags until ACR is populated.
 
 ```bash
 make bicep-build
+make docker-build-migrate
 ```
 
 Employee app (Expo). Catalogue talks to the BFF (`EXPO_PUBLIC_BFF_BASE_URL`, default localhost / Android emulator `10.0.2.2`):
