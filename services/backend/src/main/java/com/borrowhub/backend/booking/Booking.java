@@ -56,6 +56,12 @@ public class Booking {
 	@Column(name = "cancellation_reason")
 	private String cancellationReason;
 
+	@Column(name = "collected_at")
+	private Instant collectedAt;
+
+	@Column(name = "returned_at")
+	private Instant returnedAt;
+
 	protected Booking() {
 	}
 
@@ -108,6 +114,18 @@ public class Booking {
 	public void cancel(Instant at) {
 		this.status = BookingStatus.CANCELLED;
 		this.cancelledAt = at;
+		this.updatedAt = at;
+	}
+
+	public void collect(Instant at) {
+		this.status = BookingStatus.CHECKED_OUT;
+		this.collectedAt = at;
+		this.updatedAt = at;
+	}
+
+	public void markReturned(Instant at) {
+		this.status = BookingStatus.RETURNED;
+		this.returnedAt = at;
 		this.updatedAt = at;
 	}
 }

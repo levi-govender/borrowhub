@@ -20,6 +20,14 @@ public final class RequestHash {
 		return sha256("cancel\n" + bookingId);
 	}
 
+	public static String forCollect(UUID bookingId) {
+		return sha256("collect\n" + bookingId);
+	}
+
+	public static String forReturn(UUID bookingId) {
+		return sha256("return\n" + bookingId);
+	}
+
 	private static String sha256(String canonical) {
 		try {
 			byte[] digest = MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8));

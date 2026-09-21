@@ -57,6 +57,8 @@ make bff
 # GET  http://localhost:3000/api/v1/bookings
 # GET  http://localhost:3000/api/v1/bookings/{id}
 # POST http://localhost:3000/api/v1/bookings/{id}/cancel  (Idempotency-Key)
+# POST http://localhost:3000/api/v1/bookings/{id}/collect (Idempotency-Key)
+# POST http://localhost:3000/api/v1/bookings/{id}/return  (Idempotency-Key)
 # make health
 ```
 
@@ -71,6 +73,8 @@ make backend
 # GET  http://localhost:8080/v1/bookings
 # GET  http://localhost:8080/v1/bookings/{id}
 # POST http://localhost:8080/v1/bookings/{id}/cancel
+# POST http://localhost:8080/v1/bookings/{id}/collect
+# POST http://localhost:8080/v1/bookings/{id}/return
 ```
 
 Admin web inventory (http://localhost:5173):

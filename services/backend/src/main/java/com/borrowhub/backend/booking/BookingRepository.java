@@ -37,4 +37,6 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
 			@Param("equipmentId") UUID equipmentId,
 			@Param("startAt") Instant startAt,
 			@Param("endAt") Instant endAt);
+
+	boolean existsByEquipment_IdAndStatusAndIdNot(UUID equipmentId, BookingStatus status, UUID bookingId);
 }

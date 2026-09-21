@@ -149,6 +149,53 @@ test("lists own bookings and cancels through Java", async () => {
   await app.close();
 });
 
+test("collects and returns a booking through Java", async () => {
+  const bookingId = "22222222-2222-4222-8222-222222222222";
+  const app = await buildApp({
+    fetchImpl: async (input, init) => {
+      const url = String(input);
+      const headers = new Headers(init?.headers);
+      assert.equal(init?.method, "POST");
+      assert.equal(headers.get("x-demo-object-id"), "employee-a");
+      if (url.endsWith(`/v1/bookings/${bookingId}/collect`)) {
+        return new Response(JSON.stringify({ id: bookingId, status: "CHECKED_OUT" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (url.endsWith(`/v1/bookings/${bookingId}/return`)) {
+        return new Response(JSON.stringify({ id: bookingId, status: "RETURNED" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      throw new Error(`unexpected ${url}`);
+    },
+    javaBaseUrl: "http://java.test",
+  });
+  const collect = await app.inject({
+    method: "POST",
+    url: `/api/v1/bookings/${bookingId}/collect`,
+    headers: {
+      "x-demo-object-id": "employee-a",
+      "idempotency-key": "55555555-5555-4555-8555-555555555555",
+    },
+  });
+  assert.equal(collect.statusCode, 200);
+  assert.equal(collect.json().status, "CHECKED_OUT");
+  const returned = await app.inject({
+    method: "POST",
+    url: `/api/v1/bookings/${bookingId}/return`,
+    headers: {
+      "x-demo-object-id": "employee-a",
+      "idempotency-key": "66666666-6666-4666-8666-666666666666",
+    },
+  });
+  assert.equal(returned.statusCode, 200);
+  assert.equal(returned.json().status, "RETURNED");
+  await app.close();
+});
+
 test("readiness fails when Java is down", async () => {
   const app = await buildApp({
     fetchImpl: async () => {

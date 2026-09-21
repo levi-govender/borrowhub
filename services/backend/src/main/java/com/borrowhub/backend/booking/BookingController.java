@@ -63,4 +63,22 @@ public class BookingController {
 			@RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey) {
 		return bookingService.cancel(tenantId, objectId, idempotencyKey, id);
 	}
+
+	@PostMapping("/{id}/collect")
+	public BookingResponse collect(
+			@PathVariable UUID id,
+			@RequestHeader(value = DEMO_TENANT_HEADER, required = false) String tenantId,
+			@RequestHeader(value = DEMO_OBJECT_HEADER, required = false) String objectId,
+			@RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey) {
+		return bookingService.collect(tenantId, objectId, idempotencyKey, id);
+	}
+
+	@PostMapping("/{id}/return")
+	public BookingResponse returnBooking(
+			@PathVariable UUID id,
+			@RequestHeader(value = DEMO_TENANT_HEADER, required = false) String tenantId,
+			@RequestHeader(value = DEMO_OBJECT_HEADER, required = false) String objectId,
+			@RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey) {
+		return bookingService.returnBooking(tenantId, objectId, idempotencyKey, id);
+	}
 }

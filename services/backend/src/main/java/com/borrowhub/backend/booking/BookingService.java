@@ -38,6 +38,8 @@ public class BookingService {
 
 	static final String CREATE_ROUTE = "POST /v1/bookings";
 	static final String CANCEL_ROUTE = "POST /v1/bookings/cancel";
+	static final String COLLECT_ROUTE = "POST /v1/bookings/collect";
+	static final String RETURN_ROUTE = "POST /v1/bookings/return";
 	static final int DEFAULT_PAGE = 1;
 	static final int DEFAULT_PAGE_SIZE = 20;
 	static final int MAX_PAGE_SIZE = 100;
@@ -284,6 +286,142 @@ public class BookingService {
 				UUID.randomUUID(),
 				user,
 				CANCEL_ROUTE,
+				key.toString(),
+				hash,
+				200,
+				response.toStoredMap(),
+				now,
+				now.plus(idempotencyTtl)));
+		return response;
+	}
+
+	public BookingResponse collect(
+			String tenantIdHeader, String objectIdHeader, String idempotencyKeyHeader, UUID bookingId) {
+		AppUser user = demoIdentityService.requireUser(tenantIdHeader, objectIdHeader);
+		UUID key = parseIdempotencyKey(idempotencyKeyHeader);
+		String hash = RequestHash.forCollect(bookingId);
+		Optional<IdempotencyRecord> existing =
+				idempotencyRecordRepository.findByUserIdAndRouteAndKey(user.getId(), COLLECT_ROUTE, key.toString());
+		if (existing.isPresent()) {
+			return replay(existing.get(), hash);
+		}
+		try {
+			return transactionTemplate.execute(status -> persistCollect(user, key, hash, bookingId));
+		}
+		catch (RuntimeException ex) {
+			if (!isUniqueConstraint(ex)) {
+				throw ex;
+			}
+			IdempotencyRecord stored = idempotencyRecordRepository
+					.findByUserIdAndRouteAndKey(user.getId(), COLLECT_ROUTE, key.toString())
+					.orElseThrow(() -> ex);
+			return replay(stored, hash);
+		}
+	}
+
+	public BookingResponse returnBooking(
+			String tenantIdHeader, String objectIdHeader, String idempotencyKeyHeader, UUID bookingId) {
+		AppUser user = demoIdentityService.requireUser(tenantIdHeader, objectIdHeader);
+		UUID key = parseIdempotencyKey(idempotencyKeyHeader);
+		String hash = RequestHash.forReturn(bookingId);
+		Optional<IdempotencyRecord> existing =
+				idempotencyRecordRepository.findByUserIdAndRouteAndKey(user.getId(), RETURN_ROUTE, key.toString());
+		if (existing.isPresent()) {
+			return replay(existing.get(), hash);
+		}
+		try {
+			return transactionTemplate.execute(status -> persistReturn(user, key, hash, bookingId));
+		}
+		catch (RuntimeException ex) {
+			if (!isUniqueConstraint(ex)) {
+				throw ex;
+			}
+			IdempotencyRecord stored = idempotencyRecordRepository
+					.findByUserIdAndRouteAndKey(user.getId(), RETURN_ROUTE, key.toString())
+					.orElseThrow(() -> ex);
+			return replay(stored, hash);
+		}
+	}
+
+	private BookingResponse persistCollect(AppUser user, UUID key, String hash, UUID bookingId) {
+		Booking booking = requireOwned(bookingId, user.getId());
+		Equipment equipment = equipmentRepository
+				.lockById(booking.getEquipment().getId())
+				.orElseThrow(() -> ApiException.notFound("Equipment was not found."));
+		Optional<IdempotencyRecord> raced =
+				idempotencyRecordRepository.findByUserIdAndRouteAndKey(user.getId(), COLLECT_ROUTE, key.toString());
+		if (raced.isPresent()) {
+			return replay(raced.get(), hash);
+		}
+		booking = requireOwned(bookingId, user.getId());
+		Instant now = Instant.now(clock);
+		if (booking.getStatus() != BookingStatus.RESERVED) {
+			throw ApiException.conflict("ILLEGAL_TRANSITION", "Only a reserved booking can be collected.");
+		}
+		Instant collectFrom = booking.getStartAt().minus(policy.collectionLeadMinutes(), ChronoUnit.MINUTES);
+		if (now.isBefore(collectFrom)) {
+			throw ApiException.conflict("TOO_EARLY_TO_COLLECT", "Collection opens 15 minutes before the reservation start.");
+		}
+		if (!now.isBefore(booking.getEndAt())) {
+			throw ApiException.conflict("TOO_LATE_TO_COLLECT", "An uncollected reservation cannot be collected after it ends.");
+		}
+		if (bookingRepository.existsByEquipment_IdAndStatusAndIdNot(
+				equipment.getId(), BookingStatus.CHECKED_OUT, booking.getId())) {
+			throw ApiException.conflict("EQUIPMENT_CHECKED_OUT", "That asset is already on loan.");
+		}
+		booking.collect(now);
+		bookingRepository.save(booking);
+		return finishMutation(user, key, hash, booking, equipment, now, COLLECT_ROUTE, "BOOKING_COLLECTED");
+	}
+
+	private BookingResponse persistReturn(AppUser user, UUID key, String hash, UUID bookingId) {
+		Booking booking = requireOwned(bookingId, user.getId());
+		Equipment equipment = equipmentRepository
+				.lockById(booking.getEquipment().getId())
+				.orElseThrow(() -> ApiException.notFound("Equipment was not found."));
+		Optional<IdempotencyRecord> raced =
+				idempotencyRecordRepository.findByUserIdAndRouteAndKey(user.getId(), RETURN_ROUTE, key.toString());
+		if (raced.isPresent()) {
+			return replay(raced.get(), hash);
+		}
+		booking = requireOwned(bookingId, user.getId());
+		Instant now = Instant.now(clock);
+		if (booking.getStatus() != BookingStatus.CHECKED_OUT) {
+			throw ApiException.conflict("ILLEGAL_TRANSITION", "Only a checked-out booking can be returned.");
+		}
+		booking.markReturned(now);
+		bookingRepository.save(booking);
+		return finishMutation(user, key, hash, booking, equipment, now, RETURN_ROUTE, "BOOKING_RETURNED");
+	}
+
+	private BookingResponse finishMutation(
+			AppUser user,
+			UUID key,
+			String hash,
+			Booking booking,
+			Equipment equipment,
+			Instant now,
+			String route,
+			String action) {
+		Map<String, Object> summary = new LinkedHashMap<>();
+		summary.put("status", booking.getStatus().name());
+		summary.put("equipmentId", equipment.getId().toString());
+		String traceId = MDC.get(CorrelationIdFilter.MDC_KEY);
+		auditEventRepository.save(new AuditEvent(
+				UUID.randomUUID(),
+				user,
+				"booking",
+				booking.getId(),
+				action,
+				now,
+				traceId == null ? "" : traceId,
+				summary));
+		BookingResponse response =
+				BookingResponse.from(booking, BookingActions.allowed(booking, now, policy.collectionLeadMinutes()));
+		idempotencyRecordRepository.saveAndFlush(new IdempotencyRecord(
+				UUID.randomUUID(),
+				user,
+				route,
 				key.toString(),
 				hash,
 				200,
