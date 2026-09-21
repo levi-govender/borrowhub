@@ -37,10 +37,11 @@ Install JS dependencies:
 make install
 ```
 
-PostgreSQL (not required for the Phase 0 health skeleton):
+PostgreSQL 16 via Compose. Flyway runs when the Java backend starts (`make backend`) and in Testcontainers-backed `make test-backend`.
 
 ```bash
 make db-up
+make backend
 ```
 
 BFF (http://localhost:3000):
