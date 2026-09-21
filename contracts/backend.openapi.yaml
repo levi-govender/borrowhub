@@ -1,0 +1,22 @@
+openapi: 3.0.3
+info:
+  title: BorrowHub Java backend
+  version: 0.0.1
+  description: Resource APIs for the BFF. Owns domain rules and persistence.
+servers:
+  - url: http://localhost:8080
+paths:
+  /actuator/health/liveness:
+    get:
+      summary: Liveness
+      operationId: backendLiveness
+      responses:
+        "200":
+          description: Process is up
+  /actuator/health/readiness:
+    get:
+      summary: Readiness
+      operationId: backendReadiness
+      responses:
+        "200":
+          description: Ready to serve

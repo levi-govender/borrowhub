@@ -1,0 +1,53 @@
+# Node
+node_modules/
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+.pnpm-store/
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+**/.env
+!**/.env.example
+*.pem
+*.p12
+*.key
+
+# Java / Gradle
+.gradle/
+**/build/
+!**/src/**/build/
+*.class
+*.jar
+!**/gradle-wrapper.jar
+*.war
+hs_err_pid*
+replay_pid*
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Expo / React Native
+apps/mobile/.expo/
+apps/mobile/ios/Pods/
+apps/mobile/android/.gradle/
+apps/mobile/android/app/build/
+*.jks
+*.mobileprovision
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# OS
+Thumbs.db
+
+# Playwright MCP local artifacts
+.playwright-mcp/
+**/.playwright-*.png
