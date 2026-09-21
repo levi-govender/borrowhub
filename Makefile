@@ -15,7 +15,7 @@ WEB_URL := http://127.0.0.1:5173
 .PHONY: help install db-up db-down db-logs db-reset db-psql \
 	bff backend web mobile \
 	typecheck test test-backend test-bff test-mobile test-web build \
-	docker-build docker-up docker-down \
+	docker-build docker-build-migrate docker-up docker-down \
 	bicep-build \
 	health clean
 
@@ -78,6 +78,9 @@ build: ## Production-build web, BFF, and Java jar
 
 docker-build: ## Build Java and BFF container images
 	$(COMPOSE) --profile apps build
+
+docker-build-migrate: ## Build the Flyway image used by the Container Apps Job
+	docker build -f $(BACKEND)/Dockerfile.migrate -t borrowhub-migrate:local $(BACKEND)
 
 docker-up: ## Run Postgres, Java, and BFF from container images
 	$(COMPOSE) --profile apps up -d --wait --build

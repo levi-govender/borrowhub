@@ -39,12 +39,52 @@ param postgresStorageSizeGB int = 32
 @description('Application database name.')
 param postgresDatabaseName string = 'borrowhub'
 
+@description('Backend image. Empty uses <acr>.azurecr.io/backend:unpushed (push before deploy).')
+param backendImage string = ''
+
+@description('BFF image. Empty uses <acr>.azurecr.io/bff:unpushed (push before deploy).')
+param bffImage string = ''
+
+@description('Flyway migrate image. Empty uses <acr>.azurecr.io/migrate:unpushed (push before deploy).')
+param migrateImage string = ''
+
+@description('Entra JWT issuer URI for Java. Leave empty until P0-01.')
+param jwtIssuerUri string = ''
+
+@description('Entra JWT audience for Java. Leave empty until P0-01.')
+param jwtAudience string = ''
+
+@description('BFF Entra tenant ID. Leave empty until P0-01.')
+param entraTenantId string = ''
+
+@description('BFF application (client) ID. Leave empty until P0-01.')
+param entraBffClientId string = ''
+
+@description('OBO scope for the Java API. Leave empty until P0-01.')
+param entraJavaScope string = ''
+
+@description('Comma-separated browser origins allowed by the BFF.')
+param allowedWebOrigins string = 'http://localhost:5173'
+
+@description('Container Apps minimum replicas (0 reduces idle cost).')
+param containerMinReplicas int = 0
+
 var suffix = uniqueString(resourceGroup().id)
 var acrName = take('bh${replace(namePrefix, '-', '')}${suffix}', 50)
 var keyVaultName = take('bh${suffix}', 24)
 var postgresServerName = take('${namePrefix}-pg-${suffix}', 63)
 var identityName = '${namePrefix}-uami'
 var logAnalyticsName = take('${namePrefix}-law-${suffix}', 63)
+var containerEnvName = take('${namePrefix}-cae', 32)
+var javaAppName = take('${namePrefix}-java', 32)
+var bffAppName = take('${namePrefix}-bff', 32)
+var flywayJobName = take('${namePrefix}-flyway', 32)
+var acrLoginHost = '${acrName}.azurecr.io'
+var managedIdentityId = resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', identityName)
+var postgresJdbcUrl = 'jdbc:postgresql://${postgresServerName}.postgres.database.azure.com:5432/${postgresDatabaseName}?sslmode=require'
+var backendImageRef = !empty(backendImage) ? backendImage : '${acrLoginHost}/backend:unpushed'
+var bffImageRef = !empty(bffImage) ? bffImage : '${acrLoginHost}/bff:unpushed'
+var migrateImageRef = !empty(migrateImage) ? migrateImage : '${acrLoginHost}/migrate:unpushed'
 
 // Well-known Azure role definition IDs (platform-wide, not subscription-specific resources).
 var acrPullRoleId = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
@@ -155,6 +195,70 @@ resource postgresAdminPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-
   ]
 }
 
+module containerEnvironment 'modules/container-environment.bicep' = {
+  name: 'container-environment'
+  params: {
+    location: location
+    name: containerEnvName
+    infrastructureSubnetId: network.outputs.appsSubnetId
+    logAnalyticsWorkspaceName: logAnalyticsName
+  }
+  dependsOn: [
+    monitoring
+  ]
+}
+
+module apps 'modules/apps.bicep' = {
+  name: 'apps'
+  params: {
+    location: location
+    environmentId: containerEnvironment.outputs.id
+    javaAppName: javaAppName
+    bffAppName: bffAppName
+    acrLoginServer: acrLoginHost
+    managedIdentityId: managedIdentityId
+    keyVaultUri: secrets.outputs.uri
+    backendImage: backendImageRef
+    bffImage: bffImageRef
+    postgresJdbcUrl: postgresJdbcUrl
+    postgresAdminLogin: postgresAdminLogin
+    jwtIssuerUri: jwtIssuerUri
+    jwtAudience: jwtAudience
+    entraTenantId: entraTenantId
+    entraBffClientId: entraBffClientId
+    entraJavaScope: entraJavaScope
+    allowedWebOrigins: allowedWebOrigins
+    minReplicas: containerMinReplicas
+  }
+  dependsOn: [
+    acrPull
+    vaultSecretsUser
+    postgresAdminPasswordSecret
+    database
+  ]
+}
+
+module migrationJob 'modules/migration-job.bicep' = {
+  name: 'migration-job'
+  params: {
+    location: location
+    jobName: flywayJobName
+    environmentId: containerEnvironment.outputs.id
+    acrLoginServer: acrLoginHost
+    managedIdentityId: managedIdentityId
+    keyVaultUri: secrets.outputs.uri
+    migrateImage: migrateImageRef
+    flywayUrl: postgresJdbcUrl
+    postgresAdminLogin: postgresAdminLogin
+  }
+  dependsOn: [
+    acrPull
+    vaultSecretsUser
+    postgresAdminPasswordSecret
+    database
+  ]
+}
+
 output location string = location
 output vnetName string = network.outputs.vnetName
 output appsSubnetId string = network.outputs.appsSubnetId
@@ -169,3 +273,8 @@ output logAnalyticsWorkspaceName string = monitoring.outputs.name
 output postgresServerName string = database.outputs.serverName
 output postgresFqdn string = database.outputs.fullyQualifiedDomainName
 output postgresDatabaseName string = database.outputs.databaseName
+output containerAppsEnvironmentName string = containerEnvironment.outputs.name
+output javaAppName string = apps.outputs.javaAppName
+output bffAppName string = apps.outputs.bffAppName
+output bffFqdn string = apps.outputs.bffFqdn
+output flywayJobName string = migrationJob.outputs.jobName
