@@ -44,10 +44,13 @@ make db-up
 make backend
 ```
 
-BFF (http://localhost:3000):
+BFF (http://localhost:3000) — clients call this, not Java:
 
 ```bash
 make bff
+# GET http://localhost:3000/api/v1/equipment
+# GET http://localhost:3000/api/v1/equipment/{id}
+# GET http://localhost:3000/api/v1/equipment/{id}/availability?startAt=...&endAt=...
 # make health
 ```
 
