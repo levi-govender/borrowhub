@@ -10,7 +10,7 @@
     "dev:bff": "pnpm --filter @borrowhub/bff dev",
     "build:web": "pnpm --filter @borrowhub/web build",
     "build:bff": "pnpm --filter @borrowhub/bff build",
-    "typecheck": "pnpm --filter @borrowhub/web typecheck && pnpm --filter @borrowhub/bff typecheck",
+    "typecheck": "pnpm --filter @borrowhub/web typecheck && pnpm --filter @borrowhub/bff typecheck && pnpm --filter @borrowhub/mobile typecheck",
     "test:bff": "pnpm --filter @borrowhub/bff test"
   }
 }
