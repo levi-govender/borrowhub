@@ -44,6 +44,18 @@ export type Availability = {
   endAt: string;
 };
 
+export type BookingStatus = "RESERVED" | "CHECKED_OUT" | "RETURNED" | "CANCELLED";
+
+export type Booking = {
+  id: string;
+  equipmentId: string;
+  assetTag: string;
+  status: BookingStatus;
+  startAt: string;
+  endAt: string;
+  allowedActions: string[];
+};
+
 export class CatalogueApiError extends Error {
   readonly status: number;
   readonly code: string;
@@ -65,14 +77,27 @@ export type DemoIdentity = {
 export function createCatalogueApi(baseUrl: string, fetchImpl: FetchLike = fetch, identity?: DemoIdentity) {
   const base = baseUrl.replace(/\/$/, "");
 
-  async function request<T>(path: string, extraHeaders: Record<string, string> = {}): Promise<T> {
+  async function request<T>(
+    path: string,
+    init: { method?: string; body?: unknown; extraHeaders?: Record<string, string> } = {},
+  ): Promise<T> {
     let response: Response;
     try {
-      const headers: Record<string, string> = { accept: "application/json", ...extraHeaders };
+      const headers: Record<string, string> = {
+        accept: "application/json",
+        ...init.extraHeaders,
+      };
       if (identity?.objectId) {
         headers["x-demo-object-id"] = identity.objectId;
       }
-      response = await fetchImpl(`${base}${path}`, { headers });
+      if (init.body !== undefined) {
+        headers["content-type"] = "application/json";
+      }
+      response = await fetchImpl(`${base}${path}`, {
+        method: init.method ?? "GET",
+        headers,
+        body: init.body === undefined ? undefined : JSON.stringify(init.body),
+      });
     } catch {
       throw new CatalogueApiError(0, "NETWORK_ERROR", "Could not reach BorrowHub. Check the BFF URL and retry.");
     }
@@ -109,6 +134,16 @@ export function createCatalogueApi(baseUrl: string, fetchImpl: FetchLike = fetch
     },
     me() {
       return request<Me>("/api/v1/me");
+    },
+    createBooking(
+      body: { equipmentId: string; startAt: string; endAt: string },
+      idempotencyKey: string = crypto.randomUUID(),
+    ) {
+      return request<Booking>("/api/v1/bookings", {
+        method: "POST",
+        body,
+        extraHeaders: { "idempotency-key": idempotencyKey },
+      });
     },
   };
 }
