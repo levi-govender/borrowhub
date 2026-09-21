@@ -51,10 +51,13 @@ make bff
 # make health
 ```
 
-Java backend (http://localhost:8080):
+Java backend (http://localhost:8080), `dev` profile seeds 10 demo assets:
 
 ```bash
 make backend
+# GET http://localhost:8080/v1/equipment
+# GET http://localhost:8080/v1/equipment/{id}
+# GET http://localhost:8080/v1/equipment/{id}/availability?startAt=...&endAt=...
 ```
 
 Admin web:

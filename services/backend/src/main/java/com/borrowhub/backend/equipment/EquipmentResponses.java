@@ -1,0 +1,69 @@
+package com.borrowhub.backend.equipment;
+
+import com.borrowhub.backend.common.BookingPolicyProperties;
+import java.util.UUID;
+
+public final class EquipmentResponses {
+
+	private EquipmentResponses() {
+	}
+
+	public record ListItem(
+			UUID id,
+			String assetTag,
+			String name,
+			String category,
+			String location,
+			OperationalStatus operationalStatus) {
+	}
+
+	public record Detail(
+			UUID id,
+			String assetTag,
+			String name,
+			String category,
+			String description,
+			String location,
+			OperationalStatus operationalStatus,
+			Policy policy) {
+	}
+
+	public record Policy(
+			String officeTimezone,
+			int minDurationMinutes,
+			int maxDurationDays,
+			int maxAdvanceDays,
+			int collectionLeadMinutes) {
+	}
+
+	public record Availability(
+			UUID equipmentId, boolean available, String reason, java.time.Instant startAt, java.time.Instant endAt) {
+	}
+
+	static ListItem toListItem(Equipment equipment) {
+		return new ListItem(
+				equipment.getId(),
+				equipment.getAssetTag(),
+				equipment.getName(),
+				equipment.getCategory(),
+				equipment.getLocation(),
+				equipment.getOperationalStatus());
+	}
+
+	static Detail toDetail(Equipment equipment, BookingPolicyProperties policy) {
+		return new Detail(
+				equipment.getId(),
+				equipment.getAssetTag(),
+				equipment.getName(),
+				equipment.getCategory(),
+				equipment.getDescription(),
+				equipment.getLocation(),
+				equipment.getOperationalStatus(),
+				new Policy(
+						policy.officeTimezone(),
+						policy.minDurationMinutes(),
+						policy.maxDurationDays(),
+						policy.maxAdvanceDays(),
+						policy.collectionLeadMinutes()));
+	}
+}

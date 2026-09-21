@@ -42,8 +42,8 @@ db-psql: ## Open psql in the Compose Postgres container
 bff: ## Run the TypeScript BFF on :3000
 	$(PNPM) dev:bff
 
-backend: ## Run Spring Boot on :8080
-	cd $(BACKEND) && $(GRADLEW) bootRun
+backend: ## Run Spring Boot on :8080 (dev profile seeds catalogue)
+	cd $(BACKEND) && SPRING_PROFILES_ACTIVE=dev $(GRADLEW) bootRun
 
 web: ## Run the admin Vite app on :5173
 	$(PNPM) dev:web
