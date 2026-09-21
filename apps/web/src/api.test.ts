@@ -4,6 +4,10 @@ import { InventoryApiError, createInventoryApi, resolveBffBaseUrl } from "./api.
 
 test("resolveBffBaseUrl uses Vite env", () => {
   assert.equal(resolveBffBaseUrl({ VITE_BFF_BASE_URL: "http://bff.example/" }), "http://bff.example");
+  assert.equal(
+    resolveBffBaseUrl({ VITE_BFF_BASE_URL: "https://borrowhub-bff.example.azurecontainerapps.io/" }),
+    "https://borrowhub-bff.example.azurecontainerapps.io",
+  );
   assert.equal(resolveBffBaseUrl({}), "http://localhost:3000");
 });
 

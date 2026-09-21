@@ -49,7 +49,7 @@ Exit: real users complete a secured cloud booking. Mock auth disabled in cloud.
 | P3-02 | Docker images | DONE | Evidence 2026-09-21: `make docker-up` built `borrowhub-backend:local` and `borrowhub-bff:local`; Compose `--wait` reported all healthy. `make health`: BFF live/ready `{"status":"ok"}`, Java liveness/readiness `{"status":"UP"}`. `GET /api/v1/equipment?pageSize=1` through the BFF container returned catalogue JSON (total 11). |
 | P3-03 | Bicep network/data/identity foundation | DONE | Evidence 2026-09-21: `make bicep-build` via `mcr.microsoft.com/azure-cli:latest` (`az` not on host PATH). `az bicep build --file infra/main.bicep` succeeded (no BCP errors). Emitted gitignored `infra/main.json` ARM (`2019-04-01`, 9 top-level resources). Not deployed; `P0-01` still required for a real resource group. |
 | P3-04 | Container Apps and migration job | DONE | Evidence 2026-09-21: `make bicep-build` via Azure CLI container — no BCP errors; `infra/main.json` includes `Microsoft.App/managedEnvironments`, two `containerApps`, and `Microsoft.App/jobs`. `make docker-build-migrate` built `borrowhub-migrate:local`; `ls /flyway/sql` shows `V001` and `V002`. Not deployed; images default to `:unpushed`; `P0-01` still required. |
-| P3-05 | React cloud hosting and mobile dev config | TODO |
+| P3-05 | React cloud hosting and mobile dev config | DONE | Evidence 2026-09-21: `make bicep-build` — no BCP errors; ARM includes `Microsoft.Web/staticSites`. `pnpm --filter @borrowhub/web test` (5) and `mobile test` (4) pass; web/mobile typecheck pass; `vite build` copies `staticwebapp.config.json` into `apps/web/dist`. Not deployed; Vite/Expo BFF URLs are build-time env. |
 
 ## Phase 4 — Repeatability and release
 

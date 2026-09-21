@@ -1,8 +1,8 @@
 # Azure Bicep
 
-Resource-group templates for network, registry, identity, Key Vault, Log Analytics, private PostgreSQL 16 (`DEC-06`), a Container Apps environment, Java (internal), BFF (external), and a **manual** Flyway job.
+Resource-group templates for network, registry, identity, Key Vault, Log Analytics, private PostgreSQL 16 (`DEC-06`), Container Apps (Java internal, BFF external, manual Flyway job), and a **Free** Azure Static Web App for the admin UI.
 
-This folder is compile-ready configuration. It is **not** a deployed environment. Do not treat template outputs as live resource IDs until an operator deploys them. Images tagged `:unpushed` are placeholders until ACR has real tags.
+This folder is compile-ready configuration. It is **not** a deployed environment. Do not treat template outputs as live hostnames until an operator deploys them. Images tagged `:unpushed` are placeholders until ACR has real tags.
 
 ## Layout
 
@@ -18,39 +18,23 @@ infra/modules/database.bicep
 infra/modules/container-environment.bicep
 infra/modules/apps.bicep
 infra/modules/migration-job.bicep
+infra/modules/web.bicep
 ```
 
 ## What it defines
 
 | Piece | Intent |
 | --- | --- |
-| VNet `10.20.0.0/16` | `snet-apps` (Container Apps infra, /23, not pre-delegated), `snet-data` (Postgres), `snet-private-endpoints` |
+| VNet `10.20.0.0/16` | `snet-apps`, `snet-data`, `snet-private-endpoints` |
 | User-assigned identity | AcrPull + Key Vault Secrets User |
-| ACR Basic | Admin user disabled |
-| Key Vault | RBAC; public network enabled for bootstrap |
-| Log Analytics | 30-day workspace for Container Apps logs |
-| PostgreSQL 16 Flexible Server | Public access disabled; private DNS |
-| Container Apps environment | VNet-joined; BFF external ingress; Java internal HTTP |
-| Flyway job | Manual trigger (`DEC-06`). Java sets `SPRING_FLYWAY_ENABLED=false` so schema changes go through the job first |
+| ACR / Key Vault / Log Analytics | Registry, secrets, Container Apps logs |
+| PostgreSQL 16 Flexible Server | Private; public access disabled |
+| Container Apps | Java internal, BFF external, manual Flyway job |
+| Static Web App (Free) | Admin Vite host. Default location `westeurope` because Free SKU is not in every region. BFF CORS includes `http://localhost:5173` plus the SWA origin |
 
-Region parameter defaults to `southafricanorth` (P0-01 **candidate**). Names use `uniqueString(resourceGroup().id)`.
+Admin `VITE_BFF_BASE_URL` is a **build-time** Vite variable (see `apps/web/.env.example`). It is not injected by this template. GitHub deploy of `apps/web/dist` is P4-01.
 
-Java demo identity stays **off**. JWT issuer, audience, and BFF OBO settings are empty parameters until `P0-01`.
-
-## Images
-
-| Image | Dockerfile | Default tag if unset |
-| --- | --- | --- |
-| Java | `services/backend/Dockerfile` | `<acr>.azurecr.io/backend:unpushed` |
-| BFF | `services/bff/Dockerfile` | `<acr>.azurecr.io/bff:unpushed` |
-| Flyway | `services/backend/Dockerfile.migrate` | `<acr>.azurecr.io/migrate:unpushed` |
-
-```bash
-make docker-build
-make docker-build-migrate
-```
-
-A deploy fails until those tags exist in ACR. Static Web Apps / mobile env are P3-05.
+Employee mobile stays Expo (`DEC-01`). Cloud BFF URL is `EXPO_PUBLIC_BFF_BASE_URL` / EAS preview env (`apps/mobile/.env.example`, `apps/mobile/eas.json`). No app-store listing.
 
 ## Compile (no Azure account required)
 
@@ -60,15 +44,4 @@ make bicep-build
 
 ## Deploy (operator, after P0-01)
 
-Needs a subscription, resource group, pushed images, and a password that is **not** in git:
-
-```bash
-az group create --name <rg> --location southafricanorth
-az deployment group create \
-  --resource-group <rg> \
-  --template-file infra/main.bicep \
-  --parameters postgresAdminPassword='<not committed>'
-az containerapp job start --name <flyway-job> --resource-group <rg>
-```
-
-Run the Flyway job **before** expecting Java readiness (`ddl-auto=validate`). Copy `infra/parameters.example.bicepparam` to `infra/main.bicepparam.local` (gitignored) for Entra and image tags.
+Push images, set `postgresAdminPassword`, deploy `infra/main.bicep`, run the Flyway job, then build the web app with `VITE_BFF_BASE_URL=https://<bff-fqdn>` and upload `apps/web/dist` to the Static Web App. Point Expo `EXPO_PUBLIC_BFF_BASE_URL` at the same BFF FQDN.
