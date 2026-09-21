@@ -8,6 +8,9 @@ import com.borrowhub.backend.common.CorrelationIdFilter;
 import com.borrowhub.backend.equipment.Equipment;
 import com.borrowhub.backend.equipment.EquipmentRepository;
 import com.borrowhub.backend.equipment.OperationalStatus;
+import com.borrowhub.backend.idempotency.IdempotencyRecord;
+import com.borrowhub.backend.idempotency.IdempotencyRecordRepository;
+import com.borrowhub.backend.idempotency.RequestHash;
 import com.borrowhub.backend.identity.AppUser;
 import com.borrowhub.backend.identity.DemoIdentityService;
 import java.time.Clock;
@@ -16,44 +19,86 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 public class BookingService {
+
+	static final String CREATE_ROUTE = "POST /v1/bookings";
 
 	private final DemoIdentityService demoIdentityService;
 	private final EquipmentRepository equipmentRepository;
 	private final BookingRepository bookingRepository;
 	private final AuditEventRepository auditEventRepository;
+	private final IdempotencyRecordRepository idempotencyRecordRepository;
 	private final BookingPolicyProperties policy;
 	private final Clock clock;
+	private final TransactionTemplate transactionTemplate;
+	private final Duration idempotencyTtl;
 
 	public BookingService(
 			DemoIdentityService demoIdentityService,
 			EquipmentRepository equipmentRepository,
 			BookingRepository bookingRepository,
 			AuditEventRepository auditEventRepository,
+			IdempotencyRecordRepository idempotencyRecordRepository,
 			BookingPolicyProperties policy,
-			Clock clock) {
+			Clock clock,
+			PlatformTransactionManager transactionManager,
+			@Value("${borrowhub.idempotency.ttl-hours:24}") int ttlHours) {
 		this.demoIdentityService = demoIdentityService;
 		this.equipmentRepository = equipmentRepository;
 		this.bookingRepository = bookingRepository;
 		this.auditEventRepository = auditEventRepository;
+		this.idempotencyRecordRepository = idempotencyRecordRepository;
 		this.policy = policy;
 		this.clock = clock;
+		this.transactionTemplate = new TransactionTemplate(transactionManager);
+		this.idempotencyTtl = Duration.ofHours(ttlHours);
 	}
 
-	@Transactional
-	public BookingResponse create(String tenantIdHeader, String objectIdHeader, CreateBookingRequest request) {
+	public BookingResponse create(
+			String tenantIdHeader, String objectIdHeader, String idempotencyKeyHeader, CreateBookingRequest request) {
+		AppUser user = demoIdentityService.requireUser(tenantIdHeader, objectIdHeader);
+		UUID key = parseIdempotencyKey(idempotencyKeyHeader);
+		String hash = RequestHash.forCreateBooking(request);
+		Optional<IdempotencyRecord> existing =
+				idempotencyRecordRepository.findByUserIdAndRouteAndKey(user.getId(), CREATE_ROUTE, key.toString());
+		if (existing.isPresent()) {
+			return replay(existing.get(), hash);
+		}
+		try {
+			return transactionTemplate.execute(status -> persistNew(user, key, hash, request));
+		}
+		catch (RuntimeException ex) {
+			if (!isUniqueConstraint(ex)) {
+				throw ex;
+			}
+			IdempotencyRecord stored = idempotencyRecordRepository
+					.findByUserIdAndRouteAndKey(user.getId(), CREATE_ROUTE, key.toString())
+					.orElseThrow(() -> ex);
+			return replay(stored, hash);
+		}
+	}
+
+	private BookingResponse persistNew(AppUser user, UUID key, String hash, CreateBookingRequest request) {
 		Instant now = Instant.now(clock);
 		validatePolicy(request.startAt(), request.endAt(), now);
-		AppUser user = demoIdentityService.requireUser(tenantIdHeader, objectIdHeader);
 		Equipment equipment = equipmentRepository
 				.lockById(request.equipmentId())
 				.orElseThrow(() -> ApiException.notFound("Equipment was not found."));
+		Optional<IdempotencyRecord> raced =
+				idempotencyRecordRepository.findByUserIdAndRouteAndKey(user.getId(), CREATE_ROUTE, key.toString());
+		if (raced.isPresent()) {
+			return replay(raced.get(), hash);
+		}
 		if (equipment.getOperationalStatus() != OperationalStatus.ACTIVE) {
 			throw ApiException.conflict("EQUIPMENT_NOT_ACTIVE", "Equipment is not available to reserve.");
 		}
@@ -84,7 +129,52 @@ public class BookingService {
 				createdAt,
 				traceId == null ? "" : traceId,
 				summary));
-		return BookingResponse.from(booking, BookingActions.allowed(booking, now, policy.collectionLeadMinutes()));
+		BookingResponse response =
+				BookingResponse.from(booking, BookingActions.allowed(booking, now, policy.collectionLeadMinutes()));
+		idempotencyRecordRepository.saveAndFlush(new IdempotencyRecord(
+				UUID.randomUUID(),
+				user,
+				CREATE_ROUTE,
+				key.toString(),
+				hash,
+				201,
+				response.toStoredMap(),
+				createdAt,
+				createdAt.plus(idempotencyTtl)));
+		return response;
+	}
+
+	private BookingResponse replay(IdempotencyRecord record, String hash) {
+		if (!record.getRequestHash().equals(hash)) {
+			throw ApiException.conflict("IDEMPOTENCY_KEY_REUSED", "Idempotency-Key was already used with a different body.");
+		}
+		return BookingResponse.fromStoredMap(record.getResponseBody());
+	}
+
+	private static boolean isUniqueConstraint(Throwable error) {
+		Throwable current = error;
+		while (current != null) {
+			if (current instanceof DataIntegrityViolationException) {
+				return true;
+			}
+			if (current instanceof org.hibernate.exception.ConstraintViolationException) {
+				return true;
+			}
+			current = current.getCause();
+		}
+		return false;
+	}
+
+	static UUID parseIdempotencyKey(String header) {
+		if (header == null || header.isBlank()) {
+			throw ApiException.badRequest("VALIDATION_ERROR", "Idempotency-Key is required.");
+		}
+		try {
+			return UUID.fromString(header.trim());
+		}
+		catch (IllegalArgumentException ex) {
+			throw ApiException.badRequest("VALIDATION_ERROR", "Idempotency-Key must be a UUID.");
+		}
 	}
 
 	private void validatePolicy(Instant startAt, Instant endAt, Instant now) {

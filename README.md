@@ -52,7 +52,7 @@ make bff
 # GET http://localhost:3000/api/v1/equipment/{id}
 # GET http://localhost:3000/api/v1/equipment/{id}/availability?startAt=...&endAt=...
 # POST http://localhost:3000/api/v1/bookings
-#   headers: X-Demo-Object-Id (required for local demo identity), optional X-Demo-Tenant-Id
+#   headers: X-Demo-Object-Id (required for local demo identity), optional X-Demo-Tenant-Id, Idempotency-Key (UUID)
 #   body: { equipmentId, startAt, endAt }
 # make health
 ```
@@ -64,7 +64,7 @@ make backend
 # GET http://localhost:8080/v1/equipment
 # GET http://localhost:8080/v1/equipment/{id}
 # GET http://localhost:8080/v1/equipment/{id}/availability?startAt=...&endAt=...
-# POST http://localhost:8080/v1/bookings (dev profile: X-Demo-Object-Id)
+# POST http://localhost:8080/v1/bookings (dev profile: X-Demo-Object-Id, Idempotency-Key)
 ```
 
 Admin web inventory (http://localhost:5173):

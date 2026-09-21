@@ -10,6 +10,7 @@ import com.borrowhub.backend.audit.AuditEventRepository;
 import com.borrowhub.backend.equipment.Equipment;
 import com.borrowhub.backend.equipment.EquipmentRepository;
 import com.borrowhub.backend.equipment.OperationalStatus;
+import com.borrowhub.backend.idempotency.IdempotencyRecordRepository;
 import com.borrowhub.backend.identity.AppUserRepository;
 import java.time.Instant;
 import java.util.Set;
@@ -43,11 +44,15 @@ class BookingCreateTest extends PostgresIntegrationTest {
 	@Autowired
 	AuditEventRepository auditEventRepository;
 
+	@Autowired
+	IdempotencyRecordRepository idempotencyRecordRepository;
+
 	private Equipment phone;
 	private Equipment maintenance;
 
 	@BeforeEach
 	void seed() {
+		idempotencyRecordRepository.deleteAll();
 		auditEventRepository.deleteAll();
 		bookingRepository.deleteAll();
 		equipmentRepository.deleteAll();
@@ -78,6 +83,7 @@ class BookingCreateTest extends PostgresIntegrationTest {
 		mockMvc.perform(post("/v1/bookings")
 						.contentType(MediaType.APPLICATION_JSON)
 						.header("X-Demo-Object-Id", "employee-a")
+						.header("Idempotency-Key", UUID.randomUUID())
 						.content(body(phone.getId(), "2026-09-22T07:00:00Z", "2026-09-22T10:00:00Z")))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.status").value("RESERVED"))
@@ -96,6 +102,7 @@ class BookingCreateTest extends PostgresIntegrationTest {
 	void rejectsMissingDemoIdentity() throws Exception {
 		mockMvc.perform(post("/v1/bookings")
 						.contentType(MediaType.APPLICATION_JSON)
+						.header("Idempotency-Key", UUID.randomUUID())
 						.content(body(phone.getId(), "2026-09-22T07:00:00Z", "2026-09-22T10:00:00Z")))
 				.andExpect(status().isUnauthorized())
 				.andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
@@ -106,12 +113,14 @@ class BookingCreateTest extends PostgresIntegrationTest {
 		mockMvc.perform(post("/v1/bookings")
 						.contentType(MediaType.APPLICATION_JSON)
 						.header("X-Demo-Object-Id", "employee-a")
+						.header("Idempotency-Key", UUID.randomUUID())
 						.content(body(phone.getId(), "2026-09-22T07:00:00Z", "2026-09-22T10:00:00Z")))
 				.andExpect(status().isCreated());
 
 		mockMvc.perform(post("/v1/bookings")
 						.contentType(MediaType.APPLICATION_JSON)
 						.header("X-Demo-Object-Id", "employee-b")
+						.header("Idempotency-Key", UUID.randomUUID())
 						.content(body(phone.getId(), "2026-09-22T09:00:00Z", "2026-09-22T11:00:00Z")))
 				.andExpect(status().isConflict())
 				.andExpect(jsonPath("$.code").value("BOOKING_CONFLICT"));
@@ -119,6 +128,7 @@ class BookingCreateTest extends PostgresIntegrationTest {
 		mockMvc.perform(post("/v1/bookings")
 						.contentType(MediaType.APPLICATION_JSON)
 						.header("X-Demo-Object-Id", "employee-b")
+						.header("Idempotency-Key", UUID.randomUUID())
 						.content(body(phone.getId(), "2026-09-22T10:00:00Z", "2026-09-22T11:00:00Z")))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.status").value("RESERVED"));
@@ -129,6 +139,7 @@ class BookingCreateTest extends PostgresIntegrationTest {
 		mockMvc.perform(post("/v1/bookings")
 						.contentType(MediaType.APPLICATION_JSON)
 						.header("X-Demo-Object-Id", "employee-a")
+						.header("Idempotency-Key", UUID.randomUUID())
 						.content(body(maintenance.getId(), "2026-09-22T07:00:00Z", "2026-09-22T10:00:00Z")))
 				.andExpect(status().isConflict())
 				.andExpect(jsonPath("$.code").value("EQUIPMENT_NOT_ACTIVE"));
@@ -136,6 +147,7 @@ class BookingCreateTest extends PostgresIntegrationTest {
 		mockMvc.perform(post("/v1/bookings")
 						.contentType(MediaType.APPLICATION_JSON)
 						.header("X-Demo-Object-Id", "employee-a")
+						.header("Idempotency-Key", UUID.randomUUID())
 						.content(body(phone.getId(), "2026-09-22T07:00:00Z", "2026-09-22T07:10:00Z")))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.code").value("POLICY_VIOLATION"));
@@ -143,6 +155,7 @@ class BookingCreateTest extends PostgresIntegrationTest {
 		mockMvc.perform(post("/v1/bookings")
 						.contentType(MediaType.APPLICATION_JSON)
 						.header("X-Demo-Object-Id", "employee-a")
+						.header("Idempotency-Key", UUID.randomUUID())
 						.content(body(phone.getId(), "2026-09-20T07:00:00Z", "2026-09-20T10:00:00Z")))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.code").value("POLICY_VIOLATION"));
@@ -150,6 +163,7 @@ class BookingCreateTest extends PostgresIntegrationTest {
 		mockMvc.perform(post("/v1/bookings")
 						.contentType(MediaType.APPLICATION_JSON)
 						.header("X-Demo-Object-Id", "employee-a")
+						.header("Idempotency-Key", UUID.randomUUID())
 						.content(body(phone.getId(), "2026-10-22T07:00:00Z", "2026-10-22T10:00:00Z")))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.code").value("POLICY_VIOLATION"));
@@ -157,6 +171,7 @@ class BookingCreateTest extends PostgresIntegrationTest {
 		mockMvc.perform(post("/v1/bookings")
 						.contentType(MediaType.APPLICATION_JSON)
 						.header("X-Demo-Object-Id", "employee-a")
+						.header("Idempotency-Key", UUID.randomUUID())
 						.content(body(UUID.randomUUID(), "2026-09-22T07:00:00Z", "2026-09-22T10:00:00Z")))
 				.andExpect(status().isNotFound())
 				.andExpect(jsonPath("$.code").value("NOT_FOUND"));
@@ -191,6 +206,7 @@ class BookingCreateTest extends PostgresIntegrationTest {
 			return mockMvc.perform(post("/v1/bookings")
 							.contentType(MediaType.APPLICATION_JSON)
 							.header("X-Demo-Object-Id", objectId)
+							.header("Idempotency-Key", UUID.randomUUID())
 							.content(payload))
 					.andReturn()
 					.getResponse()

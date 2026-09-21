@@ -182,9 +182,15 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
     if (typeof tenantId === "string" && tenantId.length > 0) {
       headers["x-demo-tenant-id"] = tenantId;
     }
-    if (typeof idempotencyKey === "string" && idempotencyKey.length > 0) {
-      headers["idempotency-key"] = idempotencyKey;
+    if (typeof idempotencyKey !== "string" || !UUID_PATTERN.test(idempotencyKey)) {
+      return reply.status(400).send({
+        code: "VALIDATION_ERROR",
+        message: "Idempotency-Key must be a UUID.",
+        traceId,
+        fieldErrors: { idempotencyKey: "uuid" },
+      });
     }
+    headers["idempotency-key"] = idempotencyKey;
     try {
       const body = await backend.createBooking(request.body, headers, traceId);
       return reply.status(201).send(body);
