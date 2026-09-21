@@ -47,7 +47,7 @@ Exit: real users complete a secured cloud booking. Mock auth disabled in cloud.
 | --- | --- | --- |
 | P3-01 | Entra PKCE/OBO and Java authorization | DONE | Evidence 2026-09-21: `./gradlew test` pass including `JwtIdentityTest` (401 without JWT when demo off, oid/tid mapped on `/v1/me`, Admin app role for `/v1/admin/summary`, Employee 403). `pnpm --filter @borrowhub/bff test` and `typecheck` pass (OBO exchange, 503 without OBO config, demo `/me`). `pnpm --filter @borrowhub/web test`, `typecheck`, `build` pass. Playwright: dashboard “Signed in as admin-1 (ADMIN)”. Live Entra PKCE still needs `P0-01`. |
 | P3-02 | Docker images | DONE | Evidence 2026-09-21: `make docker-up` built `borrowhub-backend:local` and `borrowhub-bff:local`; Compose `--wait` reported all healthy. `make health`: BFF live/ready `{"status":"ok"}`, Java liveness/readiness `{"status":"UP"}`. `GET /api/v1/equipment?pageSize=1` through the BFF container returned catalogue JSON (total 11). |
-| P3-03 | Bicep network/data/identity foundation | TODO |
+| P3-03 | Bicep network/data/identity foundation | DONE | Evidence 2026-09-21: `make bicep-build` via `mcr.microsoft.com/azure-cli:latest` (`az` not on host PATH). `az bicep build --file infra/main.bicep` succeeded (no BCP errors). Emitted gitignored `infra/main.json` ARM (`2019-04-01`, 9 top-level resources). Not deployed; `P0-01` still required for a real resource group. |
 | P3-04 | Container Apps and migration job | TODO |
 | P3-05 | React cloud hosting and mobile dev config | TODO |
 

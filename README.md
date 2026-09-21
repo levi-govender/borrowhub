@@ -111,6 +111,14 @@ make health
 make docker-down
 ```
 
+## Azure Bicep (compile only)
+
+`infra/` defines a resource-group template for VNet, ACR, managed identity, Key Vault, Log Analytics, and private PostgreSQL 16 (`DEC-06`). Default location is `southafricanorth` (P0-01 candidate). Container Apps are P3-04. This does **not** deploy anything.
+
+```bash
+make bicep-build
+```
+
 Employee app (Expo). Catalogue talks to the BFF (`EXPO_PUBLIC_BFF_BASE_URL`, default localhost / Android emulator `10.0.2.2`):
 
 ```bash
