@@ -45,7 +45,7 @@ services:
       JAVA_BASE_URL: http://backend:8080
       HOST: 0.0.0.0
       PORT: "3000"
-      ALLOWED_WEB_ORIGINS: http://localhost:5173
+      ALLOWED_WEB_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
     depends_on:
       backend:
         condition: service_healthy
