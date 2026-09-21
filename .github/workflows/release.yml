@@ -1,0 +1,129 @@
+name: Release
+
+# Immutable images are tagged with a git SHA, never only :latest.
+# Requires GitHub environment "azure" secrets after P0-01. Without them the job exits 0 and skips Azure.
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_sha:
+        description: Git SHA to tag and deploy (empty = this ref's SHA)
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release-azure
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Push SHA tags and update apps
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_SHA: ${{ inputs.image_sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.IMAGE_SHA }}
+
+      - name: Require Azure OIDC (P0-01)
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+          AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+        run: |
+          if [ -z "$AZURE_CLIENT_ID" ] || [ -z "$AZURE_TENANT_ID" ] || [ -z "$AZURE_SUBSCRIPTION_ID" ] || [ -z "$ACR_LOGIN_SERVER" ] || [ -z "$AZURE_RESOURCE_GROUP" ]; then
+            echo "Skipping Azure release: OIDC or ACR secrets are not configured (P0-01)."
+            echo "Configure repository secrets listed in infra/README.md then re-run this workflow."
+            echo "skipped=true" >> "$GITHUB_ENV"
+          else
+            echo "skipped=false" >> "$GITHUB_ENV"
+          fi
+
+      - uses: azure/login@v2
+        if: env.skipped == 'false'
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - uses: docker/setup-buildx-action@v3
+        if: env.skipped == 'false'
+
+      - name: ACR login
+        if: env.skipped == 'false'
+        run: az acr login --name "${ACR_LOGIN_SERVER%%.*}"
+        env:
+          ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+
+      - name: Build and push SHA-tagged images
+        if: env.skipped == 'false'
+        env:
+          ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+        run: |
+          set -euo pipefail
+          tag="$ACR_LOGIN_SERVER"
+          docker build -t "$tag/backend:$IMAGE_SHA" -f services/backend/Dockerfile services/backend
+          docker build -t "$tag/bff:$IMAGE_SHA" -f services/bff/Dockerfile .
+          docker build -t "$tag/migrate:$IMAGE_SHA" -f services/backend/Dockerfile.migrate services/backend
+          docker push "$tag/backend:$IMAGE_SHA"
+          docker push "$tag/bff:$IMAGE_SHA"
+          docker push "$tag/migrate:$IMAGE_SHA"
+
+      - name: Point Container Apps at the SHA
+        if: env.skipped == 'false'
+        env:
+          ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+          AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+          JAVA_APP: ${{ secrets.CONTAINER_APP_JAVA }}
+          BFF_APP: ${{ secrets.CONTAINER_APP_BFF }}
+          FLYWAY_JOB: ${{ secrets.CONTAINER_APP_JOB }}
+        run: |
+          set -euo pipefail
+          if [ -z "${JAVA_APP:-}" ] || [ -z "${BFF_APP:-}" ] || [ -z "${FLYWAY_JOB:-}" ]; then
+            echo "Images pushed. Skipping Container Apps update: app/job name secrets are not set."
+            exit 0
+          fi
+          az containerapp update --name "$JAVA_APP" --resource-group "$AZURE_RESOURCE_GROUP" \
+            --image "$ACR_LOGIN_SERVER/backend:$IMAGE_SHA"
+          az containerapp update --name "$BFF_APP" --resource-group "$AZURE_RESOURCE_GROUP" \
+            --image "$ACR_LOGIN_SERVER/bff:$IMAGE_SHA"
+          az containerapp job update --name "$FLYWAY_JOB" --resource-group "$AZURE_RESOURCE_GROUP" \
+            --image "$ACR_LOGIN_SERVER/migrate:$IMAGE_SHA"
+          az containerapp job start --name "$FLYWAY_JOB" --resource-group "$AZURE_RESOURCE_GROUP"
+
+      - uses: pnpm/action-setup@v4
+        if: env.skipped == 'false'
+        with:
+          version: 10.28.0
+
+      - uses: actions/setup-node@v4
+        if: env.skipped == 'false'
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Build and upload admin UI
+        if: env.skipped == 'false'
+        env:
+          VITE_BFF_BASE_URL: ${{ secrets.VITE_BFF_BASE_URL }}
+          STATIC_WEB_APP_TOKEN: ${{ secrets.STATIC_WEB_APP_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${STATIC_WEB_APP_TOKEN:-}" ]; then
+            echo "Skipping Static Web Apps upload: STATIC_WEB_APP_TOKEN not set."
+            exit 0
+          fi
+          if [ -z "${VITE_BFF_BASE_URL:-}" ]; then
+            echo "Skipping Static Web Apps upload: VITE_BFF_BASE_URL not set."
+            exit 0
+          fi
+          pnpm install --frozen-lockfile
+          pnpm --filter @borrowhub/web build
+          npx --yes @azure/static-web-apps-cli deploy apps/web/dist --deployment-token "$STATIC_WEB_APP_TOKEN" --env production
