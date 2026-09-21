@@ -56,6 +56,13 @@ export type Booking = {
   allowedActions: string[];
 };
 
+export type BookingPage = {
+  items: Booking[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
 export class CatalogueApiError extends Error {
   readonly status: number;
   readonly code: string;
@@ -142,6 +149,19 @@ export function createCatalogueApi(baseUrl: string, fetchImpl: FetchLike = fetch
       return request<Booking>("/api/v1/bookings", {
         method: "POST",
         body,
+        extraHeaders: { "idempotency-key": idempotencyKey },
+      });
+    },
+    listMine(params: { page?: number; pageSize?: number } = {}) {
+      const search = new URLSearchParams();
+      if (params.page) search.set("page", String(params.page));
+      if (params.pageSize) search.set("pageSize", String(params.pageSize));
+      const suffix = search.size > 0 ? `?${search.toString()}` : "";
+      return request<BookingPage>(`/api/v1/bookings${suffix}`);
+    },
+    cancelBooking(id: string, idempotencyKey: string = crypto.randomUUID()) {
+      return request<Booking>(`/api/v1/bookings/${id}/cancel`, {
+        method: "POST",
         extraHeaders: { "idempotency-key": idempotencyKey },
       });
     },

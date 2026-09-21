@@ -5,21 +5,20 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: MVP product
-- Branch: `feature/mvp-03-create-reservation`
-- Task: `MVP-03` Create reservation — DONE (mobile POST via BFF; Java still owns overlap)
+- Branch: `feature/mvp-04-my-bookings-cancel`
+- Task: `MVP-04` My bookings/cancel — DONE (mobile list+cancel via BFF; Java owns ownership and too-late)
 
 ## What changed
 
-- Mobile `createBooking` posts `{ equipmentId, startAt, endAt }` with UUID `Idempotency-Key` and session `X-Demo-Object-Id`
-- Detail screen **Reserve this window** (same tomorrow 07:00–10:00 UTC window as availability check); confirmation shows booking id and status
-- Inactive equipment cannot reserve from the UI
+- Mobile `listMine` GET `/api/v1/bookings` and `cancelBooking` POST `/api/v1/bookings/{id}/cancel` with UUID `Idempotency-Key`
+- Catalogue **My bookings** screen; Cancel only when `allowedActions` includes `CANCEL`
 
 ## Verification
 
-- `pnpm --filter @borrowhub/mobile test` — 6 passed
+- `pnpm --filter @borrowhub/mobile test` — 7 passed
 - `pnpm --filter @borrowhub/mobile typecheck`
 - Expo UI not launched this slice
 
 ## Next
 
-After merge: `MVP-04` my bookings / cancel on mobile. `P0-01` and `P0-02` remain open. `MVP-02` catalogue polish still TODO.
+After merge: `MVP-05` collection/return on mobile. `P0-01` and `P0-02` remain open. `MVP-02` catalogue polish still TODO.
