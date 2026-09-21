@@ -45,12 +45,12 @@ Proposals from the blueprint are not team approval until confirmed in Phase 0.
 | Field | Value |
 | --- | --- |
 | Date | 2026-09-21 |
-| Status | Proposed |
+| Status | Accepted (concurrency tests in P2-01) |
 | Context | Two employees must not reserve the same asset for overlapping intervals. |
 | Options | Per-equipment row lock then conflict query; exclusion constraints only; application-level lock. |
 | Decision | **PostgreSQL row lock on equipment** inside the mutation transaction, then conflict read. Partial unique index for `CHECKED_OUT`. |
 | Consequences | Every path that changes availability must take the same lock first. Tests require real PostgreSQL, not an in-memory substitute. |
-| Revisit | After concurrency tests; exclusion constraint is an optional extra defence. |
+| Revisit | Exclusion constraint remains an optional extra defence. |
 
 ## DEC-05 — Identity
 

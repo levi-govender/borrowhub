@@ -58,7 +58,7 @@ typecheck: ## Typecheck BFF, web, and mobile
 test-backend: ## Run Java unit/context tests
 	cd $(BACKEND) && $(GRADLEW) test
 
-test-bff: ## Run BFF catalogue proxy tests
+test-bff: ## Run BFF catalogue and booking proxy tests
 	$(PNPM) --filter @borrowhub/bff test
 
 test-mobile: ## Run mobile catalogue API tests

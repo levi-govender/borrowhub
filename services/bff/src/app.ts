@@ -41,7 +41,7 @@ function sendBackendError(reply: FastifyReply, error: unknown, traceId: string) 
     }
     return reply.status(error.status).send({
       code: "UPSTREAM_ERROR",
-      message: "The catalogue request failed.",
+      message: "The upstream request failed.",
       traceId,
       fieldErrors: {},
     });
@@ -87,8 +87,11 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
 
   app.options("/*", async (request, reply) => {
     applyCors(reply, request.headers.origin, allowedWebOrigins);
-    reply.header("access-control-allow-methods", "GET,OPTIONS");
-    reply.header("access-control-allow-headers", "content-type,x-correlation-id,authorization");
+    reply.header("access-control-allow-methods", "GET,POST,OPTIONS");
+    reply.header(
+      "access-control-allow-headers",
+      "content-type,x-correlation-id,authorization,x-demo-object-id,x-demo-tenant-id,idempotency-key",
+    );
     return reply.status(204).send();
   });
 
@@ -161,6 +164,30 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
     }
     try {
       return await backend.getAvailability(id, search, traceId);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
+  app.post("/api/v1/bookings", async (request, reply) => {
+    const traceId = correlationId(request);
+    reply.header("x-correlation-id", traceId);
+    const headers: Record<string, string> = {};
+    const objectId = request.headers["x-demo-object-id"];
+    const tenantId = request.headers["x-demo-tenant-id"];
+    const idempotencyKey = request.headers["idempotency-key"];
+    if (typeof objectId === "string" && objectId.length > 0) {
+      headers["x-demo-object-id"] = objectId;
+    }
+    if (typeof tenantId === "string" && tenantId.length > 0) {
+      headers["x-demo-tenant-id"] = tenantId;
+    }
+    if (typeof idempotencyKey === "string" && idempotencyKey.length > 0) {
+      headers["idempotency-key"] = idempotencyKey;
+    }
+    try {
+      const body = await backend.createBooking(request.body, headers, traceId);
+      return reply.status(201).send(body);
     } catch (error) {
       return sendBackendError(reply, error, traceId);
     }
