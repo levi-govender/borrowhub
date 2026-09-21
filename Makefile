@@ -17,6 +17,7 @@ WEB_URL := http://127.0.0.1:5173
 	typecheck test test-backend test-bff test-mobile test-web build \
 	docker-build docker-build-migrate docker-up docker-down \
 	bicep-build \
+	ci \
 	health clean
 
 help: ## Show this help
@@ -97,6 +98,11 @@ bicep-build: ## Compile infra/main.bicep (az CLI, or Azure CLI container if az i
 		echo "Neither az nor docker is available to compile Bicep." >&2; \
 		exit 1; \
 	fi
+
+ci: test ## Same automated checks as GitHub Actions CI (no Azure deploy)
+	$(PNPM) build:web
+	$(PNPM) build:bff
+	$(MAKE) bicep-build
 
 health: ## Curl local BFF and Java health endpoints
 	@echo "BFF live:"; curl -sfS $(BFF_URL)/health/live; echo

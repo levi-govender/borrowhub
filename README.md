@@ -120,6 +120,16 @@ make bicep-build
 make docker-build-migrate
 ```
 
+## CI / release
+
+GitHub Actions `CI` (`.github/workflows/ci.yml`) runs on pull requests and `main`: JavaScript tests and builds, Gradle Testcontainers tests, and `bicep build`. Locally: `make ci`.
+
+`Release` (`.github/workflows/release.yml`) is **manual**. It tags Container images with a **git SHA** (not `:latest` as the sole tag), updates Java/BFF/Flyway to that tag, starts the Flyway job, and optionally uploads `apps/web/dist`. Without `P0-01` Azure OIDC/ACR secrets the workflow skips Azure and exits 0. Rollback is re-running Release with a previous SHA.
+
+```bash
+make ci
+```
+
 Employee app (Expo). Catalogue talks to the BFF (`EXPO_PUBLIC_BFF_BASE_URL`). Local defaults: iOS `localhost`, Android emulator `10.0.2.2`. For a physical device or cloud BFF, copy `apps/mobile/.env.example` and set the URL (HTTPS for Azure). Preview builds: `apps/mobile/eas.json` (no Expo project ID until an operator creates one).
 
 ```bash

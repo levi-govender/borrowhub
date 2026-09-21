@@ -4,22 +4,22 @@ A new session should continue from here without reconstructing chat history.
 
 ## Current
 
-- Phase: 3 identity and cloud foundation — web/mobile cloud config (P3-05)
-- Branch: `feature/p3-05-web-mobile-cloud`
-- Task: `P3-05` React cloud hosting and mobile dev config — DONE (compile + client env; not deployed)
+- Phase: 4 repeatability — CI/CD (P4-01)
+- Branch: `feature/p4-01-ci-cd`
+- Task: `P4-01` CI/CD and immutable deploys — DONE (workflows + local CI equivalent; Azure release not run)
 
 ## What changed
 
-- Bicep Free Static Web App (`infra/modules/web.bicep`); BFF CORS includes SWA origin plus localhost
-- `apps/web/public/staticwebapp.config.json` (SPA fallback; copied into `dist`)
-- `apps/web/.env.example`, `apps/mobile/.env.example`, `apps/mobile/eas.json` for cloud BFF HTTPS / Expo preview
+- `.github/workflows/ci.yml` — PR/`main`: JS tests+builds, Gradle tests, Bicep compile
+- `.github/workflows/release.yml` — manual; images tagged with git SHA; Container Apps/Flyway/SWA update; skips Azure when OIDC/ACR secrets are missing (`P0-01`)
+- `make ci` mirrors GitHub CI locally
 
 ## Verification
 
-- `make bicep-build` — no BCP errors; ARM has `Microsoft.Web/staticSites`
-- Web/mobile tests and typecheck pass; `pnpm --filter @borrowhub/web build` includes `staticwebapp.config.json` in `dist`
-- No Azure deploy; no Expo project ID; live PKCE still `P0-01`
+- `pnpm install --frozen-lockfile`; typecheck; BFF/web/mobile tests; web+BFF production builds
+- `./gradlew test` BUILD SUCCESSFUL
+- No GitHub-hosted run until this branch is pushed; no Azure deploy
 
 ## Next
 
-After merge: `feature/p4-01-ci-cd`. `P0-01` and `P0-02` remain open. Phase 3 exit (real cloud booking) still needs a tenant and a deploy.
+After merge: `feature/p4-02-observability`. `P0-01` and `P0-02` remain open.
