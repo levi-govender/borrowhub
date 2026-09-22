@@ -8,6 +8,7 @@ import {
   type BookingDetail,
   type BookingListItem,
   type DemoIdentity,
+  type EquipmentDetail,
   type EquipmentListItem,
   type Me,
   type OperationalStatus,
@@ -51,6 +52,9 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [selectedEquipment, setSelectedEquipment] = useState<EquipmentDetail | null>(null);
+  const [equipmentDetailError, setEquipmentDetailError] = useState<string | null>(null);
+  const [updateError, setUpdateError] = useState<string | null>(null);
 
   const [bookingQuery, setBookingQuery] = useState("");
   const [submittedBookingQuery, setSubmittedBookingQuery] = useState("");
@@ -154,6 +158,7 @@ export function App() {
 
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const bookingPageCount = Math.max(1, Math.ceil(bookingTotal / PAGE_SIZE));
+  const isAdmin = me?.role === "ADMIN";
 
   if (!identity || !api) {
     return <SignIn onContinue={setIdentity} />;
@@ -266,6 +271,7 @@ export function App() {
               Reset
             </button>
           </form>
+          {isAdmin ? (
           <form
             className="create"
             onSubmit={(event) => {
@@ -329,6 +335,9 @@ export function App() {
             <button type="submit">Create</button>
             {createError ? <p role="alert">{createError}</p> : null}
           </form>
+          ) : (
+            <p>Inventory edits require an ADMIN session. Java still returns 403 for employees.</p>
+          )}
           {loading ? (
             <p role="status">Loading inventory…</p>
           ) : error ? (
@@ -356,7 +365,27 @@ export function App() {
                 <tbody>
                   {items.map((item) => (
                     <tr key={item.id}>
-                      <td>{item.assetTag}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="link"
+                          onClick={() => {
+                            setEquipmentDetailError(null);
+                            setUpdateError(null);
+                            void api
+                              .get(item.id)
+                              .then(setSelectedEquipment)
+                              .catch((caught: unknown) => {
+                                setSelectedEquipment(null);
+                                setEquipmentDetailError(
+                                  caught instanceof InventoryApiError ? caught.message : "Could not load the asset.",
+                                );
+                              });
+                          }}
+                        >
+                          {item.assetTag}
+                        </button>
+                      </td>
                       <td>{item.name}</td>
                       <td>{item.category}</td>
                       <td>{item.location}</td>
@@ -378,6 +407,85 @@ export function App() {
               </div>
             </>
           )}
+          {equipmentDetailError ? <p role="alert">{equipmentDetailError}</p> : null}
+          {selectedEquipment && isAdmin ? (
+            <section className="detail" aria-label="Edit asset">
+              <h2>Edit {selectedEquipment.assetTag}</h2>
+              <form
+                key={`${selectedEquipment.id}-${selectedEquipment.operationalStatus}-${selectedEquipment.location}`}
+                className="create"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const data = new FormData(event.currentTarget);
+                  setUpdateError(null);
+                  void api
+                    .update(selectedEquipment.id, {
+                      assetTag: String(data.get("assetTag") ?? "").trim(),
+                      name: String(data.get("name") ?? "").trim(),
+                      category: String(data.get("category") ?? selectedEquipment.category),
+                      description: String(data.get("description") ?? "").trim(),
+                      location: String(data.get("location") ?? "").trim(),
+                      operationalStatus: String(data.get("operationalStatus") ?? "ACTIVE") as OperationalStatus,
+                    })
+                    .then((next) => {
+                      setSelectedEquipment(next);
+                      return loadInventory();
+                    })
+                    .catch((caught: unknown) => {
+                      setUpdateError(
+                        caught instanceof InventoryApiError ? caught.message : "Could not update the asset.",
+                      );
+                    });
+                }}
+              >
+                <label>
+                  Tag
+                  <input name="assetTag" required defaultValue={selectedEquipment.assetTag} key={`${selectedEquipment.id}-tag`} autoComplete="off" />
+                </label>
+                <label>
+                  Name
+                  <input name="name" required defaultValue={selectedEquipment.name} key={`${selectedEquipment.id}-name`} autoComplete="off" />
+                </label>
+                <label>
+                  Category
+                  <select name="category" defaultValue={selectedEquipment.category} key={`${selectedEquipment.id}-cat`}>
+                    {CATEGORIES.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Location
+                  <input name="location" required defaultValue={selectedEquipment.location} key={`${selectedEquipment.id}-loc`} autoComplete="off" />
+                </label>
+                <label>
+                  Status
+                  <select
+                    name="operationalStatus"
+                    defaultValue={selectedEquipment.operationalStatus}
+                    key={`${selectedEquipment.id}-status`}
+                  >
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="MAINTENANCE">MAINTENANCE</option>
+                    <option value="ARCHIVED">ARCHIVED</option>
+                  </select>
+                </label>
+                <label>
+                  Description
+                  <input
+                    name="description"
+                    defaultValue={selectedEquipment.description ?? ""}
+                    key={`${selectedEquipment.id}-desc`}
+                    autoComplete="off"
+                  />
+                </label>
+                <button type="submit">Save</button>
+                {updateError ? <p role="alert">{updateError}</p> : null}
+              </form>
+            </section>
+          ) : null}
         </>
       ) : null}
 

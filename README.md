@@ -90,7 +90,7 @@ make backend
 # POST http://localhost:8080/v1/admin/bookings/{id}/cancel
 ```
 
-Admin web (http://localhost:5173) — dashboard, inventory (including archived), bookings, overdue, audit:
+Admin web (http://localhost:5173) — dashboard, inventory (create/edit including archived), bookings, overdue, audit:
 
 ```bash
 make db-up

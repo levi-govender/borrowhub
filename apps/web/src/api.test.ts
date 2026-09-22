@@ -77,3 +77,43 @@ test("loads overdue bookings and cancels with a reason", async () => {
   const cancelled = await api.cancelBooking("b1", "Asset needed");
   assert.equal(cancelled.status, "CANCELLED");
 });
+
+test("loads equipment detail and patches status", async () => {
+  const id = "11111111-1111-4111-8111-111111111111";
+  const api = createInventoryApi("http://bff.test", async (input, init) => {
+    const url = String(input);
+    if (url.endsWith(`/api/v1/admin/equipment/${id}`) && (init?.method ?? "GET") === "GET") {
+      return new Response(
+        JSON.stringify({
+          id,
+          assetTag: "PHONE-001",
+          name: "Pixel",
+          category: "phone",
+          description: "lab",
+          location: "Cupboard A",
+          operationalStatus: "ACTIVE",
+        }),
+        { status: 200 },
+      );
+    }
+    if (url.endsWith(`/api/v1/admin/equipment/${id}`) && init?.method === "PATCH") {
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get("x-demo-role"), "ADMIN");
+      const body = JSON.parse(String(init?.body));
+      assert.equal(body.operationalStatus, "MAINTENANCE");
+      return new Response(JSON.stringify({ ...body, id, operationalStatus: "MAINTENANCE" }), { status: 200 });
+    }
+    throw new Error(url);
+  });
+  const detail = await api.get(id);
+  assert.equal(detail.assetTag, "PHONE-001");
+  const updated = await api.update(id, {
+    assetTag: "PHONE-001",
+    name: "Pixel",
+    category: "phone",
+    description: "lab",
+    location: "Cupboard A",
+    operationalStatus: "MAINTENANCE",
+  });
+  assert.equal(updated.operationalStatus, "MAINTENANCE");
+});

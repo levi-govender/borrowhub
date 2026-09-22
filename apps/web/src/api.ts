@@ -11,6 +11,10 @@ export type EquipmentListItem = {
   operationalStatus: OperationalStatus;
 };
 
+export type EquipmentDetail = EquipmentListItem & {
+  description: string | null;
+};
+
 export type EquipmentPage = {
   items: EquipmentListItem[];
   page: number;
@@ -157,7 +161,23 @@ export function createInventoryApi(
       location: string;
       operationalStatus: OperationalStatus;
     }) {
-      return request<EquipmentListItem>("/api/v1/admin/equipment", { method: "POST", body });
+      return request<EquipmentDetail>("/api/v1/admin/equipment", { method: "POST", body });
+    },
+    get(id: string) {
+      return request<EquipmentDetail>(`/api/v1/admin/equipment/${id}`);
+    },
+    update(
+      id: string,
+      body: {
+        assetTag: string;
+        name: string;
+        category: string;
+        description: string;
+        location: string;
+        operationalStatus: OperationalStatus;
+      },
+    ) {
+      return request<EquipmentDetail>(`/api/v1/admin/equipment/${id}`, { method: "PATCH", body });
     },
     listBookings(
       params: { query?: string; status?: string; overdue?: boolean; page?: number; pageSize?: number } = {},
