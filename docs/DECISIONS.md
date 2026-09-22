@@ -8,13 +8,27 @@ Proposals from the blueprint are not team approval until confirmed in Phase 0.
 
 | Field | Value |
 | --- | --- |
-| Date | 2026-09-21 |
-| Status | Proposed (pending spike) |
+| Date | 2026-09-21; spike 2026-09-22 |
+| Status | **Accepted** (spike complete; keep A) |
 | Context | Employees need a mobile app; admins need a browser dashboard. A universal React Native Web approach is an explicit gate, not the default. |
 | Options | (A) Separate React web + React Native apps. (B) Universal RN-compatible components on web. |
-| Decision | **A for now.** Prototype catalogue/detail on both platforms and a representative admin table before changing this. |
-| Consequences | Two frontend tracks; shared types/clients in `packages/`. Backend contracts stay the same either way. |
-| Revisit | After a small spike proves auth redirects, accessibility, responsive layout, and admin tables work acceptably on a universal stack. |
+| Decision | **A.** Keep `apps/web` (Vite + React 19) and `apps/mobile` (Expo 57). Do not merge admin UI into Expo web. |
+| Consequences | Two frontend tracks. `packages/shared` currently exports `OFFICE_TIMEZONE` only; `packages/api-client` is still a placeholder. Backend contracts stay the same either way. Cloud admin hosting stays Azure Static Web Apps (`infra/modules/web.bicep`) with a Vite `dist`. |
+| Revisit | Only if an operator requires a single binary, or Expo Web plus SWA is proven for inventory/bookings **tables**, Playwright `getByRole('cell')`, and Entra PKCE **redirect URIs** without dropping accessibility. |
+
+### P0-02 spike notes (2026-09-22)
+
+Inspected the merged apps; did **not** rewrite UI onto RN Web (that would be changing the stack).
+
+| Gate | Observation |
+| --- | --- |
+| Admin tables | `apps/web/src/App.tsx` uses HTML `<table>` for inventory and bookings. Playwright `e2e/admin-local.spec.ts` asserts `getByRole("cell", { name: "PHONE-001" })`. RN Web has no equivalent table role without extra libraries. |
+| Accessibility | Web uses `aria-label`, `aria-current`, `role="alert"`, native labels. Mobile uses React Native `accessibilityRole` / `accessibilityLabel`. Sharing one component set would force a lowest-common-denominator a11y model. |
+| Auth redirects | Live PKCE is still **P0-01**. Web expects an HTTPS origin (SWA). Mobile expects a custom scheme / Expo auth session. One universal app does not remove two redirect URI shapes. |
+| Responsive layout | Playwright already runs Desktop Chrome and Pixel 5 **against the Vite admin**, not Expo. Expo `package.json` has `expo start --web` but no `react-native-web` direct dependency and no admin screens. |
+| Hosting | Bicep Free SKU Static Web App is wired for Vite. Expo web would be a different upload artifact and SPA routing story. |
+
+**Outcome:** stay on option A. Share timezone/API types later in `packages/`; do not share DOM/native UI.
 
 ## DEC-02 — BFF framework
 

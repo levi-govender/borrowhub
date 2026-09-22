@@ -10,8 +10,8 @@ Exit: both clients render a starter screen, services expose local health endpoin
 
 | ID | Title | Status | Notes |
 | --- | --- | --- | --- |
-| P0-01 | Confirm tenancy, budget, region | TODO | Operator: Entra tenant, Azure subscription, South Africa North candidate, cost approval. Live PKCE against Entra is blocked until this exists. Java JWT + BFF OBO are implemented against mocks in P3-01. |
-| P0-02 | Frontend spike: separate vs universal | TODO | Default remains separate apps (`DEC-01`). Spike before frontend work is far along. |
+| P0-01 | Confirm tenancy, budget, region | BLOCKED | Operator: Entra tenant, Azure subscription, South Africa North candidate, cost approval. Missing as of 2026-09-22: tenant id, subscription id, four app registrations, GitHub OIDC/SWA/ACR secrets. Live PKCE against Entra stays blocked. Java JWT + BFF OBO exist against mocks (P3-01). |
+| P0-02 | Frontend spike: separate vs universal | DONE | Evidence 2026-09-22: inspected `apps/web/src/App.tsx` HTML tables + Playwright `getByRole("cell")`; Expo `web` script exists without admin tables or a `react-native-web` direct dependency; SWA Bicep targets Vite `dist`; `packages/api-client` still a placeholder. **Kept option A.** Did not migrate UI to RN Web. |
 | P0-03 | Pin frameworks and toolchains | DONE | Evidence 2026-09-21: pnpm 10.28.0, Node v26.8.2, Java 21, Spring Boot 4.1.1 (start.spring.io), Fastify 5.12.x, Vite 8.3, Expo 57. See DEC-07. |
 | P0-04 | Establish repo, contracts, tracker | DONE | Evidence 2026-09-21: `pnpm --filter @borrowhub/bff typecheck`; `pnpm --filter @borrowhub/web build`; `pnpm --filter @borrowhub/mobile exec tsc --noEmit`; `./gradlew test`; curl BFF `/health/live` and `/health/ready` → `{"status":"ok"}`; curl Java `/actuator/health/liveness` and `/readiness` → `{"status":"UP"}`; Playwright loaded http://localhost:5173 with title BorrowHub Admin and starter copy. |
 
