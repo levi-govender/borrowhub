@@ -79,4 +79,9 @@ Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
 
 ## Enhancements (after MVP)
 
-ENH-01 QR · ENH-02 Photos/damage · ENH-03 Reminders · ENH-04 Admin calendar · later reliability/policy items in the blueprint.
+| ID | Title | Status | Notes |
+| --- | --- | --- | --- |
+| ENH-01 | QR open | DONE | Evidence 2026-09-22: `pnpm --filter @borrowhub/mobile test` (9, including `parseEquipmentQr`) and `typecheck`. Catalogue **Open from code** accepts UUID, `borrowhub:equipment:{id}`, URL, or asset tag. Live camera not added (no EAS project). |
+| ENH-02 | Photos/damage | TODO | |
+| ENH-03 | Reminders | TODO | |
+| ENH-04 | Admin calendar | TODO | |

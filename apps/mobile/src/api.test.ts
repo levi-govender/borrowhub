@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CatalogueApiError, createCatalogueApi, defaultAvailabilityWindow, formatOfficeWindow, isBookable, resolveBffBaseUrl } from "./api.ts";
+import {
+  CatalogueApiError,
+  createCatalogueApi,
+  defaultAvailabilityWindow,
+  formatOfficeWindow,
+  isBookable,
+  parseEquipmentQr,
+  resolveBffBaseUrl,
+} from "./api.ts";
 
 test("resolveBffBaseUrl prefers env then android emulator loopback", () => {
   assert.equal(resolveBffBaseUrl({ EXPO_PUBLIC_BFF_BASE_URL: "http://10.0.0.5:3000/" }, "android"), "http://10.0.0.5:3000");
@@ -147,4 +155,14 @@ test("default availability window is 3 hours from tomorrow 07:00 UTC", () => {
   assert.equal(formatOfficeWindow(window.startAt, window.endAt), "Tue, 22 Sept, 09:00–12:00 (Africa/Johannesburg)");
   assert.equal(isBookable("ACTIVE"), true);
   assert.equal(isBookable("MAINTENANCE"), false);
+});
+
+test("parseEquipmentQr accepts uuid, prefixed payload, url, or asset tag", () => {
+  const id = "11111111-1111-4111-8111-111111111111";
+  assert.deepEqual(parseEquipmentQr(`  ${id}  `), { kind: "id", equipmentId: id });
+  assert.deepEqual(parseEquipmentQr(`borrowhub:equipment:${id}`), { kind: "id", equipmentId: id });
+  assert.deepEqual(parseEquipmentQr(`https://borrowhub.example/equipment/${id}`), { kind: "id", equipmentId: id });
+  assert.deepEqual(parseEquipmentQr(`https://borrowhub.example/?equipmentId=${id}`), { kind: "id", equipmentId: id });
+  assert.deepEqual(parseEquipmentQr("PHONE-001"), { kind: "query", query: "PHONE-001" });
+  assert.equal(parseEquipmentQr("   "), null);
 });
