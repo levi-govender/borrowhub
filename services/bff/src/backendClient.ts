@@ -118,10 +118,11 @@ export function createBackendClient(options: BackendClientOptions) {
         extraHeaders,
       });
     },
-    returnBooking(id: string, extraHeaders: Record<string, string>, correlationId: string) {
+    returnBooking(id: string, extraHeaders: Record<string, string>, correlationId: string, body?: unknown) {
       return request(`/v1/bookings/${id}/return`, new URLSearchParams(), correlationId, {
         method: "POST",
         extraHeaders,
+        body,
       });
     },
     listAdminEquipment(search: URLSearchParams, extraHeaders: Record<string, string>, correlationId: string) {

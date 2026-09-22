@@ -19,6 +19,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 class BookingCollectReturnTest extends PostgresIntegrationTest {
@@ -103,19 +104,31 @@ class BookingCollectReturnTest extends PostgresIntegrationTest {
 		String returnKey = UUID.randomUUID().toString();
 		mockMvc.perform(post("/v1/bookings/{id}/return", booking.getId())
 						.header("X-Demo-Object-Id", "employee-a")
-						.header("Idempotency-Key", returnKey))
+						.header("Idempotency-Key", returnKey)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"damageNote\":\"cracked corner\"}"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("RETURNED"))
+				.andExpect(jsonPath("$.damageNote").value("cracked corner"))
 				.andExpect(jsonPath("$.allowedActions").isEmpty());
 
 		mockMvc.perform(post("/v1/bookings/{id}/return", booking.getId())
 						.header("X-Demo-Object-Id", "employee-a")
-						.header("Idempotency-Key", returnKey))
+						.header("Idempotency-Key", returnKey)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"damageNote\":\"cracked corner\"}"))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.status").value("RETURNED"));
+				.andExpect(jsonPath("$.status").value("RETURNED"))
+				.andExpect(jsonPath("$.damageNote").value("cracked corner"));
 
 		assertThat(auditEventRepository.findAll().stream().map(event -> event.getAction()).toList())
 				.contains("BOOKING_COLLECTED", "BOOKING_RETURNED");
+		assertThat(auditEventRepository.findAll().stream()
+						.filter(event -> "BOOKING_RETURNED".equals(event.getAction()))
+						.findFirst()
+						.orElseThrow()
+						.getChangeSummary())
+				.containsEntry("damageNote", "cracked corner");
 	}
 
 	@Test

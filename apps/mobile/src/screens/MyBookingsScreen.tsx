@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { CatalogueApiError, type Booking, type CatalogueApi } from "../api";
 
 type Props = {
@@ -12,6 +12,7 @@ export function MyBookingsScreen({ api, onBack }: Props) {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [damageNotes, setDamageNotes] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -79,6 +80,7 @@ export function MyBookingsScreen({ api, onBack }: Props) {
                 <Text style={styles.rowTitle}>{item.assetTag}</Text>
                 <Text style={styles.rowMeta}>
                   {item.status} · {item.startAt} → {item.endAt}
+                  {item.damageNote ? ` · ${item.damageNote}` : ""}
                 </Text>
                 {item.allowedActions.includes("CANCEL") ? (
                   <Pressable
@@ -103,15 +105,31 @@ export function MyBookingsScreen({ api, onBack }: Props) {
                   </Pressable>
                 ) : null}
                 {item.allowedActions.includes("RETURN") ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Return booking ${item.assetTag}`}
-                    onPress={() => void act(item.id, () => api.returnBooking(item.id), "Could not return this booking.")}
-                    disabled={busyId === item.id}
-                    style={styles.button}
-                  >
-                    <Text style={styles.buttonLabel}>{busyId === item.id ? "Working…" : "Return"}</Text>
-                  </Pressable>
+                  <>
+                    <TextInput
+                      accessibilityLabel={`Damage note for ${item.assetTag}`}
+                      placeholder="Damage note (optional)"
+                      value={damageNotes[item.id] ?? ""}
+                      onChangeText={(value) => setDamageNotes((current) => ({ ...current, [item.id]: value }))}
+                      autoCapitalize="none"
+                      style={styles.note}
+                    />
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`Return booking ${item.assetTag}`}
+                      onPress={() =>
+                        void act(
+                          item.id,
+                          () => api.returnBooking(item.id, crypto.randomUUID(), damageNotes[item.id] ?? ""),
+                          "Could not return this booking.",
+                        )
+                      }
+                      disabled={busyId === item.id}
+                      style={styles.button}
+                    >
+                      <Text style={styles.buttonLabel}>{busyId === item.id ? "Working…" : "Return"}</Text>
+                    </Pressable>
+                  </>
                 ) : null}
               </View>
             )}
@@ -175,5 +193,14 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     fontSize: 16,
+  },
+  note: {
+    borderWidth: 1,
+    borderColor: "#1a1a1a",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 8,
+    fontSize: 16,
+    backgroundColor: "#fff",
   },
 });

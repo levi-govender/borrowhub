@@ -171,7 +171,8 @@ test("collects and returns a booking through Java", async () => {
         });
       }
       if (url.endsWith(`/v1/bookings/${bookingId}/return`)) {
-        return new Response(JSON.stringify({ id: bookingId, status: "RETURNED" }), {
+        assert.equal(init?.body, JSON.stringify({ damageNote: "scratched" }));
+        return new Response(JSON.stringify({ id: bookingId, status: "RETURNED", damageNote: "scratched" }), {
           status: 200,
           headers: { "content-type": "application/json" },
         });
@@ -197,6 +198,7 @@ test("collects and returns a booking through Java", async () => {
       "x-demo-object-id": "employee-a",
       "idempotency-key": "66666666-6666-4666-8666-666666666666",
     },
+    payload: { damageNote: "scratched" },
   });
   assert.equal(returned.statusCode, 200);
   assert.equal(returned.json().status, "RETURNED");

@@ -15,7 +15,8 @@ public record BookingResponse(
 		Instant endAt,
 		BookingStatus status,
 		List<String> allowedActions,
-		Instant createdAt) {
+		Instant createdAt,
+		String damageNote) {
 
 	static BookingResponse from(Booking booking, List<String> allowedActions) {
 		return new BookingResponse(
@@ -27,7 +28,8 @@ public record BookingResponse(
 				booking.getEndAt(),
 				booking.getStatus(),
 				allowedActions,
-				booking.getCreatedAt());
+				booking.getCreatedAt(),
+				booking.getDamageNote());
 	}
 
 	Map<String, Object> toStoredMap() {
@@ -41,11 +43,13 @@ public record BookingResponse(
 		body.put("status", status.name());
 		body.put("allowedActions", allowedActions);
 		body.put("createdAt", createdAt.toString());
+		body.put("damageNote", damageNote);
 		return body;
 	}
 
 	@SuppressWarnings("unchecked")
 	static BookingResponse fromStoredMap(Map<String, Object> body) {
+		Object note = body.get("damageNote");
 		return new BookingResponse(
 				UUID.fromString(String.valueOf(body.get("id"))),
 				UUID.fromString(String.valueOf(body.get("equipmentId"))),
@@ -55,6 +59,7 @@ public record BookingResponse(
 				Instant.parse(String.valueOf(body.get("endAt"))),
 				BookingStatus.valueOf(String.valueOf(body.get("status"))),
 				(List<String>) body.get("allowedActions"),
-				Instant.parse(String.valueOf(body.get("createdAt"))));
+				Instant.parse(String.valueOf(body.get("createdAt"))),
+				note == null ? null : String.valueOf(note));
 	}
 }

@@ -62,6 +62,9 @@ public class Booking {
 	@Column(name = "returned_at")
 	private Instant returnedAt;
 
+	@Column(name = "damage_note")
+	private String damageNote;
+
 	protected Booking() {
 	}
 
@@ -111,6 +114,10 @@ public class Booking {
 		return createdAt;
 	}
 
+	public String getDamageNote() {
+		return damageNote;
+	}
+
 	public void cancel(Instant at, String reason) {
 		this.status = BookingStatus.CANCELLED;
 		this.cancelledAt = at;
@@ -124,9 +131,10 @@ public class Booking {
 		this.updatedAt = at;
 	}
 
-	public void markReturned(Instant at) {
+	public void markReturned(Instant at, String damageNote) {
 		this.status = BookingStatus.RETURNED;
 		this.returnedAt = at;
+		this.damageNote = damageNote;
 		this.updatedAt = at;
 	}
 }
