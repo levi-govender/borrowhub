@@ -11,6 +11,7 @@ import {
 import {
   CatalogueApiError,
   isBookable,
+  parseEquipmentQr,
   type CatalogueApi,
   type EquipmentListItem,
 } from "../api";
@@ -34,6 +35,8 @@ export function CatalogueScreen({ api, onOpen, onOpenProfile, onOpenBookings }: 
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [code, setCode] = useState("");
+  const [opening, setOpening] = useState(false);
   const queryRef = useRef(query);
   queryRef.current = query;
 
@@ -73,6 +76,39 @@ export function CatalogueScreen({ api, onOpen, onOpenProfile, onOpenBookings }: 
     void load(queryRef.current, category, 1, false);
   }, [category, load]);
 
+  const openFromCode = async () => {
+    const parsed = parseEquipmentQr(code);
+    if (!parsed) {
+      setError("Paste a QR payload, equipment UUID, or asset tag.");
+      return;
+    }
+    setOpening(true);
+    setError(null);
+    try {
+      if (parsed.kind === "id") {
+        await api.get(parsed.equipmentId);
+        onOpen(parsed.equipmentId);
+        return;
+      }
+      const result = await api.list({ query: parsed.query, page: 1, pageSize: 20 });
+      if (result.items.length === 1) {
+        onOpen(result.items[0].id);
+        return;
+      }
+      setQuery(parsed.query);
+      setItems(result.items);
+      setTotal(result.total);
+      setPage(1);
+      if (result.items.length === 0) {
+        setError("No equipment matches that tag.");
+      }
+    } catch (caught) {
+      setError(caught instanceof CatalogueApiError ? caught.message : "Could not open that code.");
+    } finally {
+      setOpening(false);
+    }
+  };
+
   return (
     <View style={styles.screen}>
       <Text style={styles.eyebrow} accessibilityRole="header">
@@ -89,6 +125,25 @@ export function CatalogueScreen({ api, onOpen, onOpenProfile, onOpenBookings }: 
         </Pressable>
       ) : null}
       <Text style={styles.title}>Find a specific asset</Text>
+      <TextInput
+        accessibilityLabel="QR payload or asset tag"
+        placeholder="QR text, UUID, or tag"
+        value={code}
+        onChangeText={setCode}
+        onSubmitEditing={() => void openFromCode()}
+        autoCapitalize="none"
+        autoCorrect={false}
+        style={styles.search}
+      />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Open from code"
+        onPress={() => void openFromCode()}
+        disabled={opening}
+        style={styles.retry}
+      >
+        <Text style={styles.retryLabel}>{opening ? "Opening…" : "Open from code"}</Text>
+      </Pressable>
       <TextInput
         accessibilityLabel="Search by name or asset tag"
         placeholder="Search name or tag"

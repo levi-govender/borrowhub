@@ -4,20 +4,21 @@ A new session should continue from here without reconstructing chat history.
 
 ## Current
 
-- Phase: Phase 0 leftovers
-- Branch: `setup/p0-02-frontend-spike`
-- Task: `P0-02` — DONE (`DEC-01` accepted: separate Vite + Expo). `P0-01` BLOCKED.
+- Phase: Enhancements
+- Branch: `feature/enh-01-qr-open`
+- Task: `ENH-01` QR open — DONE (payload parse + Open from code; no camera)
 
 ## What changed
 
-- Spike recorded in `docs/DECISIONS.md` (DEC-01). No stack change.
-- `P0-01` marked BLOCKED (no tenant/subscription/secrets in repo)
+- `parseEquipmentQr` accepts UUID, `borrowhub:equipment:{uuid}`, URL path/query, or asset tag
+- Catalogue **Open from code** (keyboard / wedge scanners). GET by id or list-by-tag
 
 ## Verification
 
-- Code inspection of web tables, Playwright cell roles, Expo package.json, `infra/modules/web.bicep`, `packages/*` stubs
-- Did not run Expo web or rewrite admin UI
+- `pnpm --filter @borrowhub/mobile test` — 9 passed
+- `pnpm --filter @borrowhub/mobile typecheck`
+- Camera / Expo Go barcode not added (`P0-01` / EAS project still missing)
 
 ## Next
 
-Operator work: **P0-01** (Entra tenant, Azure subscription, cost approval, app registrations, GitHub secrets). Until then: enhancements (ENH-01 QR) are optional; live cloud PKCE stays blocked.
+`P0-01` still BLOCKED. Optional: ENH-02 photos/damage, or camera follow-up once an Expo project exists. Live Entra PKCE still needs the operator.

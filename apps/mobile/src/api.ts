@@ -232,3 +232,33 @@ export function resolveBffBaseUrl(
   }
   return "http://localhost:3000";
 }
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export type EquipmentQr = { kind: "id"; equipmentId: string } | { kind: "query"; query: string };
+
+export function parseEquipmentQr(raw: string): EquipmentQr | null {
+  const text = raw.trim();
+  if (text.length === 0) {
+    return null;
+  }
+  const prefixed = /^borrowhub:equipment:(.+)$/i.exec(text);
+  const candidate = (prefixed ? prefixed[1] : text).trim();
+  if (UUID_PATTERN.test(candidate)) {
+    return { kind: "id", equipmentId: candidate };
+  }
+  try {
+    const url = new URL(text);
+    const fromQuery = url.searchParams.get("equipmentId");
+    if (fromQuery && UUID_PATTERN.test(fromQuery)) {
+      return { kind: "id", equipmentId: fromQuery };
+    }
+    const last = url.pathname.split("/").filter(Boolean).pop();
+    if (last && UUID_PATTERN.test(last)) {
+      return { kind: "id", equipmentId: last };
+    }
+  } catch {
+    /* wedge scanners often send a tag, not a URL */
+  }
+  return { kind: "query", query: text };
+}
