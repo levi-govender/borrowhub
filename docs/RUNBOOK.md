@@ -60,7 +60,7 @@ Then:
 2. Push SHA images via **Release**.
 3. Confirm the Flyway job succeeded before expecting Java readiness.
 4. Admin UI: Static Web App; employee app: Expo with HTTPS BFF URL.
-5. Failed request: copy `traceId` / `X-Correlation-Id` into the Kusto query in `infra/README.md`.
+5. Failed request: the admin and employee UIs append `[CODE; trace …]` from the BFF body (or `X-Correlation-Id`). Paste that `traceId` into the Kusto query in `infra/README.md`. Booking audit lines on the admin booking detail include `changeSummary` from Java.
 
 `CLOUD_WEB_URL` turns on `apps/web/e2e/cloud.spec.ts`. Until that URL exists, those tests skip.
 

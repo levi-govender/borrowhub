@@ -5,6 +5,7 @@ import {
   createInventoryApi,
   resolveBffBaseUrl,
   dashboardBookingFilter,
+  formatAuditChange,
   type AdminSummary,
   type BookingDetail,
   type BookingListItem,
@@ -688,11 +689,15 @@ export function App() {
                 <p>No audit events for this booking.</p>
               ) : (
                 <ol>
-                  {selected.audit.map((event) => (
+                  {selected.audit.map((event) => {
+                    const change = formatAuditChange(event.changeSummary);
+                    return (
                     <li key={event.id}>
                       {formatInstant(event.occurredAt)} · {event.action} · {event.actor}
+                      {change ? ` · ${change}` : ""}
                     </li>
-                  ))}
+                    );
+                  })}
                 </ol>
               )}
             </section>

@@ -74,13 +74,29 @@ export type BookingDetail = BookingListItem & {
 export class InventoryApiError extends Error {
   readonly status: number;
   readonly code: string;
+  readonly traceId: string | null;
 
-  constructor(status: number, code: string, message: string) {
-    super(message);
+  constructor(status: number, code: string, message: string, traceId: string | null = null) {
+    super(formatFailureMessage(code, message, traceId));
     this.name = "InventoryApiError";
     this.status = status;
     this.code = code;
+    this.traceId = traceId;
   }
+}
+
+export function formatFailureMessage(code: string, message: string, traceId?: string | null): string {
+  const suffix = traceId ? ` [${code}; trace ${traceId}]` : ` [${code}]`;
+  return `${message}${suffix}`;
+}
+
+export function formatAuditChange(summary: Record<string, unknown> | null | undefined): string {
+  if (!summary || Object.keys(summary).length === 0) {
+    return "";
+  }
+  return Object.entries(summary)
+    .map(([key, value]) => `${key}=${value === null || value === undefined ? "" : String(value)}`)
+    .join("; ");
 }
 
 export type FetchLike = typeof fetch;
@@ -126,12 +142,14 @@ export function createInventoryApi(
     const body = (await response.json().catch(() => ({}))) as {
       code?: string;
       message?: string;
+      traceId?: string;
     };
     if (!response.ok) {
       throw new InventoryApiError(
         response.status,
         body.code ?? "UPSTREAM_ERROR",
         body.message ?? "The inventory request failed.",
+        body.traceId ?? response.headers.get("x-correlation-id"),
       );
     }
     return body as T;

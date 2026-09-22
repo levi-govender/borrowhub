@@ -66,13 +66,20 @@ export type BookingPage = {
 export class CatalogueApiError extends Error {
   readonly status: number;
   readonly code: string;
+  readonly traceId: string | null;
 
-  constructor(status: number, code: string, message: string) {
-    super(message);
+  constructor(status: number, code: string, message: string, traceId: string | null = null) {
+    super(formatFailureMessage(code, message, traceId));
     this.name = "CatalogueApiError";
     this.status = status;
     this.code = code;
+    this.traceId = traceId;
   }
+}
+
+export function formatFailureMessage(code: string, message: string, traceId?: string | null): string {
+  const suffix = traceId ? ` [${code}; trace ${traceId}]` : ` [${code}]`;
+  return `${message}${suffix}`;
 }
 
 export type FetchLike = typeof fetch;
@@ -111,12 +118,14 @@ export function createCatalogueApi(baseUrl: string, fetchImpl: FetchLike = fetch
     const body = (await response.json().catch(() => ({}))) as {
       code?: string;
       message?: string;
+      traceId?: string;
     };
     if (!response.ok) {
       throw new CatalogueApiError(
         response.status,
         body.code ?? "UPSTREAM_ERROR",
         body.message ?? "The catalogue request failed.",
+        body.traceId ?? response.headers.get("x-correlation-id"),
       );
     }
     return body as T;
