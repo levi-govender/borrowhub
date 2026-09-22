@@ -7,6 +7,7 @@ import {
   formatOfficeWindow,
   isBookable,
   parseEquipmentQr,
+  formatBookingReminder,
   resolveBffBaseUrl,
 } from "./api.ts";
 
@@ -167,4 +168,10 @@ test("parseEquipmentQr accepts uuid, prefixed payload, url, or asset tag", () =>
   assert.deepEqual(parseEquipmentQr(`https://borrowhub.example/?equipmentId=${id}`), { kind: "id", equipmentId: id });
   assert.deepEqual(parseEquipmentQr("PHONE-001"), { kind: "query", query: "PHONE-001" });
   assert.equal(parseEquipmentQr("   "), null);
+});
+
+test("formatBookingReminder maps Java kinds", () => {
+  assert.equal(formatBookingReminder("COLLECT_NOW"), "Collection is open.");
+  assert.equal(formatBookingReminder("RETURN_NOW"), "Please return this asset.");
+  assert.equal(formatBookingReminder("OVERDUE"), "This loan is overdue.");
 });

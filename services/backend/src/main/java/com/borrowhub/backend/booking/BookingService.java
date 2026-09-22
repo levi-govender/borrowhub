@@ -141,7 +141,7 @@ public class BookingService {
 				traceId == null ? "" : traceId,
 				summary));
 		BookingResponse response =
-				BookingResponse.from(booking, BookingActions.allowed(booking, now, policy.collectionLeadMinutes()));
+				BookingResponse.from(booking, now, policy.collectionLeadMinutes());
 		idempotencyRecordRepository.saveAndFlush(new IdempotencyRecord(
 				UUID.randomUUID(),
 				user,
@@ -207,8 +207,7 @@ public class BookingService {
 		Page<Booking> result = bookingRepository.findByUser_Id(user.getId(), pageable);
 		return new PageResponse<>(
 				result.getContent().stream()
-						.map(booking -> BookingResponse.from(
-								booking, BookingActions.allowed(booking, now, policy.collectionLeadMinutes())))
+						.map(booking -> BookingResponse.from(booking, now, policy.collectionLeadMinutes()))
 						.toList(),
 				resolvedPage,
 				resolvedSize,
@@ -219,8 +218,7 @@ public class BookingService {
 	public BookingResponse getMine(String tenantIdHeader, String objectIdHeader, UUID bookingId) {
 		AppUser user = identityService.requireUser(tenantIdHeader, objectIdHeader);
 		Booking booking = requireOwned(bookingId, user.getId());
-		return BookingResponse.from(
-				booking, BookingActions.allowed(booking, Instant.now(clock), policy.collectionLeadMinutes()));
+		return BookingResponse.from(booking, Instant.now(clock), policy.collectionLeadMinutes());
 	}
 
 	public BookingResponse cancel(
@@ -281,7 +279,7 @@ public class BookingService {
 				traceId == null ? "" : traceId,
 				summary));
 		BookingResponse response =
-				BookingResponse.from(booking, BookingActions.allowed(booking, now, policy.collectionLeadMinutes()));
+				BookingResponse.from(booking, now, policy.collectionLeadMinutes());
 		idempotencyRecordRepository.saveAndFlush(new IdempotencyRecord(
 				UUID.randomUUID(),
 				user,
@@ -425,7 +423,7 @@ public class BookingService {
 				traceId == null ? "" : traceId,
 				summary));
 		BookingResponse response =
-				BookingResponse.from(booking, BookingActions.allowed(booking, now, policy.collectionLeadMinutes()));
+				BookingResponse.from(booking, now, policy.collectionLeadMinutes());
 		idempotencyRecordRepository.saveAndFlush(new IdempotencyRecord(
 				UUID.randomUUID(),
 				user,

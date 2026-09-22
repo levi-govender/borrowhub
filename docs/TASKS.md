@@ -83,5 +83,5 @@ Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
 | --- | --- | --- | --- |
 | ENH-01 | QR open | DONE | Evidence 2026-09-22: `pnpm --filter @borrowhub/mobile test` (9, including `parseEquipmentQr`) and `typecheck`. Catalogue **Open from code** accepts UUID, `borrowhub:equipment:{id}`, URL, or asset tag. Live camera not added (no EAS project). |
 | ENH-02 | Photos/damage | DONE | Evidence 2026-09-22: Flyway `V003` `damage_note`; return body `{ damageNote }` hashed for idempotency; audit `BOOKING_RETURNED`. `pnpm` mobile test 9 + typecheck; BFF test 12 + typecheck. CI: `SchemaMigrationTest` expected Flyway version 2; updated to 3 + `damage_note` column. Photos/blob still `P0-01`. |
-| ENH-03 | Reminders | TODO | |
+| ENH-03 | Reminders | DONE | Evidence 2026-09-22: `./gradlew test --tests com.borrowhub.backend.booking.BookingRemindersTest` BUILD SUCCESSFUL (no Docker). Kinds COLLECT_NOW / RETURN_NOW / OVERDUE on booking JSON. `pnpm --filter @borrowhub/mobile test` (10) + typecheck. No push/email. |
 | ENH-04 | Admin calendar | TODO | |

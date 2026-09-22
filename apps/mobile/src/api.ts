@@ -55,6 +55,7 @@ export type Booking = {
   endAt: string;
   allowedActions: string[];
   damageNote?: string | null;
+  reminders?: string[];
 };
 
 export type BookingPage = {
@@ -223,6 +224,19 @@ export function formatOfficeWindow(startAt: string, endAt: string): string {
     hour12: false,
   });
   return `${datePart}, ${time.format(start)}–${time.format(end)} (Africa/Johannesburg)`;
+}
+
+export function formatBookingReminder(kind: string): string {
+  if (kind === "COLLECT_NOW") {
+    return "Collection is open.";
+  }
+  if (kind === "RETURN_NOW") {
+    return "Please return this asset.";
+  }
+  if (kind === "OVERDUE") {
+    return "This loan is overdue.";
+  }
+  return kind;
 }
 
 export function resolveBffBaseUrl(
