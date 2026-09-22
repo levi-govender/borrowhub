@@ -197,6 +197,28 @@ export function defaultAvailabilityWindow(now = new Date()): { startAt: string; 
   return { startAt: start.toISOString(), endAt: end.toISOString() };
 }
 
+export function isBookable(status: OperationalStatus): boolean {
+  return status === "ACTIVE";
+}
+
+export function formatOfficeWindow(startAt: string, endAt: string): string {
+  const start = new Date(startAt);
+  const end = new Date(endAt);
+  const datePart = new Intl.DateTimeFormat("en-ZA", {
+    timeZone: "Africa/Johannesburg",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).format(start);
+  const time = new Intl.DateTimeFormat("en-ZA", {
+    timeZone: "Africa/Johannesburg",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  return `${datePart}, ${time.format(start)}–${time.format(end)} (Africa/Johannesburg)`;
+}
+
 export function resolveBffBaseUrl(
   env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
   platform: "ios" | "android" | "web" | string = "ios",

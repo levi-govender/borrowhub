@@ -5,21 +5,21 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: MVP product
-- Branch: `feature/mvp-08-audit-failures`
-- Task: `MVP-08` Audit and failure handling — DONE (UI traces + audit changeSummary)
+- Branch: `feature/mvp-02-catalogue-polish`
+- Task: `MVP-02` Catalogue — DONE (office TZ window, pagination, not-bookable)
 
 ## What changed
 
-- Web and mobile API errors include BFF `code` and `traceId` (or `X-Correlation-Id`) in the message
-- Admin booking audit lines include Java `changeSummary`
-- Runbook points operators at that trace for Kusto
+- Catalogue Load more (page/pageSize through BFF)
+- Non-ACTIVE rows labelled not bookable; Reserve stays disabled
+- Detail default window formatted in `Africa/Johannesburg`
 
 ## Verification
 
-- `pnpm --filter @borrowhub/web test` — 9 passed; typecheck; build
-- `pnpm --filter @borrowhub/mobile test` — 8 passed; typecheck
-- Playwright not re-run
+- `pnpm --filter @borrowhub/mobile test` — 8 passed
+- `pnpm --filter @borrowhub/mobile typecheck`
+- Expo UI not launched
 
 ## Next
 
-After merge: `MVP-02` catalogue polish (list/detail already exist). `P0-01` and `P0-02` remain open. Product MVP rows 01 and 03–08 are done.
+Product MVP rows 01–08 are done. Remaining: `P0-01` Entra/Azure tenant, `P0-02` frontend spike (`DEC-01` still separate apps). Enhancements ENH-01+ after that.
