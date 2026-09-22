@@ -320,17 +320,22 @@ public class BookingService {
 	}
 
 	public BookingResponse returnBooking(
-			String tenantIdHeader, String objectIdHeader, String idempotencyKeyHeader, UUID bookingId) {
+			String tenantIdHeader,
+			String objectIdHeader,
+			String idempotencyKeyHeader,
+			UUID bookingId,
+			ReturnBookingRequest request) {
 		AppUser user = identityService.requireUser(tenantIdHeader, objectIdHeader);
 		UUID key = parseIdempotencyKey(idempotencyKeyHeader);
-		String hash = RequestHash.forReturn(bookingId);
+		String note = normalizeDamageNote(request == null ? null : request.damageNote());
+		String hash = RequestHash.forReturn(bookingId, note);
 		Optional<IdempotencyRecord> existing =
 				idempotencyRecordRepository.findByUserIdAndRouteAndKey(user.getId(), RETURN_ROUTE, key.toString());
 		if (existing.isPresent()) {
 			return replay(existing.get(), hash);
 		}
 		try {
-			return transactionTemplate.execute(status -> persistReturn(user, key, hash, bookingId));
+			return transactionTemplate.execute(status -> persistReturn(user, key, hash, bookingId, note));
 		}
 		catch (RuntimeException ex) {
 			if (!isUniqueConstraint(ex)) {
@@ -374,7 +379,7 @@ public class BookingService {
 		return finishMutation(user, key, hash, booking, equipment, now, COLLECT_ROUTE, "BOOKING_COLLECTED");
 	}
 
-	private BookingResponse persistReturn(AppUser user, UUID key, String hash, UUID bookingId) {
+	private BookingResponse persistReturn(AppUser user, UUID key, String hash, UUID bookingId, String damageNote) {
 		Booking booking = requireOwned(bookingId, user.getId());
 		Equipment equipment = equipmentRepository
 				.lockById(booking.getEquipment().getId())
@@ -389,7 +394,7 @@ public class BookingService {
 		if (booking.getStatus() != BookingStatus.CHECKED_OUT) {
 			throw ApiException.conflict("ILLEGAL_TRANSITION", "Only a checked-out booking can be returned.");
 		}
-		booking.markReturned(now);
+		booking.markReturned(now, damageNote.isEmpty() ? null : damageNote);
 		bookingRepository.save(booking);
 		return finishMutation(user, key, hash, booking, equipment, now, RETURN_ROUTE, "BOOKING_RETURNED");
 	}
@@ -406,6 +411,9 @@ public class BookingService {
 		Map<String, Object> summary = new LinkedHashMap<>();
 		summary.put("status", booking.getStatus().name());
 		summary.put("equipmentId", equipment.getId().toString());
+		if (booking.getDamageNote() != null && !booking.getDamageNote().isBlank()) {
+			summary.put("damageNote", booking.getDamageNote());
+		}
 		String traceId = MDC.get(CorrelationIdFilter.MDC_KEY);
 		auditEventRepository.save(new AuditEvent(
 				UUID.randomUUID(),
@@ -462,5 +470,9 @@ public class BookingService {
 		if (duration.compareTo(Duration.ofDays(policy.maxDurationDays())) > 0) {
 			throw ApiException.badRequest("POLICY_VIOLATION", "Reservation cannot exceed 7 days.");
 		}
+	}
+
+	static String normalizeDamageNote(String damageNote) {
+		return damageNote == null ? "" : damageNote.trim();
 	}
 }

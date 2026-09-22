@@ -76,9 +76,10 @@ public class BookingController {
 	@PostMapping("/{id}/return")
 	public BookingResponse returnBooking(
 			@PathVariable UUID id,
+			@Valid @RequestBody(required = false) ReturnBookingRequest request,
 			@RequestHeader(value = DEMO_TENANT_HEADER, required = false) String tenantId,
 			@RequestHeader(value = DEMO_OBJECT_HEADER, required = false) String objectId,
 			@RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey) {
-		return bookingService.returnBooking(tenantId, objectId, idempotencyKey, id);
+		return bookingService.returnBooking(tenantId, objectId, idempotencyKey, id, request);
 	}
 }

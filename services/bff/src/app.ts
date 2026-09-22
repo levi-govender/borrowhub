@@ -413,7 +413,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
     }
     headers["idempotency-key"] = idempotencyKey;
     try {
-      return await backend.returnBooking(id, headers, traceId);
+      return await backend.returnBooking(id, headers, traceId, request.body);
     } catch (error) {
       return sendBackendError(reply, error, traceId);
     }

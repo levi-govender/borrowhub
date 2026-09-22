@@ -54,6 +54,7 @@ export type Booking = {
   startAt: string;
   endAt: string;
   allowedActions: string[];
+  damageNote?: string | null;
 };
 
 export type BookingPage = {
@@ -180,9 +181,14 @@ export function createCatalogueApi(baseUrl: string, fetchImpl: FetchLike = fetch
         extraHeaders: { "idempotency-key": idempotencyKey },
       });
     },
-    returnBooking(id: string, idempotencyKey: string = crypto.randomUUID()) {
+    returnBooking(
+      id: string,
+      idempotencyKey: string = crypto.randomUUID(),
+      damageNote: string = "",
+    ) {
       return request<Booking>(`/api/v1/bookings/${id}/return`, {
         method: "POST",
+        body: { damageNote },
         extraHeaders: { "idempotency-key": idempotencyKey },
       });
     },

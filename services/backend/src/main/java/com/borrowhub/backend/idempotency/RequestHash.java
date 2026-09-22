@@ -24,8 +24,8 @@ public final class RequestHash {
 		return sha256("collect\n" + bookingId);
 	}
 
-	public static String forReturn(UUID bookingId) {
-		return sha256("return\n" + bookingId);
+	public static String forReturn(UUID bookingId, String damageNote) {
+		return sha256("return\n" + bookingId + "\n" + (damageNote == null ? "" : damageNote));
 	}
 
 	public static String forAdminCancel(UUID bookingId, String reason) {

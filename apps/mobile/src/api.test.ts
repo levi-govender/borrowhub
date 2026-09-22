@@ -138,14 +138,16 @@ test("collectBooking and returnBooking post idempotency key", async () => {
       }
       assert.equal(String(input), `http://bff.test/api/v1/bookings/${bookingId}/return`);
       assert.equal(headers.get("idempotency-key"), "77777777-7777-4777-8777-777777777777");
-      return new Response(JSON.stringify({ id: bookingId, status: "RETURNED", allowedActions: [] }), { status: 200 });
+      assert.equal(init?.body, JSON.stringify({ damageNote: "cracked screen" }));
+      return new Response(JSON.stringify({ id: bookingId, status: "RETURNED", allowedActions: [], damageNote: "cracked screen" }), { status: 200 });
     },
     { objectId: "employee-a" },
   );
   const collected = await api.collectBooking(bookingId, "66666666-6666-4666-8666-666666666666");
   assert.equal(collected.status, "CHECKED_OUT");
-  const returned = await api.returnBooking(bookingId, "77777777-7777-4777-8777-777777777777");
+  const returned = await api.returnBooking(bookingId, "77777777-7777-4777-8777-777777777777", "cracked screen");
   assert.equal(returned.status, "RETURNED");
+  assert.equal(returned.damageNote, "cracked screen");
 });
 
 test("default availability window is 3 hours from tomorrow 07:00 UTC", () => {

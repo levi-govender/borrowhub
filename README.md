@@ -59,7 +59,7 @@ make bff
 # GET  http://localhost:3000/api/v1/bookings/{id}
 # POST http://localhost:3000/api/v1/bookings/{id}/cancel  (Idempotency-Key)
 # POST http://localhost:3000/api/v1/bookings/{id}/collect (Idempotency-Key)
-# POST http://localhost:3000/api/v1/bookings/{id}/return  (Idempotency-Key)
+# POST http://localhost:3000/api/v1/bookings/{id}/return  (Idempotency-Key, optional body { damageNote })
 # GET  http://localhost:3000/api/v1/admin/summary           (X-Demo-Object-Id, X-Demo-Role: ADMIN)
 # GET  http://localhost:3000/api/v1/admin/equipment
 # POST http://localhost:3000/api/v1/admin/equipment
