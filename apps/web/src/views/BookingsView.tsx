@@ -169,7 +169,7 @@ export function BookingsView({
                       <tr
                         key={item.id}
                         className={item.overdue ? "row-link overdue" : "row-link"}
-                        aria-selected={selected?.id === item.id ? true : undefined}
+                        data-selected={selected?.id === item.id ? "true" : undefined}
                         onClick={() => onOpen(item.id)}
                       >
                         <td className="cell-tag">

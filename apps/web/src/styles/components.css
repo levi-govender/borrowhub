@@ -510,7 +510,7 @@ tbody tr:hover td {
   background: var(--surface-2);
 }
 
-tbody tr[aria-selected="true"] td {
+tbody tr[data-selected="true"] td {
   background: var(--brand-soft);
 }
 

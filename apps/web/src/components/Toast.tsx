@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Icon } from "./Icon";
 
 type Tone = "success" | "error";
@@ -21,8 +21,14 @@ const DISMISS_AFTER_MS = 6_000;
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const nextId = useRef(0);
+  const timers = useRef(new Map<number, number>());
 
   const dismiss = useCallback((id: number) => {
+    const timer = timers.current.get(id);
+    if (timer !== undefined) {
+      window.clearTimeout(timer);
+      timers.current.delete(id);
+    }
     setToasts((current) => current.filter((toast) => toast.id !== id));
   }, []);
 
@@ -31,10 +37,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       nextId.current += 1;
       const id = nextId.current;
       setToasts((current) => [...current.slice(-2), { id, tone, message }]);
-      window.setTimeout(() => dismiss(id), DISMISS_AFTER_MS);
+      timers.current.set(id, window.setTimeout(() => dismiss(id), DISMISS_AFTER_MS));
     },
     [dismiss],
   );
+
+  useEffect(() => {
+    const pending = timers.current;
+    return () => {
+      pending.forEach((timer) => window.clearTimeout(timer));
+      pending.clear();
+    };
+  }, []);
 
   const api = useMemo<ToastApi>(
     () => ({

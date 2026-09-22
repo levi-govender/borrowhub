@@ -241,7 +241,7 @@ export function InventoryView({
           ) : null}
         </section>
       ) : (
-        <div className="alert alert--info rise" role="status">
+        <div className="alert alert--info rise">
           <Icon name="info" size={18} />
           <div className="alert__body">
             <p className="alert__msg">
@@ -293,7 +293,7 @@ export function InventoryView({
                     <tr
                       key={item.id}
                       className="row-link"
-                      aria-selected={selected?.id === item.id ? true : undefined}
+                      data-selected={selected?.id === item.id ? "true" : undefined}
                       onClick={() => onOpen(item.id)}
                     >
                       <td className="cell-tag">

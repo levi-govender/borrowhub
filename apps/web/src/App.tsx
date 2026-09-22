@@ -74,7 +74,7 @@ export function App() {
   const [bookingPage, setBookingPage] = useState(1);
   const [bookings, setBookings] = useState<BookingListItem[]>([]);
   const [bookingTotal, setBookingTotal] = useState(0);
-  const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [bookingsLoading, setBookingsLoading] = useState(true);
   const [bookingsError, setBookingsError] = useState<string | null>(null);
   const [selected, setSelected] = useState<BookingDetail | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);

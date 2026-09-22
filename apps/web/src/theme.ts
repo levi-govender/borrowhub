@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export type Theme = "light" | "dark";
 
@@ -18,27 +18,47 @@ function systemTheme(): Theme {
 }
 
 /**
- * Theme choice: starts from the OS setting, and a viewer's explicit pick wins
- * and persists. Storage can be unavailable (private windows), so every access
- * is guarded and the UI still works without it.
+ * Theme choice: starts from the OS setting and follows it while it is the only
+ * signal; a viewer's explicit pick wins and persists. Storage can be
+ * unavailable (private windows), so every access is guarded and the UI still
+ * works without it.
  */
 export function useTheme(): { theme: Theme; toggle: () => void } {
   const [theme, setTheme] = useState<Theme>(() => readStored() ?? systemTheme());
+  // Whether the viewer picked a theme, as opposed to inheriting the OS one.
+  const picked = useRef(readStored() !== null);
 
-  useEffect(() => {
+  // Layout effect, not a passive one: the attribute has to land before the
+  // first paint or a stored choice flashes the other theme.
+  useLayoutEffect(() => {
     document.documentElement.dataset.theme = theme;
+    if (!picked.current) {
+      return;
+    }
+    try {
+      window.localStorage.setItem(STORAGE_KEY, theme);
+    } catch {
+      /* no-op: the choice just does not persist */
+    }
   }, [theme]);
 
-  const toggle = useCallback(() => {
-    setTheme((current) => {
-      const next: Theme = current === "dark" ? "light" : "dark";
-      try {
-        window.localStorage.setItem(STORAGE_KEY, next);
-      } catch {
-        /* no-op: the choice just does not persist */
+  useEffect(() => {
+    const query = window.matchMedia?.("(prefers-color-scheme: dark)");
+    if (!query) {
+      return;
+    }
+    const onChange = (event: MediaQueryListEvent) => {
+      if (!picked.current) {
+        setTheme(event.matches ? "dark" : "light");
       }
-      return next;
-    });
+    };
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
+
+  const toggle = useCallback(() => {
+    picked.current = true;
+    setTheme((current) => (current === "dark" ? "light" : "dark"));
   }, []);
 
   return { theme, toggle };
