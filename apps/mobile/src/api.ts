@@ -165,6 +165,18 @@ export function createCatalogueApi(baseUrl: string, fetchImpl: FetchLike = fetch
         extraHeaders: { "idempotency-key": idempotencyKey },
       });
     },
+    collectBooking(id: string, idempotencyKey: string = crypto.randomUUID()) {
+      return request<Booking>(`/api/v1/bookings/${id}/collect`, {
+        method: "POST",
+        extraHeaders: { "idempotency-key": idempotencyKey },
+      });
+    },
+    returnBooking(id: string, idempotencyKey: string = crypto.randomUUID()) {
+      return request<Booking>(`/api/v1/bookings/${id}/return`, {
+        method: "POST",
+        extraHeaders: { "idempotency-key": idempotencyKey },
+      });
+    },
   };
 }
 

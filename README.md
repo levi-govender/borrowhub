@@ -132,7 +132,7 @@ Cloud UI tests (`apps/web/e2e/cloud.spec.ts`) skip unless `CLOUD_WEB_URL` is set
 make ci
 ```
 
-Employee app (Expo). Catalogue, **Reserve this window**, and **My bookings** talk to the BFF (`EXPO_PUBLIC_BFF_BASE_URL`). Local defaults: iOS `localhost`, Android emulator `10.0.2.2`. Sign in first so `X-Demo-Object-Id` is sent; reserve and cancel use a UUID `Idempotency-Key`. Cancel is only offered when Java returns `allowedActions` including `CANCEL` (before start). For a physical device or cloud BFF, copy `apps/mobile/.env.example` and set the URL (HTTPS for Azure). Preview builds: `apps/mobile/eas.json` (no Expo project ID until an operator creates one).
+Employee app (Expo). Catalogue, reserve, my bookings, collect, and return talk to the BFF (`EXPO_PUBLIC_BFF_BASE_URL`). Local defaults: iOS `localhost`, Android emulator `10.0.2.2`. Sign in first so `X-Demo-Object-Id` is sent; reserve, cancel, collect, and return use a UUID `Idempotency-Key`. Collect/return/cancel buttons appear only when Java `allowedActions` includes them. For a physical device or cloud BFF, copy `apps/mobile/.env.example` and set the URL (HTTPS for Azure). Preview builds: `apps/mobile/eas.json` (no Expo project ID until an operator creates one).
 
 ```bash
 make db-up

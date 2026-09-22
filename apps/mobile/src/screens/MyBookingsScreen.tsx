@@ -11,7 +11,7 @@ export function MyBookingsScreen({ api, onBack }: Props) {
   const [items, setItems] = useState<Booking[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -34,16 +34,16 @@ export function MyBookingsScreen({ api, onBack }: Props) {
     void load();
   }, [load]);
 
-  const cancel = async (id: string) => {
-    setCancellingId(id);
+  const act = async (id: string, run: () => Promise<Booking>, failed: string) => {
+    setBusyId(id);
     setError(null);
     try {
-      const updated = await api.cancelBooking(id);
+      const updated = await run();
       setItems((current) => current.map((item) => (item.id === id ? updated : item)));
     } catch (caught) {
-      setError(caught instanceof CatalogueApiError ? caught.message : "Could not cancel this booking.");
+      setError(caught instanceof CatalogueApiError ? caught.message : failed);
     } finally {
-      setCancellingId(null);
+      setBusyId(null);
     }
   };
 
@@ -84,13 +84,33 @@ export function MyBookingsScreen({ api, onBack }: Props) {
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={`Cancel booking ${item.assetTag}`}
-                    onPress={() => void cancel(item.id)}
-                    disabled={cancellingId === item.id}
+                    onPress={() => void act(item.id, () => api.cancelBooking(item.id), "Could not cancel this booking.")}
+                    disabled={busyId === item.id}
                     style={styles.button}
                   >
-                    <Text style={styles.buttonLabel}>
-                      {cancellingId === item.id ? "Cancelling…" : "Cancel"}
-                    </Text>
+                    <Text style={styles.buttonLabel}>{busyId === item.id ? "Working…" : "Cancel"}</Text>
+                  </Pressable>
+                ) : null}
+                {item.allowedActions.includes("COLLECT") ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Collect booking ${item.assetTag}`}
+                    onPress={() => void act(item.id, () => api.collectBooking(item.id), "Could not collect this booking.")}
+                    disabled={busyId === item.id}
+                    style={styles.button}
+                  >
+                    <Text style={styles.buttonLabel}>{busyId === item.id ? "Working…" : "Collect"}</Text>
+                  </Pressable>
+                ) : null}
+                {item.allowedActions.includes("RETURN") ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Return booking ${item.assetTag}`}
+                    onPress={() => void act(item.id, () => api.returnBooking(item.id), "Could not return this booking.")}
+                    disabled={busyId === item.id}
+                    style={styles.button}
+                  >
+                    <Text style={styles.buttonLabel}>{busyId === item.id ? "Working…" : "Return"}</Text>
                   </Pressable>
                 ) : null}
               </View>
