@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CatalogueApiError, createCatalogueApi, defaultAvailabilityWindow, resolveBffBaseUrl } from "./api.ts";
+import { CatalogueApiError, createCatalogueApi, defaultAvailabilityWindow, formatOfficeWindow, isBookable, resolveBffBaseUrl } from "./api.ts";
 
 test("resolveBffBaseUrl prefers env then android emulator loopback", () => {
   assert.equal(resolveBffBaseUrl({ EXPO_PUBLIC_BFF_BASE_URL: "http://10.0.0.5:3000/" }, "android"), "http://10.0.0.5:3000");
@@ -144,4 +144,7 @@ test("default availability window is 3 hours from tomorrow 07:00 UTC", () => {
   const window = defaultAvailabilityWindow(new Date("2026-09-21T15:00:00Z"));
   assert.equal(window.startAt, "2026-09-22T07:00:00.000Z");
   assert.equal(window.endAt, "2026-09-22T10:00:00.000Z");
+  assert.equal(formatOfficeWindow(window.startAt, window.endAt), "Tue, 22 Sept, 09:00–12:00 (Africa/Johannesburg)");
+  assert.equal(isBookable("ACTIVE"), true);
+  assert.equal(isBookable("MAINTENANCE"), false);
 });

@@ -10,11 +10,13 @@ import {
 } from "react-native";
 import {
   CatalogueApiError,
+  isBookable,
   type CatalogueApi,
   type EquipmentListItem,
 } from "../api";
 
 const CATEGORIES = ["phone", "monitor", "adapter", "camera"] as const;
+const PAGE_SIZE = 20;
 
 type Props = {
   api: CatalogueApi;
@@ -28,37 +30,47 @@ export function CatalogueScreen({ api, onOpen, onOpenProfile, onOpenBookings }: 
   const [category, setCategory] = useState<string | undefined>();
   const [items, setItems] = useState<EquipmentListItem[]>([]);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const queryRef = useRef(query);
   queryRef.current = query;
 
   const load = useCallback(
-    async (nextQuery: string, nextCategory: string | undefined) => {
-      setLoading(true);
+    async (nextQuery: string, nextCategory: string | undefined, nextPage: number, append: boolean) => {
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
       try {
-        const page = await api.list({
+        const result = await api.list({
           query: nextQuery.trim() || undefined,
           category: nextCategory,
-          page: 1,
-          pageSize: 20,
+          page: nextPage,
+          pageSize: PAGE_SIZE,
         });
-        setItems(page.items);
-        setTotal(page.total);
+        setItems((current) => (append ? [...current, ...result.items] : result.items));
+        setTotal(result.total);
+        setPage(nextPage);
       } catch (caught) {
-        setItems([]);
-        setTotal(0);
+        if (!append) {
+          setItems([]);
+          setTotal(0);
+        }
         setError(caught instanceof CatalogueApiError ? caught.message : "Could not load equipment.");
       } finally {
         setLoading(false);
+        setLoadingMore(false);
       }
     },
     [api],
   );
 
   useEffect(() => {
-    void load(queryRef.current, category);
+    void load(queryRef.current, category, 1, false);
   }, [category, load]);
 
   return (
@@ -82,7 +94,7 @@ export function CatalogueScreen({ api, onOpen, onOpenProfile, onOpenBookings }: 
         placeholder="Search name or tag"
         value={query}
         onChangeText={setQuery}
-        onSubmitEditing={() => void load(query, category)}
+        onSubmitEditing={() => void load(query, category, 1, false)}
         autoCapitalize="none"
         autoCorrect={false}
         style={styles.search}
@@ -103,7 +115,7 @@ export function CatalogueScreen({ api, onOpen, onOpenProfile, onOpenBookings }: 
         onPress={() => {
           setQuery("");
           setCategory(undefined);
-          void load("", undefined);
+          void load("", undefined, 1, false);
         }}
         style={styles.reset}
       >
@@ -114,7 +126,7 @@ export function CatalogueScreen({ api, onOpen, onOpenProfile, onOpenBookings }: 
       ) : error ? (
         <View style={styles.center}>
           <Text style={styles.message}>{error}</Text>
-          <Pressable accessibilityRole="button" onPress={() => void load(query, category)} style={styles.retry}>
+          <Pressable accessibilityRole="button" onPress={() => void load(query, category, 1, false)} style={styles.retry}>
             <Text style={styles.retryLabel}>Retry</Text>
           </Pressable>
         </View>
@@ -135,9 +147,23 @@ export function CatalogueScreen({ api, onOpen, onOpenProfile, onOpenBookings }: 
               <Text style={styles.rowTitle}>{item.name}</Text>
               <Text style={styles.rowMeta}>
                 {item.assetTag} · {item.category} · {item.location} · {item.operationalStatus}
+                {isBookable(item.operationalStatus) ? "" : " · not bookable"}
               </Text>
             </Pressable>
           )}
+          ListFooterComponent={
+            items.length < total ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Load more assets"
+                onPress={() => void load(query, category, page + 1, true)}
+                disabled={loadingMore}
+                style={styles.retry}
+              >
+                <Text style={styles.retryLabel}>{loadingMore ? "Loading…" : "Load more"}</Text>
+              </Pressable>
+            ) : null
+          }
         />
       )}
     </View>

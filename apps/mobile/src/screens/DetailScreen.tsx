@@ -3,6 +3,8 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import {
   CatalogueApiError,
   defaultAvailabilityWindow,
+  formatOfficeWindow,
+  isBookable,
   type Availability,
   type Booking,
   type CatalogueApi,
@@ -103,8 +105,8 @@ export function DetailScreen({ api, id, onBack }: Props) {
           </Text>
           <Text style={styles.section}>Availability check</Text>
           <Text style={styles.body}>
-            Tomorrow 09:00–12:00 in the office timezone ({window.startAt} to {window.endAt} UTC).
-            This is a snapshot; creating a booking will revalidate.
+            Default window {formatOfficeWindow(window.startAt, window.endAt)}. This is a snapshot; creating a booking
+            will revalidate.
           </Text>
           <Pressable
             accessibilityRole="button"
@@ -125,13 +127,14 @@ export function DetailScreen({ api, id, onBack }: Props) {
           <Text style={styles.body}>
             Creates a RESERVED booking for the same window. Java re-checks overlap. Requires you to be signed in
             (demo object id).
+            {isBookable(detail.operationalStatus) ? "" : " This asset is not ACTIVE, so Reserve is disabled."}
           </Text>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Reserve this window"
             onPress={() => void reserve()}
             style={styles.button}
-            disabled={reserving || detail.operationalStatus !== "ACTIVE"}
+            disabled={reserving || !isBookable(detail.operationalStatus)}
           >
             <Text style={styles.buttonLabel}>
               {reserving ? "Reserving…" : "Reserve this window"}
