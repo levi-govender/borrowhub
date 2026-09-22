@@ -5,22 +5,21 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: MVP product
-- Branch: `feature/mvp-06-admin-inventory`
-- Task: `MVP-06` Admin inventory — DONE (web GET/PATCH asset; Java still authorizes)
+- Branch: `feature/mvp-07-admin-bookings-overdue`
+- Task: `MVP-07` Admin bookings/overdue — DONE (dashboard jump to overdue list)
 
 ## What changed
 
-- Admin web `get`/`update` for `/api/v1/admin/equipment/{id}`
-- Inventory table tag opens **Edit asset** (location, status, archive via PATCH)
-- Create/edit hidden unless `/me` role is ADMIN
+- Dashboard cards open bookings with the matching status; overdue uses `CHECKED_OUT` + `overdue=true`
+- Overdue rows highlighted; admin cancel still requires `allowedActions` and ADMIN
+- Bookings filter Reset
 
 ## Verification
 
-- `pnpm --filter @borrowhub/web test` — 6 passed
-- `pnpm --filter @borrowhub/web typecheck`
-- `pnpm --filter @borrowhub/web build`
-- Playwright / live dashboard not run this slice (no Compose stack)
+- `pnpm --filter @borrowhub/web test` — 8 passed
+- `pnpm --filter @borrowhub/web typecheck` and `build`
+- Playwright not re-run (no Compose stack)
 
 ## Next
 
-After merge: `MVP-07` admin bookings/overdue polish. `P0-01` and `P0-02` remain open. `MVP-02` catalogue polish still TODO.
+After merge: `MVP-08` audit and failure handling. `P0-01` and `P0-02` remain open. `MVP-02` catalogue polish still TODO.

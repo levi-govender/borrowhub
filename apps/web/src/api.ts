@@ -206,6 +206,18 @@ export function createInventoryApi(
 
 export type InventoryApi = ReturnType<typeof createInventoryApi>;
 
+export function dashboardBookingFilter(
+  card: "reserved" | "checkedOut" | "overdue",
+): { status?: string; overdue?: boolean } {
+  if (card === "overdue") {
+    return { status: "CHECKED_OUT", overdue: true };
+  }
+  if (card === "reserved") {
+    return { status: "RESERVED" };
+  }
+  return { status: "CHECKED_OUT" };
+}
+
 export function resolveBffBaseUrl(
   env: Record<string, string | undefined> = import.meta.env as unknown as Record<string, string | undefined>,
 ): string {

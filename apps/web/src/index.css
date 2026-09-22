@@ -113,13 +113,16 @@ th {
   gap: 1rem;
 }
 
-.summary article {
+.summary button {
   background: #fff;
   padding: 1rem;
   border: 1px solid #d8d2c4;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
 }
 
-.summary article p:first-child {
+.summary button p:first-child {
   margin: 0;
   font-family: system-ui, sans-serif;
   font-size: 0.8rem;
@@ -127,9 +130,13 @@ th {
   letter-spacing: 0.06em;
 }
 
-.summary article p:last-child {
+.summary button p:last-child {
   margin: 0.35rem 0 0;
   font-size: 1.75rem;
+}
+
+tr.overdue td {
+  background: #f8e8d8;
 }
 
 .create {

@@ -15,7 +15,7 @@ test.describe("admin local stack", () => {
     await expect(page.getByRole("heading", { name: "Office dashboard" })).toBeVisible();
     await expect(page.getByText(/Signed in as admin-1 \(ADMIN\)/)).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole("region", { name: "Booking summary" })).toBeVisible();
-    await expect(page.getByText("Active equipment")).toBeVisible();
+    await expect(page.getByRole("button", { name: "View overdue loans" })).toBeVisible();
   });
 
   test("inventory search finds the seeded phone", async ({ page }) => {

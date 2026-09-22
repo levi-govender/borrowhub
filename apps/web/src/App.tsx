@@ -4,6 +4,7 @@ import {
   InventoryApiError,
   createInventoryApi,
   resolveBffBaseUrl,
+  dashboardBookingFilter,
   type AdminSummary,
   type BookingDetail,
   type BookingListItem,
@@ -160,6 +161,17 @@ export function App() {
   const bookingPageCount = Math.max(1, Math.ceil(bookingTotal / PAGE_SIZE));
   const isAdmin = me?.role === "ADMIN";
 
+  const openBookings = (card: "reserved" | "checkedOut" | "overdue") => {
+    const filter = dashboardBookingFilter(card);
+    setBookingQuery("");
+    setSubmittedBookingQuery("");
+    setBookingStatus(filter.status ?? "");
+    setOverdueOnly(Boolean(filter.overdue));
+    setBookingPage(1);
+    setSelected(null);
+    setTab("bookings");
+  };
+
   if (!identity || !api) {
     return <SignIn onContinue={setIdentity} />;
   }
@@ -206,22 +218,22 @@ export function App() {
           </div>
         ) : summary ? (
           <section className="summary" aria-label="Booking summary">
-            <article>
+            <button type="button" onClick={() => openBookings("reserved")}>
               <p>Reserved</p>
               <p>{summary.reserved}</p>
-            </article>
-            <article>
+            </button>
+            <button type="button" onClick={() => openBookings("checkedOut")}>
               <p>Checked out</p>
               <p>{summary.checkedOut}</p>
-            </article>
-            <article>
+            </button>
+            <button type="button" onClick={() => openBookings("overdue")} aria-label="View overdue loans">
               <p>Overdue</p>
               <p>{summary.overdue}</p>
-            </article>
-            <article>
+            </button>
+            <button type="button" onClick={() => setTab("inventory")}>
               <p>Active equipment</p>
               <p>{summary.activeEquipment}</p>
-            </article>
+            </button>
           </section>
         ) : null
       ) : null}
@@ -537,6 +549,19 @@ export function App() {
               Overdue only
             </label>
             <button type="submit">Search</button>
+            <button
+              type="button"
+              onClick={() => {
+                setBookingQuery("");
+                setSubmittedBookingQuery("");
+                setBookingStatus("");
+                setOverdueOnly(false);
+                setBookingPage(1);
+                setSelected(null);
+              }}
+            >
+              Reset
+            </button>
           </form>
           {bookingsLoading ? (
             <p role="status">Loading bookings…</p>
@@ -552,7 +577,9 @@ export function App() {
           ) : (
             <>
               <table>
-                <caption>{bookingTotal} bookings</caption>
+                <caption>
+                  {overdueOnly ? `${bookingTotal} overdue loans` : `${bookingTotal} bookings`}
+                </caption>
                 <thead>
                   <tr>
                     <th scope="col">Asset</th>
@@ -564,7 +591,7 @@ export function App() {
                 </thead>
                 <tbody>
                   {bookings.map((item) => (
-                    <tr key={item.id}>
+                    <tr key={item.id} className={item.overdue ? "overdue" : undefined}>
                       <td>
                         <button
                           type="button"
@@ -625,7 +652,8 @@ export function App() {
               <p>
                 Borrower {selected.borrower}. Window {formatInstant(selected.startAt)} – {formatInstant(selected.endAt)}.
               </p>
-              {selected.allowedActions.includes("CANCEL") ? (
+              {selected.overdue ? <p role="status">This loan is overdue (CHECKED_OUT past end).</p> : null}
+              {isAdmin && selected.allowedActions.includes("CANCEL") ? (
                 <form
                   onSubmit={(event) => {
                     event.preventDefault();
