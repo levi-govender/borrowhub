@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { CatalogueApiError, type Booking, type CatalogueApi } from "../api";
+import { CatalogueApiError, formatBookingReminder, type Booking, type CatalogueApi } from "../api";
 
 type Props = {
   api: CatalogueApi;
@@ -82,6 +82,11 @@ export function MyBookingsScreen({ api, onBack }: Props) {
                   {item.status} · {item.startAt} → {item.endAt}
                   {item.damageNote ? ` · ${item.damageNote}` : ""}
                 </Text>
+                {item.reminders?.map((kind) => (
+                  <Text key={kind} style={styles.reminder} accessibilityLiveRegion="polite">
+                    {formatBookingReminder(kind)}
+                  </Text>
+                ))}
                 {item.allowedActions.includes("CANCEL") ? (
                   <Pressable
                     accessibilityRole="button"
@@ -182,6 +187,10 @@ const styles = StyleSheet.create({
   rowMeta: {
     fontSize: 14,
     marginBottom: 8,
+  },
+  reminder: {
+    fontSize: 14,
+    marginBottom: 6,
   },
   button: {
     alignSelf: "flex-start",
