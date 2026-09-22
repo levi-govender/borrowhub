@@ -70,6 +70,22 @@ test("dashboardBookingFilter maps overdue to checked-out overdue query", () => {
   assert.deepEqual(dashboardBookingFilter("checkedOut"), { status: "CHECKED_OUT" });
 });
 
+test("listBookings sends a Johannesburg week window", async () => {
+  const api = createInventoryApi("http://bff.test", async (input) => {
+    assert.equal(
+      String(input),
+      "http://bff.test/api/v1/admin/bookings?from=2026-09-20T22%3A00%3A00.000Z&to=2026-09-27T22%3A00%3A00.000Z&pageSize=100",
+    );
+    return new Response(JSON.stringify({ items: [], page: 1, pageSize: 100, total: 0 }), { status: 200 });
+  });
+  const page = await api.listBookings({
+    from: "2026-09-20T22:00:00.000Z",
+    to: "2026-09-27T22:00:00.000Z",
+    pageSize: 100,
+  });
+  assert.equal(page.total, 0);
+});
+
 test("listBookings sends overdue and status together", async () => {
   const api = createInventoryApi("http://bff.test", async (input) => {
     assert.equal(String(input), "http://bff.test/api/v1/admin/bookings?status=CHECKED_OUT&overdue=true&page=1");

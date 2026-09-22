@@ -6,7 +6,9 @@ import { useToast } from "./components/Toast";
 import { DashboardView } from "./views/DashboardView";
 import { InventoryView, type AssetPayload } from "./views/InventoryView";
 import { BookingsView } from "./views/BookingsView";
+import { CalendarView } from "./views/CalendarView";
 import { useTheme } from "./theme";
+import { officeWeek, shiftOfficeWeek } from "./calendar";
 import {
   InventoryApiError,
   createInventoryApi,
@@ -29,6 +31,7 @@ const TITLES: Record<Tab, { title: string; blurb: string }> = {
   dashboard: { title: "Office dashboard", blurb: "Live view of reservations, loans and the asset fleet." },
   inventory: { title: "Inventory", blurb: "Every physical asset, archived items included." },
   bookings: { title: "Bookings", blurb: "Reservations, collections, returns and the overdue queue." },
+  calendar: { title: "Calendar", blurb: "Office-week view of overlapping loans in Africa/Johannesburg." },
 };
 
 function describeFailure(caught: unknown, fallback: string): string {
@@ -80,6 +83,13 @@ export function App() {
   const [detailError, setDetailError] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
+
+  const [week, setWeek] = useState(() => officeWeek());
+  const [includeClosed, setIncludeClosed] = useState(false);
+  const [calendarItems, setCalendarItems] = useState<BookingListItem[]>([]);
+  const [calendarTotal, setCalendarTotal] = useState(0);
+  const [calendarLoading, setCalendarLoading] = useState(true);
+  const [calendarError, setCalendarError] = useState<string | null>(null);
 
   /**
    * `/me` is loaded on its own so an employee session still knows who it is:
@@ -183,6 +193,30 @@ export function App() {
     }
   }, [api, bookingPage, bookingStatus, overdueOnly, submittedBookingQuery]);
 
+  const loadCalendar = useCallback(async () => {
+    if (!api) {
+      return;
+    }
+    setCalendarLoading(true);
+    setCalendarError(null);
+    try {
+      const result = await api.listBookings({
+        from: week.from,
+        to: week.to,
+        page: 1,
+        pageSize: 100,
+      });
+      setCalendarItems(result.items);
+      setCalendarTotal(result.total);
+    } catch (caught) {
+      setCalendarItems([]);
+      setCalendarTotal(0);
+      setCalendarError(describeFailure(caught, "Could not load the calendar."));
+    } finally {
+      setCalendarLoading(false);
+    }
+  }, [api, week.from, week.to]);
+
   useEffect(() => {
     if (!identity) {
       return;
@@ -203,6 +237,12 @@ export function App() {
       void loadBookings();
     }
   }, [loadBookings, tab]);
+
+  useEffect(() => {
+    if (tab === "calendar") {
+      void loadCalendar();
+    }
+  }, [loadCalendar, tab]);
 
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const bookingPageCount = Math.max(1, Math.ceil(bookingTotal / PAGE_SIZE));
@@ -267,8 +307,12 @@ export function App() {
       void loadInventory();
       return;
     }
+    if (tab === "calendar") {
+      void loadCalendar();
+      return;
+    }
     void loadBookings();
-  }, [loadBookings, loadInventory, loadMe, loadOverduePreview, loadSummary, tab]);
+  }, [loadBookings, loadCalendar, loadInventory, loadMe, loadOverduePreview, loadSummary, tab]);
 
   if (!identity || !api) {
     return <SignIn onContinue={setIdentity} theme={theme} onToggleTheme={toggle} />;
@@ -450,7 +494,51 @@ export function App() {
                 setSelected(detail);
                 setCancelReason("");
                 toast.success(`${detail.assetTag} reservation cancelled.`);
-                return Promise.all([loadBookings(), loadSummary(), loadOverduePreview()]);
+                return Promise.all([loadBookings(), loadCalendar(), loadSummary(), loadOverduePreview()]);
+              })
+              .catch((caught: unknown) => {
+                setCancelError(describeFailure(caught, "Could not cancel the booking."));
+              });
+          }}
+          onOpen={openBookingDetail}
+          onCloseDetail={() => {
+            setSelected(null);
+            setCancelError(null);
+          }}
+        />
+      ) : null}
+
+      {tab === "calendar" ? (
+        <CalendarView
+          isAdmin={isAdmin}
+          week={week}
+          onPrevWeek={() => setWeek((current) => shiftOfficeWeek(current.from, -1))}
+          onThisWeek={() => setWeek(officeWeek())}
+          onNextWeek={() => setWeek((current) => shiftOfficeWeek(current.from, 1))}
+          includeClosed={includeClosed}
+          onIncludeClosedChange={setIncludeClosed}
+          items={calendarItems}
+          total={calendarTotal}
+          loading={calendarLoading}
+          error={calendarError}
+          onRetry={() => void loadCalendar()}
+          selected={selected}
+          detailError={detailError}
+          cancelError={cancelError}
+          cancelReason={cancelReason}
+          onCancelReasonChange={setCancelReason}
+          onCancel={() => {
+            if (!selected) {
+              return;
+            }
+            setCancelError(null);
+            void api
+              .cancelBooking(selected.id, cancelReason)
+              .then((detail) => {
+                setSelected(detail);
+                setCancelReason("");
+                toast.success(`${detail.assetTag} reservation cancelled.`);
+                return Promise.all([loadBookings(), loadCalendar(), loadSummary(), loadOverduePreview()]);
               })
               .catch((caught: unknown) => {
                 setCancelError(describeFailure(caught, "Could not cancel the booking."));

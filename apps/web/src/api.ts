@@ -198,12 +198,22 @@ export function createInventoryApi(
       return request<EquipmentDetail>(`/api/v1/admin/equipment/${id}`, { method: "PATCH", body });
     },
     listBookings(
-      params: { query?: string; status?: string; overdue?: boolean; page?: number; pageSize?: number } = {},
+      params: {
+        query?: string;
+        status?: string;
+        overdue?: boolean;
+        from?: string;
+        to?: string;
+        page?: number;
+        pageSize?: number;
+      } = {},
     ) {
       const search = new URLSearchParams();
       if (params.query) search.set("query", params.query);
       if (params.status) search.set("status", params.status);
       if (params.overdue) search.set("overdue", "true");
+      if (params.from) search.set("from", params.from);
+      if (params.to) search.set("to", params.to);
       if (params.page) search.set("page", String(params.page));
       if (params.pageSize) search.set("pageSize", String(params.pageSize));
       const suffix = search.size > 0 ? `?${search.toString()}` : "";
