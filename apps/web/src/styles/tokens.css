@@ -1,0 +1,161 @@
+/*
+ * BorrowHub admin — design tokens.
+ * Light is warm paper (the original palette, refined); dark is selected for the
+ * dark surface rather than flipped. Series colours come from the validated
+ * data-viz palette (blue / amber / red — CVD and contrast gates pass in both
+ * modes); status colours are reserved and always ship with an icon + label.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Planes */
+  --paper: #f3f1ea;
+  --paper-2: #ebe7dc;
+  --surface: #fffefa;
+  --surface-2: #f8f6ef;
+  --surface-inset: #efece2;
+  --surface-veil: rgba(255, 254, 250, 0.78);
+
+  /* Ink */
+  --ink: #17160f;
+  --ink-2: #5c5950;
+  --ink-3: #6f6c63;
+  --ink-inverse: #fbfaf5;
+
+  /* Hairlines */
+  --line: #e3dfd2;
+  --line-strong: #cfcab8;
+  --ring: rgba(23, 22, 15, 0.08);
+
+  /* Brand */
+  --brand: #1f6f5c;
+  --brand-hover: #1a5f4f;
+  --brand-ink: #14513f;
+  --brand-soft: #e3efe9;
+  --brand-soft-line: #c3ddd3;
+
+  /* Status (reserved — never used as a series colour) */
+  --good: #0ca30c;
+  --good-ink: #046004;
+  --warning: #fab219;
+  --warning-ink: #7a5300;
+  --serious: #ec835a;
+  --serious-ink: #8a3f19;
+  --critical: #d03b3b;
+  --critical-ink: #97201f;
+
+  /* Chart series */
+  --series-reserved: #2a78d6;
+  --series-checkedout: #eda100;
+  --series-overdue: #d03b3b;
+  --series-idle: #d9d5c8;
+  --grid: #e1e0d9;
+
+  /* Radii */
+  --r-xs: 6px;
+  --r-sm: 9px;
+  --r-md: 13px;
+  --r-lg: 18px;
+  --r-xl: 26px;
+  --r-pill: 999px;
+
+  /* Elevation — warm, layered, never a grey blur */
+  --shadow-sm: 0 1px 2px rgba(34, 28, 12, 0.05), 0 1px 1px rgba(34, 28, 12, 0.04);
+  --shadow-md: 0 1px 2px rgba(34, 28, 12, 0.05), 0 8px 24px -12px rgba(34, 28, 12, 0.18);
+  --shadow-lg: 0 2px 4px rgba(34, 28, 12, 0.06), 0 28px 60px -24px rgba(34, 28, 12, 0.32);
+
+  /* Type */
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Rhythm */
+  --rail: 15.5rem;
+  --gutter: clamp(1rem, 0.6rem + 1.6vw, 2.25rem);
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+
+    --paper: #0d0f0e;
+    --paper-2: #121414;
+    --surface: #17191a;
+    --surface-2: #1d2021;
+    --surface-inset: #101312;
+    --surface-veil: rgba(23, 25, 26, 0.76);
+
+    --ink: #f4f2ea;
+    --ink-2: #b3b0a5;
+    --ink-3: #9b998f;
+    --ink-inverse: #12140f;
+
+    --line: rgba(255, 255, 255, 0.09);
+    --line-strong: rgba(255, 255, 255, 0.16);
+    --ring: rgba(255, 255, 255, 0.1);
+
+    --brand: #4fbf9f;
+    --brand-hover: #63cdae;
+    --brand-ink: #7bd8bc;
+    --brand-soft: rgba(79, 191, 159, 0.14);
+    --brand-soft-line: rgba(79, 191, 159, 0.28);
+
+    --good-ink: #4fd14f;
+    --warning-ink: #f6c351;
+    --serious-ink: #f2a281;
+    --critical-ink: #f08a8a;
+
+    --series-reserved: #3987e5;
+    --series-checkedout: #c98500;
+    --series-overdue: #d03b3b;
+    --series-idle: #2c2f30;
+    --grid: #2c2c2a;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 28px -14px rgba(0, 0, 0, 0.7);
+    --shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.55), 0 30px 64px -26px rgba(0, 0, 0, 0.85);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --paper: #0d0f0e;
+  --paper-2: #121414;
+  --surface: #17191a;
+  --surface-2: #1d2021;
+  --surface-inset: #101312;
+  --surface-veil: rgba(23, 25, 26, 0.76);
+
+  --ink: #f4f2ea;
+  --ink-2: #b3b0a5;
+  --ink-3: #9b998f;
+  --ink-inverse: #12140f;
+
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --ring: rgba(255, 255, 255, 0.1);
+
+  --brand: #4fbf9f;
+  --brand-hover: #63cdae;
+  --brand-ink: #7bd8bc;
+  --brand-soft: rgba(79, 191, 159, 0.14);
+  --brand-soft-line: rgba(79, 191, 159, 0.28);
+
+  --good-ink: #4fd14f;
+  --warning-ink: #f6c351;
+  --serious-ink: #f2a281;
+  --critical-ink: #f08a8a;
+
+  --series-reserved: #3987e5;
+  --series-checkedout: #c98500;
+  --series-overdue: #d03b3b;
+  --series-idle: #2c2f30;
+  --grid: #2c2c2a;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 28px -14px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.55), 0 30px 64px -26px rgba(0, 0, 0, 0.85);
+}

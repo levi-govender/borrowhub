@@ -90,7 +90,9 @@ make backend
 # POST http://localhost:8080/v1/admin/bookings/{id}/cancel
 ```
 
-Admin web (http://localhost:5173) — dashboard (overdue card opens overdue loans), inventory (create/edit including archived), bookings, overdue, audit (`changeSummary` on booking detail). API failures show `[CODE; trace …]` for log lookup:
+Admin web (http://localhost:5173) — dashboard (overdue card opens overdue loans), inventory (create/edit including archived), bookings, overdue, audit (`changeSummary` on booking detail). API failures show `[CODE; trace …]` for log lookup.
+
+The console is a rail + header shell: the dashboard leads with four stat tiles, a loan-pipeline bar and a fleet-in-use meter, plus an overdue attention list; asset and booking detail open in a slide-over drawer (Escape closes, focus returns to the row). Light and dark both ship — the theme follows the OS and the toggle in the rail wins and persists. Below 62rem the rail becomes a header with a scrolling tab strip, and lower-priority table columns fold into the lead cell. Design tokens live in `apps/web/src/styles/tokens.css`; chart series colours are validated for colour-vision deficiency and contrast in both modes.
 
 ```bash
 make db-up
