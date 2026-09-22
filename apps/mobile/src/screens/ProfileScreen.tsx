@@ -35,7 +35,7 @@ export function ProfileScreen({ api, onBack, onSignOut }: Props) {
 
   return (
     <View style={styles.screen}>
-      <Pressable accessibilityRole="button" onPress={onBack}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Back to home" onPress={onBack}>
         <Text style={styles.back}>Back</Text>
       </Pressable>
       <Text style={styles.eyebrow} accessibilityRole="header">

@@ -1,0 +1,38 @@
+import type { Booking } from "./api";
+
+const REMINDER_RANK: Record<string, number> = {
+  OVERDUE: 0,
+  RETURN_NOW: 1,
+  COLLECT_NOW: 2,
+};
+
+export function bookingsNeedingAttention(items: Booking[]): Booking[] {
+  return items
+    .filter((item) => (item.reminders?.length ?? 0) > 0)
+    .slice()
+    .sort((left, right) => rank(left) - rank(right) || left.startAt.localeCompare(right.startAt));
+}
+
+function rank(item: Booking): number {
+  const kinds = item.reminders ?? [];
+  if (kinds.includes("OVERDUE")) {
+    return REMINDER_RANK.OVERDUE;
+  }
+  if (kinds.includes("RETURN_NOW")) {
+    return REMINDER_RANK.RETURN_NOW;
+  }
+  if (kinds.includes("COLLECT_NOW")) {
+    return REMINDER_RANK.COLLECT_NOW;
+  }
+  return 9;
+}
+
+/** Next reserved window that is not already in the due-now list. */
+export function nextUpcomingReservation(items: Booking[], now: number = Date.now()): Booking | null {
+  const attentionIds = new Set(bookingsNeedingAttention(items).map((item) => item.id));
+  const upcoming = items
+    .filter((item) => item.status === "RESERVED" && !attentionIds.has(item.id))
+    .filter((item) => new Date(item.endAt).getTime() > now)
+    .sort((left, right) => left.startAt.localeCompare(right.startAt));
+  return upcoming[0] ?? null;
+}
