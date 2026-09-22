@@ -367,6 +367,30 @@ test("loads demo me through Java", async () => {
   await app.close();
 });
 
+test("forwards admin booking window to Java", async () => {
+  const app = await buildApp({
+    fetchImpl: async (input, init) => {
+      const url = String(input);
+      assert.match(url, /\/v1\/admin\/bookings\?from=2026-09-20T22%3A00%3A00.000Z&to=2026-09-27T22%3A00%3A00.000Z$/);
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get("x-demo-role"), "ADMIN");
+      return new Response(JSON.stringify({ items: [], page: 1, pageSize: 100, total: 0 }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    },
+    javaBaseUrl: "http://java.test",
+  });
+  const response = await app.inject({
+    method: "GET",
+    url: "/api/v1/admin/bookings?from=2026-09-20T22:00:00.000Z&to=2026-09-27T22:00:00.000Z",
+    headers: { "x-demo-object-id": "admin-1", "x-demo-role": "ADMIN" },
+  });
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.json().total, 0);
+  await app.close();
+});
+
 test("readiness fails when Java is down", async () => {
   const app = await buildApp({
     fetchImpl: async () => {

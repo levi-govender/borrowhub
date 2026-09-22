@@ -156,6 +156,22 @@ class AdminApiTest extends PostgresIntegrationTest {
 				.andExpect(jsonPath("$.total").value(1))
 				.andExpect(jsonPath("$.items[0].id").value(overdue.getId().toString()))
 				.andExpect(jsonPath("$.items[0].overdue").value(true));
+
+		mockMvc.perform(get("/v1/admin/bookings")
+						.param("from", "2026-09-21T00:00:00Z")
+						.param("to", "2026-09-22T00:00:00Z")
+						.header("X-Demo-Object-Id", "admin-1")
+						.header("X-Demo-Role", "ADMIN"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.total").value(1))
+				.andExpect(jsonPath("$.items[0].id").value(reservedPastStart.getId().toString()));
+
+		mockMvc.perform(get("/v1/admin/bookings")
+						.param("from", "2026-09-21T00:00:00Z")
+						.header("X-Demo-Object-Id", "admin-1")
+						.header("X-Demo-Role", "ADMIN"))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
 	}
 
 	@Test

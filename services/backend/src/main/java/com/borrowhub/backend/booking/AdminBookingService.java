@@ -16,6 +16,7 @@ import com.borrowhub.backend.identity.IdentityService;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +84,8 @@ public class AdminBookingService {
 			String query,
 			String status,
 			boolean overdue,
+			String from,
+			String to,
 			Integer page,
 			Integer pageSize) {
 		identityService.requireAdmin(tenantId, objectId);
@@ -94,14 +97,22 @@ public class AdminBookingService {
 		if (resolvedSize < 1 || resolvedSize > BookingService.MAX_PAGE_SIZE) {
 			throw ApiException.badRequest("VALIDATION_ERROR", "pageSize must be between 1 and 100.");
 		}
+		Instant windowStart = parseBound(from, "from");
+		Instant windowEnd = parseBound(to, "to");
+		if ((windowStart == null) != (windowEnd == null)) {
+			throw ApiException.badRequest("VALIDATION_ERROR", "from and to must both be set.");
+		}
+		if (windowStart != null && !windowStart.isBefore(windowEnd)) {
+			throw ApiException.badRequest("VALIDATION_ERROR", "from must be before to.");
+		}
 		BookingStatus parsed = parseStatus(status);
 		Instant now = Instant.now(clock);
 		PageRequest pageable = PageRequest.of(
 				resolvedPage - 1,
 				resolvedSize,
-				Sort.by("endAt").ascending().and(Sort.by("id").ascending()));
+				Sort.by("startAt").ascending().and(Sort.by("id").ascending()));
 		Page<Booking> result = bookingRepository.findAll(
-				AdminBookingSpecifications.filter(query, parsed, overdue, now), pageable);
+				AdminBookingSpecifications.filter(query, parsed, overdue, now, windowStart, windowEnd), pageable);
 		return new PageResponse<>(
 				result.getContent().stream().map(booking -> AdminBookingResponses.toListItem(booking, now)).toList(),
 				resolvedPage,
@@ -242,6 +253,23 @@ public class AdminBookingService {
 		return bookingRepository
 				.findDetailedById(bookingId)
 				.orElseThrow(() -> ApiException.notFound("Booking was not found."));
+	}
+
+	private static Instant parseBound(String value, String field) {
+		if (value == null || value.isBlank()) {
+			return null;
+		}
+		try {
+			return Instant.parse(value);
+		}
+		catch (RuntimeException instantEx) {
+			try {
+				return OffsetDateTime.parse(value).toInstant();
+			}
+			catch (RuntimeException offsetEx) {
+				throw ApiException.badRequest("VALIDATION_ERROR", field + " must be an ISO-8601 instant.");
+			}
+		}
 	}
 
 	private static BookingStatus parseStatus(String status) {

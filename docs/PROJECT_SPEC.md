@@ -59,7 +59,7 @@ BFF routes: `/api/v1/mobile/*` and `/api/v1/admin/*` on one deployment. BFF has 
 ## Frontend
 
 - Mobile screens: Sign-in, Home, Catalogue, Asset detail, Booking form, Booking confirmation/detail, My bookings, Profile.
-- Web screens: Sign-in, Dashboard, Inventory table, Asset create/edit, Bookings table, Booking detail and audit.
+- Web screens: Sign-in, Dashboard, Inventory table, Asset create/edit, Bookings table, week calendar, Booking detail and audit.
 - Share generated API types/clients, date formatting, validation helpers, tokens, permission labels. Do not share native/DOM UI or Java classes.
 
 `DEC-01`: **Accepted** after P0-02 — remain separate Vite admin and Expo employee apps.

@@ -1055,3 +1055,110 @@ tbody tr.overdue:hover td {
     transform: none;
   }
 }
+
+/* ---------- Calendar ---------- */
+
+.calendar-range {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.calendar-caption {
+  margin: 0;
+  padding: 0.85rem 1.1rem 0;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(8.5rem, 1fr));
+  gap: 0.65rem;
+  padding: 1rem 1.1rem 1.2rem;
+  overflow-x: auto;
+}
+
+.calendar__day {
+  min-width: 8.5rem;
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.calendar__day h3 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin: 0 0 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 640;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.calendar__date {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: var(--ink);
+}
+
+.calendar__empty {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.calendar__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.calendar__loan {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.calendar__loan:hover {
+  border-color: var(--ink-3);
+}
+
+.calendar__loan--overdue {
+  border-color: color-mix(in oklab, var(--critical) 34%, var(--line));
+  box-shadow: inset 2px 0 0 var(--critical);
+}
+
+.calendar__tag {
+  font-weight: 650;
+  font-size: 0.8125rem;
+}
+
+.calendar__who,
+.calendar__when {
+  font-size: 0.75rem;
+  color: var(--ink-2);
+}
+
+@media (max-width: 72rem) {
+  .calendar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

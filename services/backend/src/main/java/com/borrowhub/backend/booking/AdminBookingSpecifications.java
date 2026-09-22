@@ -11,9 +11,14 @@ final class AdminBookingSpecifications {
 	private AdminBookingSpecifications() {
 	}
 
-	static Specification<Booking> filter(String query, BookingStatus status, boolean overdueOnly, Instant now) {
+	static Specification<Booking> filter(
+			String query, BookingStatus status, boolean overdueOnly, Instant now, Instant from, Instant to) {
 		return (root, criteriaQuery, cb) -> {
 			List<Predicate> predicates = new ArrayList<>();
+			if (from != null && to != null) {
+				predicates.add(cb.lessThan(root.get("startAt"), to));
+				predicates.add(cb.greaterThan(root.get("endAt"), from));
+			}
 			if (status != null) {
 				predicates.add(cb.equal(root.get("status"), status));
 			}
