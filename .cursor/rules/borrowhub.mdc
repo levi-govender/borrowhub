@@ -29,7 +29,7 @@ Read `docs/PROJECT_SPEC.md`, `docs/TASKS.md`, `docs/DECISIONS.md`, and `docs/HAN
 - Employees: React Native (`apps/mobile`). Admins: React web (`apps/web`).
 - Clients call the TypeScript BFF only. BFF has no booking database and does not own overlap/lifecycle rules.
 - Spring Boot owns domain validation, authorization, transactions, persistence, and audit.
-- Default frontend: separate web and mobile apps until `DEC-01` is confirmed by a spike.
+- Default frontend: separate Vite web (`apps/web`) and Expo mobile (`apps/mobile`) (`DEC-01` accepted after P0-02).
 - Proposed BFF: Fastify. Java: modular monolith (identity, equipment, booking, audit).
 - Office timezone: `Africa/Johannesburg`. Store UTC instants. APIs use ISO 8601 with offsets.
 - One organisation, one office, two roles (`EMPLOYEE`, `ADMIN`), one physical asset per booking.
