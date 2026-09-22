@@ -26,13 +26,16 @@ test("list builds BFF query string", async () => {
 
 test("maps BFF 404", async () => {
   const api = createCatalogueApi("http://bff.test", async () => {
-    return new Response(JSON.stringify({ code: "NOT_FOUND", message: "Equipment was not found." }), {
+    return new Response(JSON.stringify({ code: "NOT_FOUND", message: "Equipment was not found.", traceId: "t-404" }), {
       status: 404,
     });
   });
   await assert.rejects(() => api.get("11111111-1111-4111-8111-111111111111"), (error: unknown) => {
     assert.ok(error instanceof CatalogueApiError);
     assert.equal(error.status, 404);
+    assert.equal(error.code, "NOT_FOUND");
+    assert.equal(error.traceId, "t-404");
+    assert.match(error.message, /NOT_FOUND/);
     return true;
   });
 });

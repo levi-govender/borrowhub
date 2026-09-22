@@ -90,7 +90,7 @@ make backend
 # POST http://localhost:8080/v1/admin/bookings/{id}/cancel
 ```
 
-Admin web (http://localhost:5173) — dashboard (overdue card opens overdue loans), inventory (create/edit including archived), bookings, overdue, audit:
+Admin web (http://localhost:5173) — dashboard (overdue card opens overdue loans), inventory (create/edit including archived), bookings, overdue, audit (`changeSummary` on booking detail). API failures show `[CODE; trace …]` for log lookup:
 
 ```bash
 make db-up
