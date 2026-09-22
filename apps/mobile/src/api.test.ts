@@ -111,6 +111,32 @@ test("listMine and cancelBooking call BFF with identity and idempotency key", as
   assert.equal(cancelled.status, "CANCELLED");
 });
 
+test("collectBooking and returnBooking post idempotency key", async () => {
+  const bookingId = "55555555-5555-4555-8555-555555555555";
+  const api = createCatalogueApi(
+    "http://bff.test",
+    async (input, init) => {
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get("x-demo-object-id"), "employee-a");
+      assert.equal(init?.method, "POST");
+      if (String(input).endsWith("/collect")) {
+        assert.equal(headers.get("idempotency-key"), "66666666-6666-4666-8666-666666666666");
+        return new Response(JSON.stringify({ id: bookingId, status: "CHECKED_OUT", allowedActions: ["RETURN"] }), {
+          status: 200,
+        });
+      }
+      assert.equal(String(input), `http://bff.test/api/v1/bookings/${bookingId}/return`);
+      assert.equal(headers.get("idempotency-key"), "77777777-7777-4777-8777-777777777777");
+      return new Response(JSON.stringify({ id: bookingId, status: "RETURNED", allowedActions: [] }), { status: 200 });
+    },
+    { objectId: "employee-a" },
+  );
+  const collected = await api.collectBooking(bookingId, "66666666-6666-4666-8666-666666666666");
+  assert.equal(collected.status, "CHECKED_OUT");
+  const returned = await api.returnBooking(bookingId, "77777777-7777-4777-8777-777777777777");
+  assert.equal(returned.status, "RETURNED");
+});
+
 test("default availability window is 3 hours from tomorrow 07:00 UTC", () => {
   const window = defaultAvailabilityWindow(new Date("2026-09-21T15:00:00Z"));
   assert.equal(window.startAt, "2026-09-22T07:00:00.000Z");
