@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { InventoryApiError, createInventoryApi, resolveBffBaseUrl } from "./api.ts";
+import { InventoryApiError, createInventoryApi, dashboardBookingFilter, resolveBffBaseUrl } from "./api.ts";
 
 test("resolveBffBaseUrl uses Vite env", () => {
   assert.equal(resolveBffBaseUrl({ VITE_BFF_BASE_URL: "http://bff.example/" }), "http://bff.example");
@@ -47,6 +47,21 @@ test("loads the current user", async () => {
   });
   const me = await api.me();
   assert.equal(me.role, "ADMIN");
+});
+
+test("dashboardBookingFilter maps overdue to checked-out overdue query", () => {
+  assert.deepEqual(dashboardBookingFilter("overdue"), { status: "CHECKED_OUT", overdue: true });
+  assert.deepEqual(dashboardBookingFilter("reserved"), { status: "RESERVED" });
+  assert.deepEqual(dashboardBookingFilter("checkedOut"), { status: "CHECKED_OUT" });
+});
+
+test("listBookings sends overdue and status together", async () => {
+  const api = createInventoryApi("http://bff.test", async (input) => {
+    assert.equal(String(input), "http://bff.test/api/v1/admin/bookings?status=CHECKED_OUT&overdue=true&page=1");
+    return new Response(JSON.stringify({ items: [], page: 1, pageSize: 20, total: 0 }), { status: 200 });
+  });
+  const page = await api.listBookings({ status: "CHECKED_OUT", overdue: true, page: 1 });
+  assert.equal(page.total, 0);
 });
 
 test("loads overdue bookings and cancels with a reason", async () => {

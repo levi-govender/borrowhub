@@ -74,7 +74,7 @@ Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
 | MVP-04 | My bookings/cancel | DONE | Evidence 2026-09-21: `pnpm --filter @borrowhub/mobile test` (7, including GET `/api/v1/bookings` and POST cancel + `Idempotency-Key`) and `typecheck` pass. My bookings screen lists mine and Cancel when `allowedActions` includes CANCEL. Expo UI not run. Java still owns ownership and too-late cancel. |
 | MVP-05 | Collection/return | DONE | Evidence 2026-09-22: `pnpm --filter @borrowhub/mobile test` (8, including POST collect/return + `Idempotency-Key`) and `typecheck` pass. My bookings shows Collect/Return when `allowedActions` includes them. Expo UI not run. Java still owns lead window and one CHECKED_OUT loan. |
 | MVP-06 | Admin inventory | DONE | Evidence 2026-09-22: `pnpm --filter @borrowhub/web test` (6, including GET/PATCH `/api/v1/admin/equipment/{id}`); `typecheck`; `build`. Edit asset panel PATCHes Java; create/edit hidden unless `/me` is ADMIN. Playwright not re-run (no local stack this slice). |
-| MVP-07 | Admin bookings/overdue | TODO |
+| MVP-07 | Admin bookings/overdue | DONE | Evidence 2026-09-22: `pnpm --filter @borrowhub/web test` (8, including overdue+CHECKED_OUT query); `typecheck`; `build`. Dashboard overdue card opens bookings `status=CHECKED_OUT&overdue=true`. Playwright not re-run. |
 | MVP-08 | Audit and failure handling | TODO |
 
 ## Enhancements (after MVP)
