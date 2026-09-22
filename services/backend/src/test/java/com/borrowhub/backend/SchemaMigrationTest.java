@@ -17,7 +17,7 @@ class SchemaMigrationTest extends PostgresIntegrationTest {
 		Integer version = jdbcTemplate.queryForObject(
 				"select version from flyway_schema_history where success = true order by installed_rank desc limit 1",
 				Integer.class);
-		assertThat(version).isEqualTo(2);
+		assertThat(version).isEqualTo(3);
 
 		List<String> tables = jdbcTemplate.queryForList(
 				"""
@@ -41,6 +41,17 @@ class SchemaMigrationTest extends PostgresIntegrationTest {
 						""",
 				Integer.class);
 		assertThat(roleColumn).isEqualTo(1);
+
+		Integer damageNote = jdbcTemplate.queryForObject(
+				"""
+						select count(*)
+						from information_schema.columns
+						where table_schema = 'public'
+						  and table_name = 'booking'
+						  and column_name = 'damage_note'
+						""",
+				Integer.class);
+		assertThat(damageNote).isEqualTo(1);
 	}
 
 	@Test
