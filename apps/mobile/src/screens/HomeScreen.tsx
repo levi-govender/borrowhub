@@ -1,15 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { CatalogueApiError, formatBookingReminder, type Booking, type CatalogueApi } from "../api";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  CatalogueApiError,
+  formatBookingReminder,
+  formatOfficeWindow,
+  type Booking,
+  type CatalogueApi,
+  type Me,
+} from "../api";
+import { bookingsNeedingAttention, nextUpcomingReservation } from "../home";
 
 type Props = {
   api: CatalogueApi;
-  onBack: () => void;
+  onOpenCatalogue: () => void;
+  onOpenBookings: () => void;
+  onOpenProfile: () => void;
 };
 
-export function MyBookingsScreen({ api, onBack }: Props) {
+export function HomeScreen({ api, onOpenCatalogue, onOpenBookings, onOpenProfile }: Props) {
+  const [me, setMe] = useState<Me | null>(null);
   const [items, setItems] = useState<Booking[]>([]);
-  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [damageNotes, setDamageNotes] = useState<Record<string, string>>({});
@@ -19,13 +29,13 @@ export function MyBookingsScreen({ api, onBack }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const page = await api.listMine({ page: 1, pageSize: 20 });
+      const [profile, page] = await Promise.all([api.me(), api.listMine({ page: 1, pageSize: 20 })]);
+      setMe(profile);
       setItems(page.items);
-      setTotal(page.total);
     } catch (caught) {
+      setMe(null);
       setItems([]);
-      setTotal(0);
-      setError(caught instanceof CatalogueApiError ? caught.message : "Could not load bookings.");
+      setError(caught instanceof CatalogueApiError ? caught.message : "Could not load home.");
     } finally {
       setLoading(false);
     }
@@ -48,56 +58,55 @@ export function MyBookingsScreen({ api, onBack }: Props) {
     }
   };
 
+  const due = bookingsNeedingAttention(items);
+  const next = nextUpcomingReservation(items);
+
   return (
-    <View style={styles.screen}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Back to home" onPress={onBack}>
-        <Text style={styles.back}>Back</Text>
-      </Pressable>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.eyebrow} accessibilityRole="header">
-        My bookings
+        Home
       </Text>
-      <Text style={styles.title}>Your reservations</Text>
+      <Text style={styles.title}>{me ? `Hi, ${me.displayName}` : "Your office loans"}</Text>
+      <Text style={styles.body}>Africa/Johannesburg · collect and return from here when Java says it is time.</Text>
+
+      <View style={styles.nav}>
+        <Pressable accessibilityRole="button" onPress={onOpenCatalogue} style={styles.button}>
+          <Text style={styles.buttonLabel}>Browse catalogue</Text>
+        </Pressable>
+        <Pressable accessibilityRole="button" onPress={onOpenBookings} style={styles.button}>
+          <Text style={styles.buttonLabel}>My bookings</Text>
+        </Pressable>
+        <Pressable accessibilityRole="button" onPress={onOpenProfile} style={styles.button}>
+          <Text style={styles.buttonLabel}>Profile</Text>
+        </Pressable>
+      </View>
+
       {loading ? (
-        <ActivityIndicator accessibilityLabel="Loading bookings" />
-      ) : error && items.length === 0 ? (
+        <ActivityIndicator accessibilityLabel="Loading home" />
+      ) : error && items.length === 0 && !me ? (
         <View style={styles.block}>
           <Text style={styles.body}>{error}</Text>
           <Pressable accessibilityRole="button" onPress={() => void load()} style={styles.button}>
             <Text style={styles.buttonLabel}>Retry</Text>
           </Pressable>
         </View>
-      ) : items.length === 0 ? (
-        <Text style={styles.body}>You have no bookings yet.</Text>
       ) : (
         <>
           {error ? <Text style={styles.body}>{error}</Text> : null}
-          <FlatList
-            data={items}
-            keyExtractor={(item) => item.id}
-            accessibilityLabel={`${total} bookings`}
-            renderItem={({ item }) => (
-              <View style={styles.row}>
+
+          <Text style={styles.section}>Due now</Text>
+          {due.length === 0 ? (
+            <Text style={styles.body}>Nothing to collect or return right now.</Text>
+          ) : (
+            due.map((item) => (
+              <View key={item.id} style={styles.row}>
                 <Text style={styles.rowTitle}>{item.assetTag}</Text>
-                <Text style={styles.rowMeta}>
-                  {item.status} · {item.startAt} → {item.endAt}
-                  {item.damageNote ? ` · ${item.damageNote}` : ""}
-                </Text>
+                <Text style={styles.rowMeta}>{formatOfficeWindow(item.startAt, item.endAt)}</Text>
                 {item.reminders?.map((kind) => (
                   <Text key={kind} style={styles.reminder} accessibilityLiveRegion="polite">
                     {formatBookingReminder(kind)}
                   </Text>
                 ))}
-                {item.allowedActions.includes("CANCEL") ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Cancel booking ${item.assetTag}`}
-                    onPress={() => void act(item.id, () => api.cancelBooking(item.id), "Could not cancel this booking.")}
-                    disabled={busyId === item.id}
-                    style={styles.button}
-                  >
-                    <Text style={styles.buttonLabel}>{busyId === item.id ? "Working…" : "Cancel"}</Text>
-                  </Pressable>
-                ) : null}
                 {item.allowedActions.includes("COLLECT") ? (
                   <Pressable
                     accessibilityRole="button"
@@ -137,11 +146,34 @@ export function MyBookingsScreen({ api, onBack }: Props) {
                   </>
                 ) : null}
               </View>
-            )}
-          />
+            ))
+          )}
+
+          <Text style={styles.section}>Up next</Text>
+          {next ? (
+            <View style={styles.row}>
+              <Text style={styles.rowTitle}>{next.assetTag}</Text>
+              <Text style={styles.rowMeta}>
+                {next.status} · {formatOfficeWindow(next.startAt, next.endAt)}
+              </Text>
+              {next.allowedActions.includes("CANCEL") ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Cancel booking ${next.assetTag}`}
+                  onPress={() => void act(next.id, () => api.cancelBooking(next.id), "Could not cancel this booking.")}
+                  disabled={busyId === next.id}
+                  style={styles.button}
+                >
+                  <Text style={styles.buttonLabel}>{busyId === next.id ? "Working…" : "Cancel"}</Text>
+                </Pressable>
+              ) : null}
+            </View>
+          ) : (
+            <Text style={styles.body}>No upcoming reservation. Browse the catalogue to book an asset.</Text>
+          )}
         </>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -149,13 +181,11 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: "#f4f1ea",
+  },
+  content: {
     paddingHorizontal: 24,
     paddingTop: 64,
-  },
-  back: {
-    fontSize: 16,
-    textDecorationLine: "underline",
-    marginBottom: 16,
+    paddingBottom: 40,
   },
   eyebrow: {
     fontSize: 12,
@@ -165,11 +195,24 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    marginBottom: 16,
+    marginBottom: 8,
   },
   body: {
     fontSize: 16,
     lineHeight: 24,
+    marginBottom: 8,
+  },
+  nav: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginVertical: 16,
+  },
+  section: {
+    fontSize: 12,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    marginTop: 16,
     marginBottom: 8,
   },
   block: {
@@ -198,7 +241,7 @@ const styles = StyleSheet.create({
     borderColor: "#1a1a1a",
     paddingHorizontal: 14,
     paddingVertical: 8,
-    marginVertical: 8,
+    marginVertical: 4,
   },
   buttonLabel: {
     fontSize: 16,

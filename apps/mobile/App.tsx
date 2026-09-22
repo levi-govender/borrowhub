@@ -4,15 +4,17 @@ import { Platform, SafeAreaView, StyleSheet } from "react-native";
 import { createCatalogueApi, resolveBffBaseUrl } from "./src/api";
 import { CatalogueScreen } from "./src/screens/CatalogueScreen";
 import { DetailScreen } from "./src/screens/DetailScreen";
+import { HomeScreen } from "./src/screens/HomeScreen";
 import { MyBookingsScreen } from "./src/screens/MyBookingsScreen";
 import { ProfileScreen } from "./src/screens/ProfileScreen";
 import { SignInScreen } from "./src/screens/SignInScreen";
 
+type Screen = "home" | "catalogue" | "bookings" | "profile";
+
 export default function App() {
   const [objectId, setObjectId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [showProfile, setShowProfile] = useState(false);
-  const [showBookings, setShowBookings] = useState(false);
+  const [screen, setScreen] = useState<Screen>("home");
   const api = useMemo(
     () =>
       createCatalogueApi(
@@ -23,31 +25,49 @@ export default function App() {
     [objectId],
   );
 
+  const goHome = () => {
+    setScreen("home");
+    setSelectedId(null);
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       {!objectId ? (
-        <SignInScreen onContinue={setObjectId} />
-      ) : showProfile ? (
+        <SignInScreen
+          onContinue={(next) => {
+            setScreen("home");
+            setSelectedId(null);
+            setObjectId(next);
+          }}
+        />
+      ) : screen === "profile" ? (
         <ProfileScreen
           api={api}
-          onBack={() => setShowProfile(false)}
+          onBack={goHome}
           onSignOut={() => {
-            setShowProfile(false);
-            setShowBookings(false);
+            setScreen("home");
             setSelectedId(null);
             setObjectId(null);
           }}
         />
-      ) : showBookings ? (
-        <MyBookingsScreen api={api} onBack={() => setShowBookings(false)} />
+      ) : screen === "bookings" ? (
+        <MyBookingsScreen api={api} onBack={goHome} />
       ) : selectedId ? (
         <DetailScreen api={api} id={selectedId} onBack={() => setSelectedId(null)} />
-      ) : (
+      ) : screen === "catalogue" ? (
         <CatalogueScreen
           api={api}
           onOpen={setSelectedId}
-          onOpenProfile={() => setShowProfile(true)}
-          onOpenBookings={() => setShowBookings(true)}
+          onOpenProfile={() => setScreen("profile")}
+          onOpenBookings={() => setScreen("bookings")}
+          onBack={goHome}
+        />
+      ) : (
+        <HomeScreen
+          api={api}
+          onOpenCatalogue={() => setScreen("catalogue")}
+          onOpenBookings={() => setScreen("bookings")}
+          onOpenProfile={() => setScreen("profile")}
         />
       )}
       <StatusBar style="auto" />
