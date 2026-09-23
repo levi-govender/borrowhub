@@ -43,6 +43,7 @@ final class AdminBookingSpecifications {
 				predicates.add(cb.or(
 						cb.like(cb.lower(equipment.get("assetTag")), pattern),
 						cb.like(cb.lower(equipment.get("name")), pattern),
+						cb.like(cb.lower(equipment.get("location")), pattern),
 						cb.like(cb.lower(user.get("objectId")), pattern),
 						cb.like(cb.lower(user.get("displayName")), pattern)));
 			}

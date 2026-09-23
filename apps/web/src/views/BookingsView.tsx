@@ -92,7 +92,7 @@ export function BookingsView({
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             autoComplete="off"
-            placeholder="Asset tag or borrower"
+            placeholder="Tag, name, location, or borrower"
           />
         </label>
 
