@@ -107,6 +107,15 @@ class EquipmentCatalogueTest extends PostgresIntegrationTest {
 				.andExpect(jsonPath("$.total").value(1))
 				.andExpect(jsonPath("$.items[0].name").value("Pixel test phone"));
 
+		mockMvc.perform(get("/v1/equipment").param("query", "cupboard"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.total").value(1))
+				.andExpect(jsonPath("$.items[0].assetTag").value("PHONE-001"));
+
+		mockMvc.perform(get("/v1/equipment").param("query", "Store"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.total").value(0));
+
 		mockMvc.perform(get("/v1/equipment").param("category", "monitor"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.total").value(1))

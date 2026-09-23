@@ -26,7 +26,8 @@ final class EquipmentSpecifications {
 				String pattern = "%" + query.trim().toLowerCase() + "%";
 				predicates.add(cb.or(
 						cb.like(cb.lower(root.get("name")), pattern),
-						cb.like(cb.lower(root.get("assetTag")), pattern)));
+						cb.like(cb.lower(root.get("assetTag")), pattern),
+						cb.like(cb.lower(root.get("location")), pattern)));
 			}
 			return cb.and(predicates.toArray(Predicate[]::new));
 		};

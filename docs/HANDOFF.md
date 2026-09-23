@@ -5,18 +5,19 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-16-inventory-search`
-- Task: `ENH-16` Inventory search — DONE
+- Branch: `feature/enh-17-catalogue-location`
+- Task: `ENH-17` Catalogue location search — DONE
 
 ## What changed
 
-- Admin equipment `query` matches asset tag, name, location, and the borrower display name on a RESERVED or CHECKED_OUT loan
-- Inventory search placeholder says so
-- Employee catalogue search is still tag and name only
+- Employee equipment `query` matches location as well as name and asset tag
+- Archived assets stay excluded, including when the query matches their location
+- Catalogue search label says name, tag, or location
 
 ## Verification
 
-- `./gradlew test --tests com.borrowhub.backend.admin.AdminApiTest --tests com.borrowhub.backend.equipment.EquipmentCatalogueTest` BUILD SUCCESSFUL
+- `./gradlew test --tests com.borrowhub.backend.equipment.EquipmentCatalogueTest` BUILD SUCCESSFUL
+- `pnpm --filter @borrowhub/mobile test` — 12 passed; typecheck
 
 ## Next
 
