@@ -50,6 +50,7 @@ export type Booking = {
   id: string;
   equipmentId: string;
   assetTag: string;
+  equipmentName?: string;
   status: BookingStatus;
   startAt: string;
   endAt: string;

@@ -87,7 +87,8 @@ class BookingMineCancelTest extends PostgresIntegrationTest {
 
 		mockMvc.perform(get("/v1/bookings/{id}", mine).header("X-Demo-Object-Id", "employee-a"))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.assetTag").value("PHONE-001"));
+				.andExpect(jsonPath("$.assetTag").value("PHONE-001"))
+				.andExpect(jsonPath("$.equipmentName").value("Pixel test phone"));
 
 		mockMvc.perform(get("/v1/bookings").param("status", "RESERVED").header("X-Demo-Object-Id", "employee-a"))
 				.andExpect(status().isOk())
