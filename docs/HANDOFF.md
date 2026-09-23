@@ -5,19 +5,18 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-15-reserved-inventory`
-- Task: `ENH-15` Reserved inventory — DONE
+- Branch: `feature/enh-16-inventory-search`
+- Task: `ENH-16` Inventory search — DONE
 
 ## What changed
 
-- Admin equipment list accepts `reserved=true`
-- Each row includes `nextReservedTo` and `nextReservedBookingId` (earliest RESERVED booking)
-- Inventory has a **Next** column and a **Reserved only** switch
+- Admin equipment `query` matches asset tag, name, location, and the borrower display name on a RESERVED or CHECKED_OUT loan
+- Inventory search placeholder says so
+- Employee catalogue search is still tag and name only
 
 ## Verification
 
 - `./gradlew test --tests com.borrowhub.backend.admin.AdminApiTest --tests com.borrowhub.backend.equipment.EquipmentCatalogueTest` BUILD SUCCESSFUL
-- `pnpm --filter @borrowhub/web test` — 15 passed; typecheck
 
 ## Next
 

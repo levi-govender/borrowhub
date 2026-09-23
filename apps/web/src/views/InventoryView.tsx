@@ -166,7 +166,7 @@ export function InventoryView({
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             autoComplete="off"
-            placeholder="Tag, name or location"
+            placeholder="Tag, name, location, or borrower"
           />
         </label>
 
