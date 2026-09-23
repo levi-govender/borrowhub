@@ -62,6 +62,7 @@ export function App() {
   const [category, setCategory] = useState("");
   const [checkedOutOnly, setCheckedOutOnly] = useState(false);
   const [loanOverdueOnly, setLoanOverdueOnly] = useState(false);
+  const [reservedOnly, setReservedOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<EquipmentListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -159,6 +160,7 @@ export function App() {
         category: category || undefined,
         checkedOut: checkedOutOnly,
         loanOverdue: loanOverdueOnly,
+        reserved: reservedOnly,
         page,
         pageSize: PAGE_SIZE,
       });
@@ -171,7 +173,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [api, category, checkedOutOnly, loanOverdueOnly, page, submittedQuery]);
+  }, [api, category, checkedOutOnly, loanOverdueOnly, page, reservedOnly, submittedQuery]);
 
   const loadBookings = useCallback(async () => {
     if (!api) {
@@ -407,12 +409,18 @@ export function App() {
             setPage(1);
             setLoanOverdueOnly(value);
           }}
+          reservedOnly={reservedOnly}
+          onReservedChange={(value) => {
+            setPage(1);
+            setReservedOnly(value);
+          }}
           onReset={() => {
             setQuery("");
             setSubmittedQuery("");
             setCategory("");
             setCheckedOutOnly(false);
             setLoanOverdueOnly(false);
+            setReservedOnly(false);
             setPage(1);
           }}
           items={items}

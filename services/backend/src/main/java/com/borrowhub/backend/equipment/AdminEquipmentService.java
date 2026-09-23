@@ -9,6 +9,7 @@ import com.borrowhub.backend.identity.IdentityService;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
@@ -53,6 +54,7 @@ public class AdminEquipmentService {
 			String category,
 			boolean checkedOut,
 			boolean loanOverdue,
+			boolean reserved,
 			Integer page,
 			Integer pageSize) {
 		identityService.requireAdmin(tenantId, objectId);
@@ -71,22 +73,33 @@ public class AdminEquipmentService {
 				Sort.by("name").ascending().and(Sort.by("id").ascending()));
 		Page<Equipment> result =
 				equipmentRepository.findAll(
-						EquipmentSpecifications.adminCatalogue(query, category, checkedOut, loanOverdue, now), pageable);
-		Map<UUID, com.borrowhub.backend.booking.Booking> loans = result.getContent().isEmpty()
+						EquipmentSpecifications.adminCatalogue(query, category, checkedOut, loanOverdue, reserved, now),
+						pageable);
+		List<UUID> equipmentIds = result.getContent().stream().map(Equipment::getId).toList();
+		Map<UUID, com.borrowhub.backend.booking.Booking> loans = equipmentIds.isEmpty()
 				? Map.of()
 				: bookingRepository
-						.findCheckedOutByEquipmentIds(result.getContent().stream().map(Equipment::getId).toList())
+						.findCheckedOutByEquipmentIds(equipmentIds)
 						.stream()
 						.collect(Collectors.toMap(booking -> booking.getEquipment().getId(), Function.identity()));
+		Map<UUID, com.borrowhub.backend.booking.Booking> nextReserved = new java.util.LinkedHashMap<>();
+		if (!equipmentIds.isEmpty()) {
+			for (var booking : bookingRepository.findReservedByEquipmentIds(equipmentIds)) {
+				nextReserved.putIfAbsent(booking.getEquipment().getId(), booking);
+			}
+		}
 		return new PageResponse<>(
 				result.getContent().stream()
 						.map(equipment -> {
 							var loan = loans.get(equipment.getId());
+							var upcoming = nextReserved.get(equipment.getId());
 							return EquipmentResponses.toListItem(
 									equipment,
 									loan == null ? null : loan.getUser().getDisplayName(),
 									loan == null ? null : loan.getId(),
-									loan != null && loan.getEndAt().isBefore(now));
+									loan != null && loan.getEndAt().isBefore(now),
+									upcoming == null ? null : upcoming.getUser().getDisplayName(),
+									upcoming == null ? null : upcoming.getId());
 						})
 						.toList(),
 				resolvedPage,

@@ -12,6 +12,8 @@ export type EquipmentListItem = {
   checkedOutTo?: string | null;
   checkedOutBookingId?: string | null;
   loanOverdue?: boolean;
+  nextReservedTo?: string | null;
+  nextReservedBookingId?: string | null;
 };
 
 export type CurrentLoan = {
@@ -190,6 +192,7 @@ export function createInventoryApi(
       category?: string;
       checkedOut?: boolean;
       loanOverdue?: boolean;
+      reserved?: boolean;
       page?: number;
       pageSize?: number;
     } = {}) {
@@ -198,6 +201,7 @@ export function createInventoryApi(
       if (params.category) search.set("category", params.category);
       if (params.checkedOut) search.set("checkedOut", "true");
       if (params.loanOverdue) search.set("loanOverdue", "true");
+      if (params.reserved) search.set("reserved", "true");
       if (params.page) search.set("page", String(params.page));
       if (params.pageSize) search.set("pageSize", String(params.pageSize));
       const suffix = search.size > 0 ? `?${search.toString()}` : "";

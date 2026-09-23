@@ -30,6 +30,8 @@ type Props = {
   onCheckedOutChange: (value: boolean) => void;
   loanOverdueOnly: boolean;
   onLoanOverdueChange: (value: boolean) => void;
+  reservedOnly: boolean;
+  onReservedChange: (value: boolean) => void;
   onReset: () => void;
   items: EquipmentListItem[];
   total: number;
@@ -122,6 +124,8 @@ export function InventoryView({
   onCheckedOutChange,
   loanOverdueOnly,
   onLoanOverdueChange,
+  reservedOnly,
+  onReservedChange,
   onReset,
   items,
   total,
@@ -205,6 +209,14 @@ export function InventoryView({
             onChange={(event) => onLoanOverdueChange(event.target.checked)}
           />
           Overdue loans only
+        </label>
+        <label className="switch">
+          <input
+            type="checkbox"
+            checked={reservedOnly}
+            onChange={(event) => onReservedChange(event.target.checked)}
+          />
+          Reserved only
         </label>
 
         <div className="toolbar__actions">
@@ -313,6 +325,7 @@ export function InventoryView({
                       Location
                     </th>
                     <th scope="col">With</th>
+                    <th scope="col">Next</th>
                     <th scope="col">Status</th>
                   </tr>
                 </thead>
@@ -370,6 +383,22 @@ export function InventoryView({
                             )}
                             {item.loanOverdue ? <OverdueBadge /> : null}
                           </span>
+                        ) : (
+                          <span className="muted">—</span>
+                        )}
+                      </td>
+                      <td>
+                        {item.nextReservedTo && item.nextReservedBookingId ? (
+                          <button
+                            type="button"
+                            className="linkbtn"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onOpenLoan(item.nextReservedBookingId!);
+                            }}
+                          >
+                            {item.nextReservedTo}
+                          </button>
                         ) : (
                           <span className="muted">—</span>
                         )}
