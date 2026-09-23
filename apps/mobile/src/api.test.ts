@@ -10,7 +10,9 @@ import {
   parseOfficeLocal,
   toOfficeLocalInput,
   validateReservationWindow,
+  formatAvailabilityReason,
   formatBookingReminder,
+  formatOperationalStatus,
   resolveBffBaseUrl,
 } from "./api.ts";
 
@@ -191,4 +193,11 @@ test("formatBookingReminder maps Java kinds", () => {
   assert.equal(formatBookingReminder("COLLECT_NOW"), "Collection is open.");
   assert.equal(formatBookingReminder("RETURN_NOW"), "Please return this asset.");
   assert.equal(formatBookingReminder("OVERDUE"), "This loan is overdue.");
+});
+
+test("availability and status copy stay in plain language", () => {
+  assert.equal(formatAvailabilityReason("BOOKING_CONFLICT"), "That window overlaps another reservation.");
+  assert.equal(formatAvailabilityReason("EQUIPMENT_NOT_ACTIVE"), "This asset is not available to book.");
+  assert.equal(formatOperationalStatus("ACTIVE"), "Available to book");
+  assert.equal(formatOperationalStatus("MAINTENANCE"), "In maintenance");
 });

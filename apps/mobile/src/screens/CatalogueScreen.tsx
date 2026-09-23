@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import {
   CatalogueApiError,
+  formatOperationalStatus,
   isBookable,
   parseEquipmentQr,
   type CatalogueApi,
@@ -207,7 +208,7 @@ export function CatalogueScreen({ api, onOpen, onOpenProfile, onOpenBookings, on
             >
               <Text style={styles.rowTitle}>{item.name}</Text>
               <Text style={styles.rowMeta}>
-                {item.assetTag} · {item.category} · {item.location} · {item.operationalStatus}
+                {item.assetTag} · {item.category} · {item.location} · {formatOperationalStatus(item.operationalStatus)}
                 {isBookable(item.operationalStatus) ? "" : " · not bookable"}
               </Text>
             </Pressable>

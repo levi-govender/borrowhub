@@ -3,6 +3,8 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, 
 import {
   CatalogueApiError,
   defaultAvailabilityWindow,
+  formatAvailabilityReason,
+  formatOperationalStatus,
   isBookable,
   parseOfficeLocal,
   toOfficeLocalInput,
@@ -122,7 +124,7 @@ export function DetailScreen({ api, id, onBack }: Props) {
             {detail.name}
           </Text>
           <Text style={styles.body}>
-            {detail.category} · {detail.location} · {detail.operationalStatus}
+            {detail.category} · {detail.location} · {formatOperationalStatus(detail.operationalStatus)}
           </Text>
           <Text style={styles.body}>{detail.description ?? "No description."}</Text>
           <Text style={styles.section}>Booking policy</Text>
@@ -174,7 +176,7 @@ export function DetailScreen({ api, id, onBack }: Props) {
             <Text style={styles.body}>
               {availability.available
                 ? "That window looks free."
-                : `Not available (${availability.reason ?? "conflict"}).`}
+                : formatAvailabilityReason(availability.reason)}
             </Text>
           ) : null}
           <Text style={styles.section}>Reserve</Text>
