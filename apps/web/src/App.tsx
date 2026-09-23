@@ -74,6 +74,7 @@ export function App() {
   const [submittedBookingQuery, setSubmittedBookingQuery] = useState("");
   const [bookingStatus, setBookingStatus] = useState("");
   const [overdueOnly, setOverdueOnly] = useState(false);
+  const [damagedOnly, setDamagedOnly] = useState(false);
   const [bookingPage, setBookingPage] = useState(1);
   const [bookings, setBookings] = useState<BookingListItem[]>([]);
   const [bookingTotal, setBookingTotal] = useState(0);
@@ -179,6 +180,7 @@ export function App() {
         query: submittedBookingQuery || undefined,
         status: bookingStatus || undefined,
         overdue: overdueOnly,
+        damaged: damagedOnly,
         page: bookingPage,
         pageSize: PAGE_SIZE,
       });
@@ -191,7 +193,7 @@ export function App() {
     } finally {
       setBookingsLoading(false);
     }
-  }, [api, bookingPage, bookingStatus, overdueOnly, submittedBookingQuery]);
+  }, [api, bookingPage, bookingStatus, damagedOnly, overdueOnly, submittedBookingQuery]);
 
   const loadCalendar = useCallback(async () => {
     if (!api) {
@@ -462,11 +464,17 @@ export function App() {
             setBookingPage(1);
             setOverdueOnly(value);
           }}
+          damagedOnly={damagedOnly}
+          onDamagedChange={(value) => {
+            setBookingPage(1);
+            setDamagedOnly(value);
+          }}
           onReset={() => {
             setBookingQuery("");
             setSubmittedBookingQuery("");
             setBookingStatus("");
             setOverdueOnly(false);
+            setDamagedOnly(false);
             setBookingPage(1);
             setSelected(null);
           }}

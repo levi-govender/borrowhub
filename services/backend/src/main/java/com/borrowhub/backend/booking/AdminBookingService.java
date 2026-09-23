@@ -84,6 +84,7 @@ public class AdminBookingService {
 			String query,
 			String status,
 			boolean overdue,
+			boolean damaged,
 			String from,
 			String to,
 			Integer page,
@@ -112,7 +113,8 @@ public class AdminBookingService {
 				resolvedSize,
 				Sort.by("startAt").ascending().and(Sort.by("id").ascending()));
 		Page<Booking> result = bookingRepository.findAll(
-				AdminBookingSpecifications.filter(query, parsed, overdue, now, windowStart, windowEnd), pageable);
+				AdminBookingSpecifications.filter(query, parsed, overdue, damaged, now, windowStart, windowEnd),
+				pageable);
 		return new PageResponse<>(
 				result.getContent().stream().map(booking -> AdminBookingResponses.toListItem(booking, now)).toList(),
 				resolvedPage,

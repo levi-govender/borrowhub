@@ -20,7 +20,8 @@ public final class AdminBookingResponses {
 			Instant startAt,
 			Instant endAt,
 			BookingStatus status,
-			boolean overdue) {
+			boolean overdue,
+			boolean damaged) {
 	}
 
 	public record Detail(
@@ -58,7 +59,8 @@ public final class AdminBookingResponses {
 				booking.getStartAt(),
 				booking.getEndAt(),
 				booking.getStatus(),
-				isOverdue(booking, now));
+				isOverdue(booking, now),
+				booking.getDamageNote() != null && !booking.getDamageNote().isBlank());
 	}
 
 	static boolean isOverdue(Booking booking, Instant now) {

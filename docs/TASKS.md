@@ -88,3 +88,4 @@ Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
 | ENH-05 | Employee home | DONE | Evidence 2026-09-22: `pnpm --filter @borrowhub/mobile test` 12 passed (attention ranking + next upcoming) + typecheck. Home after sign-in; collect/return still Java `allowedActions`/`reminders`. Expo UI not run. |
 | ENH-06 | Admin damage note | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (`damageNote` on admin booking detail). Web typecheck. Drawer shows the note when present. |
 | ENH-07 | Cancellation reason | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (admin detail and employee `GET /v1/bookings/{id}` return the reason). Mobile 12 tests + typecheck. Web typecheck. |
+| ENH-08 | Damage-note filter | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (`damaged=true` returns only bookings with a note; list item `damaged`). Web 15 tests + typecheck. BFF 13 tests. |

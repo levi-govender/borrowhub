@@ -86,6 +86,15 @@ test("listBookings sends a Johannesburg week window", async () => {
   assert.equal(page.total, 0);
 });
 
+test("listBookings sends damaged=true", async () => {
+  const api = createInventoryApi("http://bff.test", async (input) => {
+    assert.equal(String(input), "http://bff.test/api/v1/admin/bookings?damaged=true");
+    return new Response(JSON.stringify({ items: [], page: 1, pageSize: 20, total: 0 }), { status: 200 });
+  });
+  const page = await api.listBookings({ damaged: true });
+  assert.equal(page.total, 0);
+});
+
 test("listBookings sends overdue and status together", async () => {
   const api = createInventoryApi("http://bff.test", async (input) => {
     assert.equal(String(input), "http://bff.test/api/v1/admin/bookings?status=CHECKED_OUT&overdue=true&page=1");
