@@ -99,3 +99,4 @@ Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
 | ENH-16 | Inventory search | DONE | Evidence 2026-09-23: `AdminApiTest` and `EquipmentCatalogueTest` BUILD SUCCESSFUL. Admin query matches location and the borrower on a RESERVED or CHECKED_OUT loan. Employee catalogue search unchanged. |
 | ENH-17 | Catalogue location search | DONE | Evidence 2026-09-23: `EquipmentCatalogueTest` BUILD SUCCESSFUL (`cupboard` finds PHONE-001; archived `Store` stays hidden). Mobile typecheck + 12 tests. Borrower names stay off the employee search. |
 | ENH-18 | Employee cancel reason | DONE | Evidence 2026-09-23: `BookingMineCancelTest` BUILD SUCCESSFUL (optional reason stored; blank body still cancels). BFF 13 tests. Mobile typecheck + 12 tests. Admin cancel still requires a reason. |
+| ENH-19 | Availability copy | DONE | Evidence 2026-09-23: mobile typecheck + 13 tests. Catalogue and detail show plain status and availability reasons. Java codes unchanged. |

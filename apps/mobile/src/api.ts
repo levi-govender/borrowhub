@@ -293,6 +293,29 @@ export function formatBookingReminder(kind: string): string {
   return kind;
 }
 
+export function formatOperationalStatus(status: string): string {
+  if (status === "ACTIVE") {
+    return "Available to book";
+  }
+  if (status === "MAINTENANCE") {
+    return "In maintenance";
+  }
+  if (status === "ARCHIVED") {
+    return "Archived";
+  }
+  return status;
+}
+
+export function formatAvailabilityReason(reason: string | null): string {
+  if (reason === "BOOKING_CONFLICT") {
+    return "That window overlaps another reservation.";
+  }
+  if (reason === "EQUIPMENT_NOT_ACTIVE") {
+    return "This asset is not available to book.";
+  }
+  return "That window is not available.";
+}
+
 export function resolveBffBaseUrl(
   env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
   platform: "ios" | "android" | "web" | string = "ios",
