@@ -5,18 +5,18 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-21-booking-location-search`
-- Task: `ENH-21` Booking location search — DONE
+- Branch: `feature/enh-22-office-booking-times`
+- Task: `ENH-22` Office booking times — DONE
 
 ## What changed
 
-- Admin booking search matches equipment location as well as tag, name, and borrower
-- Bookings search placeholder mentions location
+- My bookings shows the window in Africa/Johannesburg instead of a raw UTC instant
+- A booking that crosses midnight includes the end date
+- Home, My bookings, and the reserve confirmation use plain status labels
 
 ## Verification
 
-- `./gradlew test --tests com.borrowhub.backend.admin.AdminApiTest` BUILD SUCCESSFUL
-- `pnpm --filter @borrowhub/web exec tsc --noEmit`
+- `pnpm --filter @borrowhub/mobile test` — 13 passed; typecheck
 
 ## Next
 

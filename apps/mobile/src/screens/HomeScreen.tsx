@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, 
 import {
   CatalogueApiError,
   formatBookingReminder,
+  formatBookingStatus,
   formatOfficeWindow,
   type Booking,
   type CatalogueApi,
@@ -155,7 +156,7 @@ export function HomeScreen({ api, onOpenCatalogue, onOpenBookings, onOpenProfile
             <View style={styles.row}>
               <Text style={styles.rowTitle}>{next.assetTag}</Text>
               <Text style={styles.rowMeta}>
-                {next.status} · {formatOfficeWindow(next.startAt, next.endAt)}
+                {formatBookingStatus(next.status)} · {formatOfficeWindow(next.startAt, next.endAt)}
               </Text>
               {next.allowedActions.includes("CANCEL") ? (
                 <>

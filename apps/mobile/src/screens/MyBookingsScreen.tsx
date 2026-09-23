@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { CatalogueApiError, formatBookingReminder, type Booking, type CatalogueApi } from "../api";
+import {
+  CatalogueApiError,
+  formatBookingReminder,
+  formatBookingStatus,
+  formatOfficeWindow,
+  type Booking,
+  type CatalogueApi,
+} from "../api";
 
 type Props = {
   api: CatalogueApi;
@@ -102,7 +109,7 @@ export function MyBookingsScreen({ api, onBack }: Props) {
               <View style={styles.row}>
                 <Text style={styles.rowTitle}>{item.assetTag}</Text>
                 <Text style={styles.rowMeta}>
-                  {item.status} · {item.startAt} → {item.endAt}
+                  {formatBookingStatus(item.status)} · {formatOfficeWindow(item.startAt, item.endAt)}
                   {item.damageNote ? ` · ${item.damageNote}` : ""}
                   {item.cancellationReason ? ` · ${item.cancellationReason}` : ""}
                 </Text>
