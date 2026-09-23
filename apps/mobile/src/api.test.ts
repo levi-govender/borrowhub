@@ -7,6 +7,9 @@ import {
   formatOfficeWindow,
   isBookable,
   parseEquipmentQr,
+  parseOfficeLocal,
+  toOfficeLocalInput,
+  validateReservationWindow,
   formatBookingReminder,
   resolveBffBaseUrl,
 } from "./api.ts";
@@ -158,6 +161,15 @@ test("default availability window is 3 hours from tomorrow 07:00 UTC", () => {
   assert.equal(formatOfficeWindow(window.startAt, window.endAt), "Tue, 22 Sept, 09:00–12:00 (Africa/Johannesburg)");
   assert.equal(isBookable("ACTIVE"), true);
   assert.equal(isBookable("MAINTENANCE"), false);
+  assert.equal(toOfficeLocalInput(window.startAt), "2026-09-22T09:00");
+  assert.equal(parseOfficeLocal("2026-09-22T09:00"), "2026-09-22T07:00:00.000Z");
+  const policy = { minDurationMinutes: 15, maxDurationDays: 7, maxAdvanceDays: 30 };
+  const now = new Date("2026-09-21T15:00:00Z").getTime();
+  assert.equal(validateReservationWindow(window.startAt, window.endAt, policy, now), null);
+  assert.equal(
+    validateReservationWindow(window.startAt, window.startAt, policy, now),
+    "End must be after start.",
+  );
 });
 
 test("parseEquipmentQr accepts uuid, prefixed payload, url, or asset tag", () => {

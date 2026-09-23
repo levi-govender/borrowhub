@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import {
   CatalogueApiError,
   defaultAvailabilityWindow,
-  formatOfficeWindow,
   isBookable,
+  parseOfficeLocal,
+  toOfficeLocalInput,
+  validateReservationWindow,
   type Availability,
   type Booking,
   type CatalogueApi,
@@ -25,7 +27,22 @@ export function DetailScreen({ api, id, onBack }: Props) {
   const [reserving, setReserving] = useState(false);
   const [booking, setBooking] = useState<Booking | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const window = defaultAvailabilityWindow();
+  const initialWindow = defaultAvailabilityWindow();
+  const [startLocal, setStartLocal] = useState(() => toOfficeLocalInput(initialWindow.startAt));
+  const [endLocal, setEndLocal] = useState(() => toOfficeLocalInput(initialWindow.endAt));
+
+  const chosenWindow = (): { startAt: string; endAt: string } | string => {
+    const startAt = parseOfficeLocal(startLocal.trim());
+    const endAt = parseOfficeLocal(endLocal.trim());
+    if (!startAt || !endAt) {
+      return "Use office time as YYYY-MM-DDTHH:mm.";
+    }
+    if (!detail) {
+      return "Asset is still loading.";
+    }
+    const invalid = validateReservationWindow(startAt, endAt, detail.policy);
+    return invalid ?? { startAt, endAt };
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -47,6 +64,12 @@ export function DetailScreen({ api, id, onBack }: Props) {
   }, [load]);
 
   const checkAvailability = async () => {
+    const window = chosenWindow();
+    if (typeof window === "string") {
+      setAvailability(null);
+      setError(window);
+      return;
+    }
     setChecking(true);
     setError(null);
     try {
@@ -60,6 +83,12 @@ export function DetailScreen({ api, id, onBack }: Props) {
   };
 
   const reserve = async () => {
+    const window = chosenWindow();
+    if (typeof window === "string") {
+      setBooking(null);
+      setError(window);
+      return;
+    }
     setReserving(true);
     setError(null);
     try {
@@ -105,9 +134,34 @@ export function DetailScreen({ api, id, onBack }: Props) {
           </Text>
           <Text style={styles.section}>Availability check</Text>
           <Text style={styles.body}>
-            Default window {formatOfficeWindow(window.startAt, window.endAt)}. This is a snapshot; creating a booking
-            will revalidate.
+            Enter start and end in Africa/Johannesburg (YYYY-MM-DDTHH:mm). Java re-checks the window when you reserve.
           </Text>
+          <Text style={styles.body}>Start</Text>
+          <TextInput
+            accessibilityLabel="Reservation start"
+            value={startLocal}
+            onChangeText={(value) => {
+              setStartLocal(value);
+              setAvailability(null);
+              setBooking(null);
+            }}
+            autoCapitalize="none"
+            autoCorrect={false}
+            style={styles.input}
+          />
+          <Text style={styles.body}>End</Text>
+          <TextInput
+            accessibilityLabel="Reservation end"
+            value={endLocal}
+            onChangeText={(value) => {
+              setEndLocal(value);
+              setAvailability(null);
+              setBooking(null);
+            }}
+            autoCapitalize="none"
+            autoCorrect={false}
+            style={styles.input}
+          />
           <Pressable
             accessibilityRole="button"
             onPress={() => void checkAvailability()}
@@ -190,6 +244,15 @@ const styles = StyleSheet.create({
   },
   block: {
     gap: 12,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#d9d3c7",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+    fontSize: 16,
   },
   button: {
     alignSelf: "flex-start",
