@@ -5,16 +5,17 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-30-open-asset-from-booking`
-- Task: `ENH-30` Open asset from booking — DONE
+- Branch: `feature/enh-31-my-bookings-pages`
+- Task: `ENH-31` My bookings pages — DONE
 
 ## What changed
 
-- The asset tag on an employee booking opens that catalogue item
-- Back from the asset returns to the booking
+- My bookings loads 20 at a time and can load the next page
+- Changing the status filter starts again at page 1
 
 ## Verification
 
+- `./gradlew test --tests com.borrowhub.backend.booking.BookingMineCancelTest` BUILD SUCCESSFUL
 - `pnpm --filter @borrowhub/mobile test` — 13 passed; typecheck
 - Expo UI not run
 
