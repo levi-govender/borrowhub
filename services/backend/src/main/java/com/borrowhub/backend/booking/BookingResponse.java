@@ -10,6 +10,7 @@ public record BookingResponse(
 		UUID id,
 		UUID equipmentId,
 		String assetTag,
+		String equipmentName,
 		UUID userId,
 		Instant startAt,
 		Instant endAt,
@@ -25,6 +26,7 @@ public record BookingResponse(
 				booking.getId(),
 				booking.getEquipment().getId(),
 				booking.getEquipment().getAssetTag(),
+				booking.getEquipment().getName(),
 				booking.getUser().getId(),
 				booking.getStartAt(),
 				booking.getEndAt(),
@@ -41,6 +43,7 @@ public record BookingResponse(
 		body.put("id", id.toString());
 		body.put("equipmentId", equipmentId.toString());
 		body.put("assetTag", assetTag);
+		body.put("equipmentName", equipmentName);
 		body.put("userId", userId.toString());
 		body.put("startAt", startAt.toString());
 		body.put("endAt", endAt.toString());
@@ -55,6 +58,7 @@ public record BookingResponse(
 
 	@SuppressWarnings("unchecked")
 	static BookingResponse fromStoredMap(Map<String, Object> body) {
+		Object name = body.get("equipmentName");
 		Object note = body.get("damageNote");
 		Object reason = body.get("cancellationReason");
 		List<String> reminders = body.get("reminders") instanceof List<?> list ? (List<String>) list : List.of();
@@ -62,6 +66,7 @@ public record BookingResponse(
 				UUID.fromString(String.valueOf(body.get("id"))),
 				UUID.fromString(String.valueOf(body.get("equipmentId"))),
 				String.valueOf(body.get("assetTag")),
+				name == null ? "" : String.valueOf(name),
 				UUID.fromString(String.valueOf(body.get("userId"))),
 				Instant.parse(String.valueOf(body.get("startAt"))),
 				Instant.parse(String.valueOf(body.get("endAt"))),

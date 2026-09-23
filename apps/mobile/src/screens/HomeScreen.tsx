@@ -108,7 +108,7 @@ export function HomeScreen({ api, onOpenCatalogue, onOpenBookings, onOpenBooking
                   accessibilityLabel={`Open booking ${item.assetTag}`}
                   onPress={() => onOpenBooking(item.id)}
                 >
-                  <Text style={styles.rowTitle}>{item.assetTag}</Text>
+                  <Text style={styles.rowTitle}>{item.equipmentName || item.assetTag}</Text>
                 </Pressable>
                 <Text style={styles.rowMeta}>{formatOfficeWindow(item.startAt, item.endAt)}</Text>
                 {item.reminders?.map((kind) => (
@@ -166,7 +166,7 @@ export function HomeScreen({ api, onOpenCatalogue, onOpenBookings, onOpenBooking
                 accessibilityLabel={`Open booking ${next.assetTag}`}
                 onPress={() => onOpenBooking(next.id)}
               >
-                <Text style={styles.rowTitle}>{next.assetTag}</Text>
+                <Text style={styles.rowTitle}>{next.equipmentName || next.assetTag}</Text>
               </Pressable>
               <Text style={styles.rowMeta}>
                 {formatBookingStatus(next.status)} · {formatOfficeWindow(next.startAt, next.endAt)}

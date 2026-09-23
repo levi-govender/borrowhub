@@ -109,3 +109,4 @@ Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
 | ENH-26 | Open audit record | DONE | Evidence 2026-09-23: web typecheck. A booking audit row opens that booking; an equipment row opens that asset. Browser not exercised. |
 | ENH-27 | Employee booking detail | DONE | Evidence 2026-09-23: mobile typecheck + 13 tests. Opening a row loads `GET /v1/bookings/{id}` and can cancel, collect, or return. Expo UI not run. |
 | ENH-28 | Open booking from home | DONE | Evidence 2026-09-23: mobile typecheck + 13 tests. Due-now and upcoming rows open that booking. Expo UI not run. |
+| ENH-29 | Booking equipment name | DONE | Evidence 2026-09-23: `BookingMineCancelTest` BUILD SUCCESSFUL (`equipmentName` is Pixel test phone). Mobile typecheck + 13 tests. A replayed idempotency body from before this field is an empty name. Expo UI not run. |

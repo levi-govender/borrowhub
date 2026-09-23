@@ -70,8 +70,9 @@ export function BookingScreen({ api, id, onBack }: Props) {
         <View>
           <Text style={styles.eyebrow}>{formatBookingStatus(booking.status)}</Text>
           <Text style={styles.title} accessibilityRole="header">
-            {booking.assetTag}
+            {booking.equipmentName || booking.assetTag}
           </Text>
+          <Text style={styles.body}>{booking.assetTag}</Text>
           <Text style={styles.body}>{formatOfficeWindow(booking.startAt, booking.endAt)}</Text>
           {booking.cancellationReason ? <Text style={styles.body}>Cancelled: {booking.cancellationReason}</Text> : null}
           {booking.damageNote ? <Text style={styles.body}>Damage: {booking.damageNote}</Text> : null}

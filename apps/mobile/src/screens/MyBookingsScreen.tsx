@@ -109,7 +109,7 @@ export function MyBookingsScreen({ api, onBack, onOpen }: Props) {
             renderItem={({ item }) => (
               <View style={styles.row}>
                 <Pressable accessibilityRole="button" accessibilityLabel={`Open booking ${item.assetTag}`} onPress={() => onOpen(item.id)}>
-                  <Text style={styles.rowTitle}>{item.assetTag}</Text>
+                  <Text style={styles.rowTitle}>{item.equipmentName || item.assetTag}</Text>
                 </Pressable>
                 <Text style={styles.rowMeta}>
                   {formatBookingStatus(item.status)} · {formatOfficeWindow(item.startAt, item.endAt)}
