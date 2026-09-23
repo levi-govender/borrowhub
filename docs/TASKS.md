@@ -111,3 +111,4 @@ Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
 | ENH-28 | Open booking from home | DONE | Evidence 2026-09-23: mobile typecheck + 13 tests. Due-now and upcoming rows open that booking. Expo UI not run. |
 | ENH-29 | Booking equipment name | DONE | Evidence 2026-09-23: `BookingMineCancelTest` BUILD SUCCESSFUL (`equipmentName` is Pixel test phone). Mobile typecheck + 13 tests. A replayed idempotency body from before this field is an empty name. Expo UI not run. |
 | ENH-30 | Open asset from booking | DONE | Evidence 2026-09-23: mobile typecheck + 13 tests. The asset tag on a booking opens that catalogue item, and back returns to the booking. Expo UI not run. |
+| ENH-31 | My bookings pages | DONE | Evidence 2026-09-23: `BookingMineCancelTest` BUILD SUCCESSFUL (`page=2&pageSize=1` returns one of two). Mobile typecheck + 13 tests. Load more appends; a status change starts again at page 1. Expo UI not run. |

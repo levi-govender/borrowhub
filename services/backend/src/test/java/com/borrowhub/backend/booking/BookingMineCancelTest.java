@@ -186,6 +186,21 @@ class BookingMineCancelTest extends PostgresIntegrationTest {
 				.andExpect(jsonPath("$.code").value("ILLEGAL_TRANSITION"));
 	}
 
+	@Test
+	void listMineReturnsTheSecondPage() throws Exception {
+		create("employee-a", phone.getId(), "2026-09-22T07:00:00Z", "2026-09-22T10:00:00Z");
+		create("employee-a", monitor.getId(), "2026-09-22T07:00:00Z", "2026-09-22T10:00:00Z");
+
+		mockMvc.perform(get("/v1/bookings")
+						.param("page", "2")
+						.param("pageSize", "1")
+						.header("X-Demo-Object-Id", "employee-a"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.page").value(2))
+				.andExpect(jsonPath("$.total").value(2))
+				.andExpect(jsonPath("$.items.length()").value(1));
+	}
+
 	private String create(String objectId, UUID equipmentId, String startAt, String endAt) throws Exception {
 		MvcResult result = mockMvc.perform(post("/v1/bookings")
 						.contentType(MediaType.APPLICATION_JSON)

@@ -15,6 +15,8 @@ type Props = {
   onOpen: (id: string) => void;
 };
 
+const PAGE_SIZE = 20;
+
 const STATUS_FILTERS: { label: string; value?: string }[] = [
   { label: "All" },
   { label: "Reserved", value: "RESERVED" },
@@ -26,31 +28,44 @@ const STATUS_FILTERS: { label: string; value?: string }[] = [
 export function MyBookingsScreen({ api, onBack, onOpen }: Props) {
   const [items, setItems] = useState<Booking[]>([]);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [damageNotes, setDamageNotes] = useState<Record<string, string>>({});
   const [cancelReasons, setCancelReasons] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const page = await api.listMine({ status, page: 1, pageSize: 20 });
-      setItems(page.items);
-      setTotal(page.total);
-    } catch (caught) {
-      setItems([]);
-      setTotal(0);
-      setError(caught instanceof CatalogueApiError ? caught.message : "Could not load bookings.");
-    } finally {
-      setLoading(false);
-    }
-  }, [api, status]);
+  const load = useCallback(
+    async (nextPage: number, append: boolean) => {
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+      try {
+        const result = await api.listMine({ status, page: nextPage, pageSize: PAGE_SIZE });
+        setItems((current) => (append ? [...current, ...result.items] : result.items));
+        setTotal(result.total);
+        setPage(nextPage);
+      } catch (caught) {
+        if (!append) {
+          setItems([]);
+          setTotal(0);
+        }
+        setError(caught instanceof CatalogueApiError ? caught.message : "Could not load bookings.");
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [api, status],
+  );
 
   useEffect(() => {
-    void load();
+    void load(1, false);
   }, [load]);
 
   const act = async (id: string, run: () => Promise<Booking>, failed: string) => {
@@ -93,7 +108,7 @@ export function MyBookingsScreen({ api, onBack, onOpen }: Props) {
       ) : error && items.length === 0 ? (
         <View style={styles.block}>
           <Text style={styles.body}>{error}</Text>
-          <Pressable accessibilityRole="button" onPress={() => void load()} style={styles.button}>
+          <Pressable accessibilityRole="button" onPress={() => void load(1, false)} style={styles.button}>
             <Text style={styles.buttonLabel}>Retry</Text>
           </Pressable>
         </View>
@@ -188,6 +203,19 @@ export function MyBookingsScreen({ api, onBack, onOpen }: Props) {
                 ) : null}
               </View>
             )}
+            ListFooterComponent={
+              items.length < total ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Load more bookings"
+                  onPress={() => void load(page + 1, true)}
+                  disabled={loadingMore}
+                  style={styles.button}
+                >
+                  <Text style={styles.buttonLabel}>{loadingMore ? "Loading…" : "Load more"}</Text>
+                </Pressable>
+              ) : null
+            }
           />
         </>
       )}
