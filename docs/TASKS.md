@@ -89,3 +89,4 @@ Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
 | ENH-06 | Admin damage note | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (`damageNote` on admin booking detail). Web typecheck. Drawer shows the note when present. |
 | ENH-07 | Cancellation reason | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (admin detail and employee `GET /v1/bookings/{id}` return the reason). Mobile 12 tests + typecheck. Web typecheck. |
 | ENH-08 | Damage-note filter | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (`damaged=true` returns only bookings with a note; list item `damaged`). Web 15 tests + typecheck. BFF 13 tests. |
+| ENH-09 | Current loan on asset | DONE | Evidence 2026-09-23: `AdminApiTest` and `EquipmentCatalogueTest` BUILD SUCCESSFUL. Admin equipment detail `currentLoan` is the CHECKED_OUT booking (borrower, window, overdue). Web 15 tests + typecheck. Employee detail leaves `currentLoan` null. |

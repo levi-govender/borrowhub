@@ -41,6 +41,15 @@ public interface BookingRepository extends JpaRepository<Booking, UUID>, JpaSpec
 
 	boolean existsByEquipment_IdAndStatusAndIdNot(UUID equipmentId, BookingStatus status, UUID bookingId);
 
+	@Query(
+			"""
+			select b from Booking b
+			join fetch b.user
+			where b.equipment.id = :equipmentId
+			  and b.status = com.borrowhub.backend.booking.BookingStatus.CHECKED_OUT
+			""")
+	Optional<Booking> findCheckedOutByEquipmentId(@Param("equipmentId") UUID equipmentId);
+
 	long countByStatus(BookingStatus status);
 
 	long countByStatusAndEndAtBefore(BookingStatus status, Instant endAt);

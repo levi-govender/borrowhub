@@ -147,6 +147,13 @@ test("loads equipment detail and patches status", async () => {
           description: "lab",
           location: "Cupboard A",
           operationalStatus: "ACTIVE",
+          currentLoan: {
+            bookingId: "22222222-2222-4222-8222-222222222222",
+            borrower: "employee-a",
+            startAt: "2026-09-20T08:00:00Z",
+            endAt: "2026-09-20T10:00:00Z",
+            overdue: true,
+          },
         }),
         { status: 200 },
       );
@@ -162,6 +169,8 @@ test("loads equipment detail and patches status", async () => {
   });
   const detail = await api.get(id);
   assert.equal(detail.assetTag, "PHONE-001");
+  assert.equal(detail.currentLoan?.borrower, "employee-a");
+  assert.equal(detail.currentLoan?.overdue, true);
   const updated = await api.update(id, {
     assetTag: "PHONE-001",
     name: "Pixel",

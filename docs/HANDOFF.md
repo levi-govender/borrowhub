@@ -5,20 +5,19 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-08-damage-filter`
-- Task: `ENH-08` Damage-note filter — DONE
+- Branch: `feature/enh-09-current-loan`
+- Task: `ENH-09` Current loan on asset — DONE
 
 ## What changed
 
-- `GET /v1/admin/bookings?damaged=true` keeps bookings whose `damage_note` is non-blank
-- List items include `damaged`
-- Admin bookings toolbar has **Damage notes only**
+- Admin `GET /v1/admin/equipment/{id}` includes `currentLoan` for the single `CHECKED_OUT` booking (borrower, window, overdue)
+- Inventory drawer shows who has the asset, or “Not checked out”
+- Employee catalogue detail sets `currentLoan` to null
 
 ## Verification
 
-- `./gradlew test --tests com.borrowhub.backend.admin.AdminApiTest` BUILD SUCCESSFUL
+- `./gradlew test --tests com.borrowhub.backend.admin.AdminApiTest --tests com.borrowhub.backend.equipment.EquipmentCatalogueTest` BUILD SUCCESSFUL
 - `pnpm --filter @borrowhub/web test` — 15 passed; typecheck
-- `pnpm --filter @borrowhub/bff test` — 13 passed
 
 ## Next
 
