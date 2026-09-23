@@ -52,7 +52,7 @@ export function AuditView({ isAdmin, items, total, loading, error, onRetry }: Pr
             <td>{humanize(item.action)}</td>
             <td>{item.actor || "—"}</td>
             <td>
-              {humanize(item.entityType)} {item.entityId}
+              {item.entityType ? `${humanize(item.entityType)} ${item.entityId ?? ""}` : "—"}
             </td>
           </tr>
         ))}

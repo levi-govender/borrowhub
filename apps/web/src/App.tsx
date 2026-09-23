@@ -233,6 +233,9 @@ export function App() {
   }, [api, week.from, week.to]);
 
   const loadAudit = useCallback(async () => {
+    if (!api) {
+      return;
+    }
     setAuditLoading(true);
     setAuditError(null);
     try {

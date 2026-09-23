@@ -58,9 +58,10 @@ export type AuditItem = {
   occurredAt: string;
   action: string;
   actor: string;
-  entityType: string;
-  entityId: string;
-  correlationId: string;
+  entityType?: string;
+  entityId?: string;
+  correlationId?: string;
+  changeSummary?: Record<string, unknown>;
 };
 
 export type AuditPage = {
@@ -94,14 +95,6 @@ export type BookingPage = {
   page: number;
   pageSize: number;
   total: number;
-};
-
-export type AuditItem = {
-  id: string;
-  occurredAt: string;
-  action: string;
-  actor: string;
-  changeSummary: Record<string, unknown>;
 };
 
 export type BookingDetail = BookingListItem & {
