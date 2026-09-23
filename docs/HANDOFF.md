@@ -5,19 +5,17 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-24-audit-filter`
-- Task: `ENH-24` Audit filter — DONE
+- Branch: `feature/enh-25-audit-pages`
+- Task: `ENH-25` Audit pages — DONE
 
 ## What changed
 
-- `GET /v1/admin/audit` accepts `action` and `entityType` (`booking` or `equipment`)
-- An unknown record type is a validation error
-- The Audit tab has an action menu and record-type chips
+- The Audit tab pages through `GET /v1/admin/audit`
+- Changing the action or record type returns to page 1
 
 ## Verification
 
 - `./gradlew test --tests com.borrowhub.backend.admin.AdminApiTest` BUILD SUCCESSFUL
-- `pnpm --filter @borrowhub/bff test` — 13 passed
 - `pnpm --filter @borrowhub/web exec tsc -p tsconfig.app.json --noEmit`
 - The Audit tab was not opened in a browser
 

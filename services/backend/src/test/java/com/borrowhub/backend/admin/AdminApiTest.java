@@ -262,6 +262,16 @@ class AdminApiTest extends PostgresIntegrationTest {
 				.andExpect(jsonPath("$.items[0].entityId").value(reservedPastStart.getId().toString()));
 
 		mockMvc.perform(get("/v1/admin/audit")
+						.param("page", "2")
+						.param("pageSize", "1")
+						.header("X-Demo-Object-Id", "admin-1")
+						.header("X-Demo-Role", "ADMIN"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.page").value(2))
+				.andExpect(jsonPath("$.total").value(1))
+				.andExpect(jsonPath("$.items").isEmpty());
+
+		mockMvc.perform(get("/v1/admin/audit")
 						.param("action", "BOOKING_CANCELLED_ADMIN")
 						.param("entityType", "booking")
 						.header("X-Demo-Object-Id", "admin-1")
