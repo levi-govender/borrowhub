@@ -151,8 +151,8 @@ export function CatalogueScreen({ api, onOpen, onOpenProfile, onOpenBookings, on
         <Text style={styles.retryLabel}>{opening ? "Opening…" : "Open from code"}</Text>
       </Pressable>
       <TextInput
-        accessibilityLabel="Search by name or asset tag"
-        placeholder="Search name or tag"
+        accessibilityLabel="Search by name, asset tag, or location"
+        placeholder="Search name, tag, or location"
         value={query}
         onChangeText={setQuery}
         onSubmitEditing={() => void load(query, category, 1, false)}
