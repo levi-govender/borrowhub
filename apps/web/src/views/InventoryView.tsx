@@ -425,6 +425,20 @@ export function InventoryView({
                       <span className="muted">Not checked out</span>
                     )}
                   </dd>
+                  <dt>Next reservation</dt>
+                  <dd>
+                    {selected.nextReservation ? (
+                      <button
+                        type="button"
+                        className="linkbtn"
+                        onClick={() => onOpenLoan(selected.nextReservation!.bookingId)}
+                      >
+                        {selected.nextReservation.borrower} · {formatInstant(selected.nextReservation.startAt)}
+                      </button>
+                    ) : (
+                      <span className="muted">None</span>
+                    )}
+                  </dd>
                 </>
               ) : null}
               <dt>Asset id</dt>

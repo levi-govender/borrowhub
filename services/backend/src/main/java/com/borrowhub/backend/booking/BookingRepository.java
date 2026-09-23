@@ -52,6 +52,9 @@ public interface BookingRepository extends JpaRepository<Booking, UUID>, JpaSpec
 			""")
 	Optional<Booking> findCheckedOutByEquipmentId(@Param("equipmentId") UUID equipmentId);
 
+	@EntityGraph(attributePaths = "user")
+	Optional<Booking> findFirstByEquipment_IdAndStatusOrderByStartAtAscIdAsc(UUID equipmentId, BookingStatus status);
+
 	@Query(
 			"""
 			select b from Booking b

@@ -30,11 +30,16 @@ public final class EquipmentResponses {
 			String location,
 			OperationalStatus operationalStatus,
 			Policy policy,
-			CurrentLoan currentLoan) {
+			CurrentLoan currentLoan,
+			NextReservation nextReservation) {
 	}
 
 	/** The single checked-out loan for this asset, when one exists. */
 	public record CurrentLoan(UUID bookingId, String borrower, Instant startAt, Instant endAt, boolean overdue) {
+	}
+
+	/** Earliest RESERVED booking for this asset. */
+	public record NextReservation(UUID bookingId, String borrower, Instant startAt, Instant endAt) {
 	}
 
 	public record Policy(
@@ -62,7 +67,8 @@ public final class EquipmentResponses {
 				loanOverdue);
 	}
 
-	static Detail toDetail(Equipment equipment, BookingPolicyProperties policy, CurrentLoan currentLoan) {
+	static Detail toDetail(
+			Equipment equipment, BookingPolicyProperties policy, CurrentLoan currentLoan, NextReservation nextReservation) {
 		return new Detail(
 				equipment.getId(),
 				equipment.getAssetTag(),
@@ -77,6 +83,7 @@ public final class EquipmentResponses {
 						policy.maxDurationDays(),
 						policy.maxAdvanceDays(),
 						policy.collectionLeadMinutes()),
-				currentLoan);
+				currentLoan,
+				nextReservation);
 	}
 }

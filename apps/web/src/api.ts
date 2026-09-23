@@ -22,9 +22,17 @@ export type CurrentLoan = {
   overdue: boolean;
 };
 
+export type NextReservation = {
+  bookingId: string;
+  borrower: string;
+  startAt: string;
+  endAt: string;
+};
+
 export type EquipmentDetail = EquipmentListItem & {
   description: string | null;
   currentLoan?: CurrentLoan | null;
+  nextReservation?: NextReservation | null;
 };
 
 export type EquipmentPage = {
