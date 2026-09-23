@@ -10,6 +10,7 @@ export type EquipmentListItem = {
   location: string;
   operationalStatus: OperationalStatus;
   checkedOutTo?: string | null;
+  checkedOutBookingId?: string | null;
   loanOverdue?: boolean;
 };
 

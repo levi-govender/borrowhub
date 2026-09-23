@@ -441,6 +441,10 @@ export function App() {
           detailError={equipmentDetailError}
           updateError={updateError}
           onOpen={openEquipmentDetail}
+          onOpenLoan={(bookingId) => {
+            setTab("bookings");
+            openBookingDetail(bookingId);
+          }}
           onCloseDetail={() => {
             setSelectedEquipment(null);
             setUpdateError(null);

@@ -85,6 +85,7 @@ public class AdminEquipmentService {
 							return EquipmentResponses.toListItem(
 									equipment,
 									loan == null ? null : loan.getUser().getDisplayName(),
+									loan == null ? null : loan.getId(),
 									loan != null && loan.getEndAt().isBefore(now));
 						})
 						.toList(),

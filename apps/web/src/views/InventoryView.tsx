@@ -45,6 +45,7 @@ type Props = {
   detailError: string | null;
   updateError: string | null;
   onOpen: (id: string) => void;
+  onOpenLoan: (bookingId: string) => void;
   onCloseDetail: () => void;
   onUpdate: (id: string, payload: AssetPayload) => void;
 };
@@ -136,6 +137,7 @@ export function InventoryView({
   detailError,
   updateError,
   onOpen,
+  onOpenLoan,
   onCloseDetail,
   onUpdate,
 }: Props) {
@@ -352,7 +354,20 @@ export function InventoryView({
                       <td>
                         {item.checkedOutTo ? (
                           <span className="pillrow">
-                            <span>{item.checkedOutTo}</span>
+                            {item.checkedOutBookingId ? (
+                              <button
+                                type="button"
+                                className="linkbtn"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  onOpenLoan(item.checkedOutBookingId!);
+                                }}
+                              >
+                                {item.checkedOutTo}
+                              </button>
+                            ) : (
+                              <span>{item.checkedOutTo}</span>
+                            )}
                             {item.loanOverdue ? <OverdueBadge /> : null}
                           </span>
                         ) : (
