@@ -15,7 +15,9 @@ public final class EquipmentResponses {
 			String name,
 			String category,
 			String location,
-			OperationalStatus operationalStatus) {
+			OperationalStatus operationalStatus,
+			String checkedOutTo,
+			boolean loanOverdue) {
 	}
 
 	public record Detail(
@@ -46,14 +48,16 @@ public final class EquipmentResponses {
 			UUID equipmentId, boolean available, String reason, java.time.Instant startAt, java.time.Instant endAt) {
 	}
 
-	static ListItem toListItem(Equipment equipment) {
+	static ListItem toListItem(Equipment equipment, String checkedOutTo, boolean loanOverdue) {
 		return new ListItem(
 				equipment.getId(),
 				equipment.getAssetTag(),
 				equipment.getName(),
 				equipment.getCategory(),
 				equipment.getLocation(),
-				equipment.getOperationalStatus());
+				equipment.getOperationalStatus(),
+				checkedOutTo,
+				loanOverdue);
 	}
 
 	static Detail toDetail(Equipment equipment, BookingPolicyProperties policy, CurrentLoan currentLoan) {

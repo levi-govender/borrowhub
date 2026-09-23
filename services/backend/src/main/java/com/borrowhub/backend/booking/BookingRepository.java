@@ -1,6 +1,8 @@
 package com.borrowhub.backend.booking;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -49,6 +51,16 @@ public interface BookingRepository extends JpaRepository<Booking, UUID>, JpaSpec
 			  and b.status = com.borrowhub.backend.booking.BookingStatus.CHECKED_OUT
 			""")
 	Optional<Booking> findCheckedOutByEquipmentId(@Param("equipmentId") UUID equipmentId);
+
+	@Query(
+			"""
+			select b from Booking b
+			join fetch b.user
+			join fetch b.equipment
+			where b.status = com.borrowhub.backend.booking.BookingStatus.CHECKED_OUT
+			  and b.equipment.id in :equipmentIds
+			""")
+	List<Booking> findCheckedOutByEquipmentIds(@Param("equipmentIds") Collection<UUID> equipmentIds);
 
 	long countByStatus(BookingStatus status);
 

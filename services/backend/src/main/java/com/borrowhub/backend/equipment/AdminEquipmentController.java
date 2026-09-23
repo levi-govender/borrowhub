@@ -31,9 +31,10 @@ public class AdminEquipmentController {
 			@RequestHeader(value = "X-Demo-Object-Id", required = false) String objectId,
 			@RequestParam(required = false) String query,
 			@RequestParam(required = false) String category,
+			@RequestParam(required = false, defaultValue = "false") boolean checkedOut,
 			@RequestParam(required = false) Integer page,
 			@RequestParam(required = false) Integer pageSize) {
-		return adminEquipmentService.list(tenantId, objectId, query, category, page, pageSize);
+		return adminEquipmentService.list(tenantId, objectId, query, category, checkedOut, page, pageSize);
 	}
 
 	@GetMapping("/{id}")

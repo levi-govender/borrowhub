@@ -60,6 +60,7 @@ export function App() {
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [category, setCategory] = useState("");
+  const [checkedOutOnly, setCheckedOutOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<EquipmentListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -155,6 +156,7 @@ export function App() {
       const result = await api.list({
         query: submittedQuery || undefined,
         category: category || undefined,
+        checkedOut: checkedOutOnly,
         page,
         pageSize: PAGE_SIZE,
       });
@@ -167,7 +169,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [api, category, page, submittedQuery]);
+  }, [api, category, checkedOutOnly, page, submittedQuery]);
 
   const loadBookings = useCallback(async () => {
     if (!api) {
@@ -393,10 +395,16 @@ export function App() {
             setPage(1);
             setCategory(value);
           }}
+          checkedOutOnly={checkedOutOnly}
+          onCheckedOutChange={(value) => {
+            setPage(1);
+            setCheckedOutOnly(value);
+          }}
           onReset={() => {
             setQuery("");
             setSubmittedQuery("");
             setCategory("");
+            setCheckedOutOnly(false);
             setPage(1);
           }}
           items={items}

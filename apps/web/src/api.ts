@@ -9,6 +9,8 @@ export type EquipmentListItem = {
   category: string;
   location: string;
   operationalStatus: OperationalStatus;
+  checkedOutTo?: string | null;
+  loanOverdue?: boolean;
 };
 
 export type CurrentLoan = {
@@ -174,10 +176,11 @@ export function createInventoryApi(
     me() {
       return request<Me>("/api/v1/me");
     },
-    list(params: { query?: string; category?: string; page?: number; pageSize?: number } = {}) {
+    list(params: { query?: string; category?: string; checkedOut?: boolean; page?: number; pageSize?: number } = {}) {
       const search = new URLSearchParams();
       if (params.query) search.set("query", params.query);
       if (params.category) search.set("category", params.category);
+      if (params.checkedOut) search.set("checkedOut", "true");
       if (params.page) search.set("page", String(params.page));
       if (params.pageSize) search.set("pageSize", String(params.pageSize));
       const suffix = search.size > 0 ? `?${search.toString()}` : "";

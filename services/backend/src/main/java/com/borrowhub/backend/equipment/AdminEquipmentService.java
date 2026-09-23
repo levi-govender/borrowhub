@@ -11,6 +11,8 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.slf4j.MDC;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -45,7 +47,13 @@ public class AdminEquipmentService {
 
 	@Transactional(readOnly = true)
 	public PageResponse<EquipmentResponses.ListItem> list(
-			String tenantId, String objectId, String query, String category, Integer page, Integer pageSize) {
+			String tenantId,
+			String objectId,
+			String query,
+			String category,
+			boolean checkedOut,
+			Integer page,
+			Integer pageSize) {
 		identityService.requireAdmin(tenantId, objectId);
 		int resolvedPage = page == null ? EquipmentService.DEFAULT_PAGE : page;
 		int resolvedSize = pageSize == null ? EquipmentService.DEFAULT_PAGE_SIZE : pageSize;
@@ -60,9 +68,24 @@ public class AdminEquipmentService {
 				resolvedSize,
 				Sort.by("name").ascending().and(Sort.by("id").ascending()));
 		Page<Equipment> result =
-				equipmentRepository.findAll(EquipmentSpecifications.adminCatalogue(query, category), pageable);
+				equipmentRepository.findAll(EquipmentSpecifications.adminCatalogue(query, category, checkedOut), pageable);
+		Instant now = Instant.now(clock);
+		Map<UUID, com.borrowhub.backend.booking.Booking> loans = result.getContent().isEmpty()
+				? Map.of()
+				: bookingRepository
+						.findCheckedOutByEquipmentIds(result.getContent().stream().map(Equipment::getId).toList())
+						.stream()
+						.collect(Collectors.toMap(booking -> booking.getEquipment().getId(), Function.identity()));
 		return new PageResponse<>(
-				result.getContent().stream().map(EquipmentResponses::toListItem).toList(),
+				result.getContent().stream()
+						.map(equipment -> {
+							var loan = loans.get(equipment.getId());
+							return EquipmentResponses.toListItem(
+									equipment,
+									loan == null ? null : loan.getUser().getDisplayName(),
+									loan != null && loan.getEndAt().isBefore(now));
+						})
+						.toList(),
 				resolvedPage,
 				resolvedSize,
 				result.getTotalElements());

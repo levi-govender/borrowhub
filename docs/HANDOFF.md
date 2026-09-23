@@ -5,19 +5,21 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-09-current-loan`
-- Task: `ENH-09` Current loan on asset — DONE
+- Branch: `feature/enh-10-checked-out-list`
+- Task: `ENH-10` Checked-out inventory — DONE
 
 ## What changed
 
-- Admin `GET /v1/admin/equipment/{id}` includes `currentLoan` for the single `CHECKED_OUT` booking (borrower, window, overdue)
-- Inventory drawer shows who has the asset, or “Not checked out”
-- Employee catalogue detail sets `currentLoan` to null
+- Admin equipment list accepts `checkedOut=true` (exists a CHECKED_OUT booking)
+- Each admin row includes `checkedOutTo` and `loanOverdue`
+- Inventory table has a With column and a Checked out only switch
+- Employee catalogue rows set `checkedOutTo` null and `loanOverdue` false
 
 ## Verification
 
 - `./gradlew test --tests com.borrowhub.backend.admin.AdminApiTest --tests com.borrowhub.backend.equipment.EquipmentCatalogueTest` BUILD SUCCESSFUL
 - `pnpm --filter @borrowhub/web test` — 15 passed; typecheck
+- `pnpm --filter @borrowhub/bff test` — 13 passed
 
 ## Next
 
