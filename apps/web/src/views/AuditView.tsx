@@ -1,3 +1,4 @@
+import { Pager } from "../components/Figures";
 import { EmptyState, ErrorState, LoadingRows } from "../components/States";
 import { humanize, formatInstant } from "../format";
 import type { AuditItem } from "../api";
@@ -26,6 +27,9 @@ type Props = {
   onEntityTypeChange: (value: string) => void;
   items: AuditItem[];
   total: number;
+  page: number;
+  pageCount: number;
+  onPageChange: (next: number) => void;
   loading: boolean;
   error: string | null;
   onRetry: () => void;
@@ -39,6 +43,9 @@ export function AuditView({
   onEntityTypeChange,
   items,
   total,
+  page,
+  pageCount,
+  onPageChange,
   loading,
   error,
   onRetry,
@@ -111,6 +118,9 @@ export function AuditView({
         ))}
       </tbody>
     </table>
+      ) : null}
+      {total > 0 ? (
+        <Pager page={page} pageCount={pageCount} onChange={onPageChange} label={`${total} audit events`} />
       ) : null}
     </>
   );

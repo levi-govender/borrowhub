@@ -101,6 +101,7 @@ export function App() {
   const [auditTotal, setAuditTotal] = useState(0);
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditError, setAuditError] = useState<string | null>(null);
+  const [auditPage, setAuditPage] = useState(1);
   const [auditAction, setAuditAction] = useState("");
   const [auditEntityType, setAuditEntityType] = useState("");
 
@@ -244,7 +245,7 @@ export function App() {
       const page = await api.listAudit({
         action: auditAction || undefined,
         entityType: auditEntityType || undefined,
-        page: 1,
+        page: auditPage,
         pageSize: PAGE_SIZE,
       });
       setAuditItems(page.items);
@@ -256,7 +257,7 @@ export function App() {
     } finally {
       setAuditLoading(false);
     }
-  }, [api, auditAction, auditEntityType]);
+  }, [api, auditAction, auditEntityType, auditPage]);
 
   useEffect(() => {
     if (!identity) {
@@ -632,10 +633,19 @@ export function App() {
           isAdmin={isAdmin}
           action={auditAction}
           entityType={auditEntityType}
-          onActionChange={setAuditAction}
-          onEntityTypeChange={setAuditEntityType}
+          onActionChange={(value) => {
+            setAuditAction(value);
+            setAuditPage(1);
+          }}
+          onEntityTypeChange={(value) => {
+            setAuditEntityType(value);
+            setAuditPage(1);
+          }}
           items={auditItems}
           total={auditTotal}
+          page={auditPage}
+          pageCount={Math.max(1, Math.ceil(auditTotal / PAGE_SIZE))}
+          onPageChange={setAuditPage}
           loading={auditLoading}
           error={auditError}
           onRetry={() => void loadAudit()}
