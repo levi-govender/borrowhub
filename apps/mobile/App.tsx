@@ -74,6 +74,10 @@ export default function App() {
           api={api}
           onOpenCatalogue={() => setScreen("catalogue")}
           onOpenBookings={() => setScreen("bookings")}
+          onOpenBooking={(id) => {
+            setBookingId(id);
+            setScreen("bookings");
+          }}
           onOpenProfile={() => setScreen("profile")}
         />
       )}

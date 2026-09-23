@@ -15,10 +15,11 @@ type Props = {
   api: CatalogueApi;
   onOpenCatalogue: () => void;
   onOpenBookings: () => void;
+  onOpenBooking: (id: string) => void;
   onOpenProfile: () => void;
 };
 
-export function HomeScreen({ api, onOpenCatalogue, onOpenBookings, onOpenProfile }: Props) {
+export function HomeScreen({ api, onOpenCatalogue, onOpenBookings, onOpenBooking, onOpenProfile }: Props) {
   const [me, setMe] = useState<Me | null>(null);
   const [items, setItems] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,7 +103,13 @@ export function HomeScreen({ api, onOpenCatalogue, onOpenBookings, onOpenProfile
           ) : (
             due.map((item) => (
               <View key={item.id} style={styles.row}>
-                <Text style={styles.rowTitle}>{item.assetTag}</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open booking ${item.assetTag}`}
+                  onPress={() => onOpenBooking(item.id)}
+                >
+                  <Text style={styles.rowTitle}>{item.assetTag}</Text>
+                </Pressable>
                 <Text style={styles.rowMeta}>{formatOfficeWindow(item.startAt, item.endAt)}</Text>
                 {item.reminders?.map((kind) => (
                   <Text key={kind} style={styles.reminder} accessibilityLiveRegion="polite">
@@ -154,7 +161,13 @@ export function HomeScreen({ api, onOpenCatalogue, onOpenBookings, onOpenProfile
           <Text style={styles.section}>Up next</Text>
           {next ? (
             <View style={styles.row}>
-              <Text style={styles.rowTitle}>{next.assetTag}</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Open booking ${next.assetTag}`}
+                onPress={() => onOpenBooking(next.id)}
+              >
+                <Text style={styles.rowTitle}>{next.assetTag}</Text>
+              </Pressable>
               <Text style={styles.rowMeta}>
                 {formatBookingStatus(next.status)} · {formatOfficeWindow(next.startAt, next.endAt)}
               </Text>

@@ -108,3 +108,4 @@ Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
 | ENH-25 | Audit pages | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (`page=2&pageSize=1` is empty with total 1). Web typecheck. Changing the audit filters returns to page 1. Browser not exercised. |
 | ENH-26 | Open audit record | DONE | Evidence 2026-09-23: web typecheck. A booking audit row opens that booking; an equipment row opens that asset. Browser not exercised. |
 | ENH-27 | Employee booking detail | DONE | Evidence 2026-09-23: mobile typecheck + 13 tests. Opening a row loads `GET /v1/bookings/{id}` and can cancel, collect, or return. Expo UI not run. |
+| ENH-28 | Open booking from home | DONE | Evidence 2026-09-23: mobile typecheck + 13 tests. Due-now and upcoming rows open that booking. Expo UI not run. |

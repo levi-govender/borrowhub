@@ -5,14 +5,13 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-27-employee-booking-detail`
-- Task: `ENH-27` Employee booking detail — DONE
+- Branch: `feature/enh-28-open-booking-from-home`
+- Task: `ENH-28` Open booking from home — DONE
 
 ## What changed
 
-- Tapping a booking in My bookings loads that employee's booking
-- The screen shows the office window, reason, damage note, and reminders
-- Cancel, collect, and return stay on the actions Java allows
+- Due-now and upcoming rows on home open that employee's booking
+- Cancel, collect, and return on the home list are unchanged
 
 ## Verification
 
