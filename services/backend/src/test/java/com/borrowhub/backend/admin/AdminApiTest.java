@@ -133,6 +133,14 @@ class AdminApiTest extends PostgresIntegrationTest {
 				.andExpect(jsonPath("$.items[0].checkedOutTo").value("employee-a"))
 				.andExpect(jsonPath("$.items[0].loanOverdue").value(true));
 
+		mockMvc.perform(get("/v1/admin/equipment")
+						.param("loanOverdue", "true")
+						.header("X-Demo-Object-Id", "admin-1")
+						.header("X-Demo-Role", "ADMIN"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.total").value(1))
+				.andExpect(jsonPath("$.items[0].assetTag").value("PHONE-001"));
+
 		mockMvc.perform(get("/v1/admin/equipment/{id}", archived.getId())
 						.header("X-Demo-Object-Id", "admin-1")
 						.header("X-Demo-Role", "ADMIN"))
