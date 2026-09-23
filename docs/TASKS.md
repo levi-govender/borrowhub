@@ -103,3 +103,4 @@ Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
 | ENH-20 | My bookings status | DONE | Evidence 2026-09-23: `BookingMineCancelTest` BUILD SUCCESSFUL (`RESERVED` keeps the booking, `RETURNED` is empty, unknown status is 400). BFF 13 tests. Mobile typecheck + 13 tests. Filter is still only the caller's bookings. |
 | ENH-21 | Booking location search | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (`query=cupboard` returns the QA cupboard loan). Web typecheck. Employee booking list unchanged. |
 | ENH-22 | Office booking times | DONE | Evidence 2026-09-23: mobile typecheck + 13 tests. My bookings shows Johannesburg times; a window that crosses midnight includes the end date. Status labels are plain language. |
+| ENH-23 | Admin audit list | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (employee 403; admin list returns the cancel event). BFF 13 tests. Web typecheck. Browser not exercised. |

@@ -74,6 +74,14 @@ public class AuditEvent {
 		return action;
 	}
 
+	public String getEntityType() {
+		return entityType;
+	}
+
+	public UUID getEntityId() {
+		return entityId;
+	}
+
 	public Instant getOccurredAt() {
 		return occurredAt;
 	}

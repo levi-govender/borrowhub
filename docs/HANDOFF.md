@@ -5,18 +5,21 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-22-office-booking-times`
-- Task: `ENH-22` Office booking times — DONE
+- Branch: `feature/enh-23-admin-audit`
+- Task: `ENH-23` Admin audit list — DONE
 
 ## What changed
 
-- My bookings shows the window in Africa/Johannesburg instead of a raw UTC instant
-- A booking that crosses midnight includes the end date
-- Home, My bookings, and the reserve confirmation use plain status labels
+- Admins can list audit events newest first at `GET /v1/admin/audit`
+- Employees are forbidden
+- The admin app has an Audit tab for the latest page
 
 ## Verification
 
-- `pnpm --filter @borrowhub/mobile test` — 13 passed; typecheck
+- `./gradlew test --tests com.borrowhub.backend.admin.AdminApiTest` BUILD SUCCESSFUL
+- `pnpm --filter @borrowhub/bff test` — 13 passed
+- `pnpm --filter @borrowhub/web exec tsc --noEmit`
+- The Audit tab was not opened in a browser
 
 ## Next
 

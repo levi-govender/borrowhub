@@ -3,13 +3,14 @@ import { Icon, type IconName } from "./Icon";
 import { initials } from "../format";
 import type { Me } from "../api";
 
-export type Tab = "dashboard" | "inventory" | "bookings" | "calendar";
+export type Tab = "dashboard" | "inventory" | "bookings" | "calendar" | "audit";
 
 const NAV: { id: Tab; label: string; icon: IconName }[] = [
   { id: "dashboard", label: "Dashboard", icon: "gauge" },
   { id: "inventory", label: "Inventory", icon: "grid" },
   { id: "bookings", label: "Bookings", icon: "inbox" },
   { id: "calendar", label: "Calendar", icon: "calendar" },
+  { id: "audit", label: "Audit", icon: "shield" },
 ];
 
 export function BrandMark({ size = 18 }: { size?: number }) {

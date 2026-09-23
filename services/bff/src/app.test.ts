@@ -217,6 +217,13 @@ test("admin routes forward demo role and PATCH", async () => {
       const headers = new Headers(init?.headers);
       assert.equal(headers.get("x-demo-object-id"), "admin-1");
       assert.equal(headers.get("x-demo-role"), "ADMIN");
+      if (url.includes("/v1/admin/audit")) {
+        assert.equal(new URL(url).searchParams.get("page"), "1");
+        return new Response(JSON.stringify({ items: [{ action: "BOOKING_CANCELLED_ADMIN" }], total: 1 }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
       if (url.endsWith("/v1/admin/summary")) {
         return new Response(JSON.stringify({ reserved: 1, checkedOut: 2, overdue: 1, activeEquipment: 10 }), {
           status: 200,
@@ -248,6 +255,13 @@ test("admin routes forward demo role and PATCH", async () => {
     },
     javaBaseUrl: "http://java.test",
   });
+  const audit = await app.inject({
+    method: "GET",
+    url: "/api/v1/admin/audit?page=1",
+    headers: { "x-demo-object-id": "admin-1", "x-demo-role": "ADMIN" },
+  });
+  assert.equal(audit.statusCode, 200);
+  assert.equal(audit.json().items[0].action, "BOOKING_CANCELLED_ADMIN");
   const summary = await app.inject({
     method: "GET",
     url: "/api/v1/admin/summary",
