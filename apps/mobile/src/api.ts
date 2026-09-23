@@ -164,6 +164,9 @@ export function createCatalogueApi(baseUrl: string, fetchImpl: FetchLike = fetch
         extraHeaders: { "idempotency-key": idempotencyKey },
       });
     },
+    getBooking(id: string) {
+      return request<Booking>(`/api/v1/bookings/${id}`);
+    },
     listMine(params: { status?: string; page?: number; pageSize?: number } = {}) {
       const search = new URLSearchParams();
       if (params.status) search.set("status", params.status);

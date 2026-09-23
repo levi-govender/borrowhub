@@ -116,6 +116,12 @@ test("listMine and cancelBooking call BFF with identity and idempotency key", as
           { status: 200 },
         );
       }
+      if (String(input) === `http://bff.test/api/v1/bookings/${bookingId}` && (init?.method ?? "GET") === "GET") {
+        return new Response(
+          JSON.stringify({ id: bookingId, status: "RESERVED", assetTag: "PHONE-001", allowedActions: ["CANCEL"] }),
+          { status: 200 },
+        );
+      }
       assert.equal(String(input), `http://bff.test/api/v1/bookings/${bookingId}/cancel`);
       assert.equal(init?.method, "POST");
       assert.equal(headers.get("idempotency-key"), "44444444-4444-4444-8444-444444444444");
@@ -126,6 +132,8 @@ test("listMine and cancelBooking call BFF with identity and idempotency key", as
   );
   const page = await api.listMine({ page: 1, pageSize: 20 });
   assert.equal(page.total, 1);
+  const opened = await api.getBooking(bookingId);
+  assert.equal(opened.assetTag, "PHONE-001");
   const cancelled = await api.cancelBooking(
     bookingId,
     "44444444-4444-4444-8444-444444444444",

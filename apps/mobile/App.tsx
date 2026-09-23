@@ -2,6 +2,7 @@ import { StatusBar } from "expo-status-bar";
 import { useMemo, useState } from "react";
 import { Platform, SafeAreaView, StyleSheet } from "react-native";
 import { createCatalogueApi, resolveBffBaseUrl } from "./src/api";
+import { BookingScreen } from "./src/screens/BookingScreen";
 import { CatalogueScreen } from "./src/screens/CatalogueScreen";
 import { DetailScreen } from "./src/screens/DetailScreen";
 import { HomeScreen } from "./src/screens/HomeScreen";
@@ -14,6 +15,7 @@ type Screen = "home" | "catalogue" | "bookings" | "profile";
 export default function App() {
   const [objectId, setObjectId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [bookingId, setBookingId] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>("home");
   const api = useMemo(
     () =>
@@ -28,6 +30,7 @@ export default function App() {
   const goHome = () => {
     setScreen("home");
     setSelectedId(null);
+    setBookingId(null);
   };
 
   return (
@@ -37,6 +40,7 @@ export default function App() {
           onContinue={(next) => {
             setScreen("home");
             setSelectedId(null);
+            setBookingId(null);
             setObjectId(next);
           }}
         />
@@ -47,11 +51,14 @@ export default function App() {
           onSignOut={() => {
             setScreen("home");
             setSelectedId(null);
+            setBookingId(null);
             setObjectId(null);
           }}
         />
+      ) : screen === "bookings" && bookingId ? (
+        <BookingScreen api={api} id={bookingId} onBack={() => setBookingId(null)} />
       ) : screen === "bookings" ? (
-        <MyBookingsScreen api={api} onBack={goHome} />
+        <MyBookingsScreen api={api} onBack={goHome} onOpen={setBookingId} />
       ) : selectedId ? (
         <DetailScreen api={api} id={selectedId} onBack={() => setSelectedId(null)} />
       ) : screen === "catalogue" ? (
