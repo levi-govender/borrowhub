@@ -30,6 +30,7 @@ type Props = {
   page: number;
   pageCount: number;
   onPageChange: (next: number) => void;
+  onOpen: (item: AuditItem) => void;
   loading: boolean;
   error: string | null;
   onRetry: () => void;
@@ -46,6 +47,7 @@ export function AuditView({
   page,
   pageCount,
   onPageChange,
+  onOpen,
   loading,
   error,
   onRetry,
@@ -112,7 +114,13 @@ export function AuditView({
             <td>{humanize(item.action)}</td>
             <td>{item.actor || "—"}</td>
             <td>
-              {item.entityType ? `${humanize(item.entityType)} ${item.entityId ?? ""}` : "—"}
+              {item.entityId && (item.entityType === "booking" || item.entityType === "equipment") ? (
+                <button type="button" className="linkbtn" onClick={() => onOpen(item)}>
+                  {humanize(item.entityType)}
+                </button>
+              ) : (
+                <span>{item.entityType ? humanize(item.entityType) : "—"}</span>
+              )}
             </td>
           </tr>
         ))}

@@ -106,3 +106,4 @@ Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
 | ENH-23 | Admin audit list | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (employee 403; admin list returns the cancel event). BFF 13 tests. Web typecheck. Browser not exercised. |
 | ENH-24 | Audit filter | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (`action` + `entityType=booking` keeps the cancel; `equipment` is empty; `user` is 400). BFF 13 tests. Web typecheck. Browser not exercised. |
 | ENH-25 | Audit pages | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (`page=2&pageSize=1` is empty with total 1). Web typecheck. Changing the audit filters returns to page 1. Browser not exercised. |
+| ENH-26 | Open audit record | DONE | Evidence 2026-09-23: web typecheck. A booking audit row opens that booking; an equipment row opens that asset. Browser not exercised. |
