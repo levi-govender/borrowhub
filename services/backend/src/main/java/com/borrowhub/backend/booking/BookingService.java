@@ -176,6 +176,18 @@ public class BookingService {
 		return false;
 	}
 
+	private static BookingStatus parseStatus(String status) {
+		if (status == null || status.isBlank()) {
+			return null;
+		}
+		try {
+			return BookingStatus.valueOf(status.trim().toUpperCase());
+		}
+		catch (IllegalArgumentException ex) {
+			throw ApiException.badRequest("VALIDATION_ERROR", "status is invalid.");
+		}
+	}
+
 	static UUID parseIdempotencyKey(String header) {
 		if (header == null || header.isBlank()) {
 			throw ApiException.badRequest("VALIDATION_ERROR", "Idempotency-Key is required.");
@@ -189,8 +201,10 @@ public class BookingService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<BookingResponse> listMine(String tenantIdHeader, String objectIdHeader, Integer page, Integer pageSize) {
+	public PageResponse<BookingResponse> listMine(
+			String tenantIdHeader, String objectIdHeader, String status, Integer page, Integer pageSize) {
 		AppUser user = identityService.requireUser(tenantIdHeader, objectIdHeader);
+		BookingStatus parsed = parseStatus(status);
 		int resolvedPage = page == null ? DEFAULT_PAGE : page;
 		int resolvedSize = pageSize == null ? DEFAULT_PAGE_SIZE : pageSize;
 		if (resolvedPage < 1) {
@@ -204,7 +218,9 @@ public class BookingService {
 				resolvedPage - 1,
 				resolvedSize,
 				Sort.by("startAt").descending().and(Sort.by("id").ascending()));
-		Page<Booking> result = bookingRepository.findByUser_Id(user.getId(), pageable);
+		Page<Booking> result = parsed == null
+				? bookingRepository.findByUser_Id(user.getId(), pageable)
+				: bookingRepository.findByUser_IdAndStatus(user.getId(), parsed, pageable);
 		return new PageResponse<>(
 				result.getContent().stream()
 						.map(booking -> BookingResponse.from(booking, now, policy.collectionLeadMinutes()))

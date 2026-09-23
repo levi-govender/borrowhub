@@ -42,9 +42,10 @@ public class BookingController {
 	public PageResponse<BookingResponse> listMine(
 			@RequestHeader(value = DEMO_TENANT_HEADER, required = false) String tenantId,
 			@RequestHeader(value = DEMO_OBJECT_HEADER, required = false) String objectId,
+			@RequestParam(required = false) String status,
 			@RequestParam(required = false) Integer page,
 			@RequestParam(required = false) Integer pageSize) {
-		return bookingService.listMine(tenantId, objectId, page, pageSize);
+		return bookingService.listMine(tenantId, objectId, status, page, pageSize);
 	}
 
 	@GetMapping("/{id}")
