@@ -11,8 +11,17 @@ export type EquipmentListItem = {
   operationalStatus: OperationalStatus;
 };
 
+export type CurrentLoan = {
+  bookingId: string;
+  borrower: string;
+  startAt: string;
+  endAt: string;
+  overdue: boolean;
+};
+
 export type EquipmentDetail = EquipmentListItem & {
   description: string | null;
+  currentLoan?: CurrentLoan | null;
 };
 
 export type EquipmentPage = {

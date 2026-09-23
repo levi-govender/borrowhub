@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Icon, categoryIcon } from "../components/Icon";
-import { AssetStatusBadge } from "../components/Badge";
+import { AssetStatusBadge, OverdueBadge } from "../components/Badge";
 import { Pager } from "../components/Figures";
 import { Drawer } from "../components/Drawer";
 import { EmptyState, ErrorState, InlineError, LoadingRows } from "../components/States";
-import { humanize } from "../format";
+import { formatInstant, humanize } from "../format";
 import type { EquipmentDetail, EquipmentListItem, OperationalStatus } from "../api";
 
 const STATUSES: OperationalStatus[] = ["ACTIVE", "MAINTENANCE", "ARCHIVED"];
@@ -359,6 +359,23 @@ export function InventoryView({
                   <dd>{selected.description?.trim() ? selected.description : <span className="muted">—</span>}</dd>
                 </>
               )}
+              {isAdmin ? (
+                <>
+                  <dt>Checked out to</dt>
+                  <dd>
+                    {selected.currentLoan ? (
+                      <span className="pillrow">
+                        <span>
+                          {selected.currentLoan.borrower} · until {formatInstant(selected.currentLoan.endAt)}
+                        </span>
+                        {selected.currentLoan.overdue ? <OverdueBadge /> : null}
+                      </span>
+                    ) : (
+                      <span className="muted">Not checked out</span>
+                    )}
+                  </dd>
+                </>
+              ) : null}
               <dt>Asset id</dt>
               <dd>
                 <code>{selected.id}</code>

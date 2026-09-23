@@ -1,5 +1,6 @@
 package com.borrowhub.backend.equipment;
 
+import com.borrowhub.backend.booking.BookingRepository;
 import com.borrowhub.backend.common.ApiException;
 import com.borrowhub.backend.common.BookingPolicyProperties;
 import com.borrowhub.backend.common.CorrelationIdFilter;
@@ -22,6 +23,7 @@ public class AdminEquipmentService {
 
 	private final IdentityService identityService;
 	private final EquipmentRepository equipmentRepository;
+	private final BookingRepository bookingRepository;
 	private final BookingPolicyProperties policy;
 	private final Clock clock;
 	private final com.borrowhub.backend.audit.AuditEventRepository auditEventRepository;
@@ -29,11 +31,13 @@ public class AdminEquipmentService {
 	public AdminEquipmentService(
 			IdentityService identityService,
 			EquipmentRepository equipmentRepository,
+			BookingRepository bookingRepository,
 			BookingPolicyProperties policy,
 			Clock clock,
 			com.borrowhub.backend.audit.AuditEventRepository auditEventRepository) {
 		this.identityService = identityService;
 		this.equipmentRepository = equipmentRepository;
+		this.bookingRepository = bookingRepository;
 		this.policy = policy;
 		this.clock = clock;
 		this.auditEventRepository = auditEventRepository;
@@ -70,7 +74,17 @@ public class AdminEquipmentService {
 		Equipment equipment = equipmentRepository
 				.findById(id)
 				.orElseThrow(() -> ApiException.notFound("Equipment was not found."));
-		return EquipmentResponses.toDetail(equipment, policy);
+		Instant now = Instant.now(clock);
+		EquipmentResponses.CurrentLoan currentLoan = bookingRepository
+				.findCheckedOutByEquipmentId(equipment.getId())
+				.map(booking -> new EquipmentResponses.CurrentLoan(
+						booking.getId(),
+						booking.getUser().getDisplayName(),
+						booking.getStartAt(),
+						booking.getEndAt(),
+						booking.getEndAt().isBefore(now)))
+				.orElse(null);
+		return EquipmentResponses.toDetail(equipment, policy, currentLoan);
 	}
 
 	@Transactional
@@ -92,7 +106,7 @@ public class AdminEquipmentService {
 				request.operationalStatus(),
 				now));
 		audit(actor, equipment, "EQUIPMENT_CREATED", now);
-		return EquipmentResponses.toDetail(equipment, policy);
+		return EquipmentResponses.toDetail(equipment, policy, null);
 	}
 
 	@Transactional
@@ -117,7 +131,7 @@ public class AdminEquipmentService {
 				request.operationalStatus(),
 				now);
 		audit(actor, equipment, "EQUIPMENT_UPDATED", now);
-		return EquipmentResponses.toDetail(equipment, policy);
+		return EquipmentResponses.toDetail(equipment, policy, null);
 	}
 
 	private void audit(

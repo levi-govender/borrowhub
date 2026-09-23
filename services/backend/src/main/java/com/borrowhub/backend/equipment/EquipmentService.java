@@ -57,7 +57,7 @@ public class EquipmentService {
 
 	@Transactional(readOnly = true)
 	public EquipmentResponses.Detail get(UUID id) {
-		return EquipmentResponses.toDetail(requireVisible(id), policy);
+		return EquipmentResponses.toDetail(requireVisible(id), policy, null);
 	}
 
 	@Transactional(readOnly = true)

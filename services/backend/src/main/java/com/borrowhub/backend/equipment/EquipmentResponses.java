@@ -1,6 +1,7 @@
 package com.borrowhub.backend.equipment;
 
 import com.borrowhub.backend.common.BookingPolicyProperties;
+import java.time.Instant;
 import java.util.UUID;
 
 public final class EquipmentResponses {
@@ -25,7 +26,12 @@ public final class EquipmentResponses {
 			String description,
 			String location,
 			OperationalStatus operationalStatus,
-			Policy policy) {
+			Policy policy,
+			CurrentLoan currentLoan) {
+	}
+
+	/** The single checked-out loan for this asset, when one exists. */
+	public record CurrentLoan(UUID bookingId, String borrower, Instant startAt, Instant endAt, boolean overdue) {
 	}
 
 	public record Policy(
@@ -50,7 +56,7 @@ public final class EquipmentResponses {
 				equipment.getOperationalStatus());
 	}
 
-	static Detail toDetail(Equipment equipment, BookingPolicyProperties policy) {
+	static Detail toDetail(Equipment equipment, BookingPolicyProperties policy, CurrentLoan currentLoan) {
 		return new Detail(
 				equipment.getId(),
 				equipment.getAssetTag(),
@@ -64,6 +70,7 @@ public final class EquipmentResponses {
 						policy.minDurationMinutes(),
 						policy.maxDurationDays(),
 						policy.maxAdvanceDays(),
-						policy.collectionLeadMinutes()));
+						policy.collectionLeadMinutes()),
+				currentLoan);
 	}
 }
