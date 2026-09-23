@@ -109,6 +109,8 @@ class AdminApiTest extends PostgresIntegrationTest {
 				.andExpect(jsonPath("$.code").value("FORBIDDEN"));
 		mockMvc.perform(get("/v1/admin/bookings").header("X-Demo-Object-Id", "employee-a"))
 				.andExpect(status().isForbidden());
+		mockMvc.perform(get("/v1/admin/audit").header("X-Demo-Object-Id", "employee-a"))
+				.andExpect(status().isForbidden());
 		mockMvc.perform(get("/v1/me").header("X-Demo-Object-Id", "employee-a"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.objectId").value("employee-a"))
@@ -249,6 +251,15 @@ class AdminApiTest extends PostgresIntegrationTest {
 				.andExpect(jsonPath("$.status").value("CANCELLED"))
 				.andExpect(jsonPath("$.cancellationReason").value("Asset needed for repair"))
 				.andExpect(jsonPath("$.audit[0].action").value("BOOKING_CANCELLED_ADMIN"));
+
+		mockMvc.perform(get("/v1/admin/audit")
+						.header("X-Demo-Object-Id", "admin-1")
+						.header("X-Demo-Role", "ADMIN"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.total").value(1))
+				.andExpect(jsonPath("$.items[0].action").value("BOOKING_CANCELLED_ADMIN"))
+				.andExpect(jsonPath("$.items[0].entityType").value("booking"))
+				.andExpect(jsonPath("$.items[0].entityId").value(reservedPastStart.getId().toString()));
 
 		mockMvc.perform(get("/v1/bookings/{id}", reservedPastStart.getId())
 						.header("X-Demo-Object-Id", "employee-a"))

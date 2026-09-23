@@ -146,6 +146,9 @@ export function createBackendClient(options: BackendClientOptions) {
         extraHeaders,
       });
     },
+    listAdminAudit(search: URLSearchParams, extraHeaders: Record<string, string>, correlationId: string) {
+      return request("/v1/admin/audit", search, correlationId, { extraHeaders });
+    },
     adminSummary(extraHeaders: Record<string, string>, correlationId: string) {
       return request("/v1/admin/summary", new URLSearchParams(), correlationId, { extraHeaders });
     },

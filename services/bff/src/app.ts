@@ -419,6 +419,27 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
     }
   });
 
+  app.get("/api/v1/admin/audit", async (request, reply) => {
+    const traceId = request.traceId;
+    const query = request.query as Record<string, string | undefined>;
+    const search = new URLSearchParams();
+    for (const key of ["page", "pageSize"] as const) {
+      const value = query[key];
+      if (value) {
+        search.set(key, value);
+      }
+    }
+    const headers = await identityHeaders(request, reply, traceId);
+    if (!headers) {
+      return;
+    }
+    try {
+      return await backend.listAdminAudit(search, headers, traceId);
+    } catch (error) {
+      return sendBackendError(reply, error, traceId);
+    }
+  });
+
   app.get("/api/v1/admin/summary", async (request, reply) => {
     const traceId = request.traceId;
     const headers = await identityHeaders(request, reply, traceId);

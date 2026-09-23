@@ -7,6 +7,7 @@ import { DashboardView } from "./views/DashboardView";
 import { InventoryView, type AssetPayload } from "./views/InventoryView";
 import { BookingsView } from "./views/BookingsView";
 import { CalendarView } from "./views/CalendarView";
+import { AuditView } from "./views/AuditView";
 import { useTheme } from "./theme";
 import { officeWeek, shiftOfficeWeek } from "./calendar";
 import {
@@ -15,6 +16,7 @@ import {
   resolveBffBaseUrl,
   dashboardBookingFilter,
   type AdminSummary,
+  type AuditItem,
   type BookingDetail,
   type BookingListItem,
   type DemoIdentity,
@@ -32,6 +34,7 @@ const TITLES: Record<Tab, { title: string; blurb: string }> = {
   inventory: { title: "Inventory", blurb: "Every physical asset, archived items included." },
   bookings: { title: "Bookings", blurb: "Reservations, collections, returns and the overdue queue." },
   calendar: { title: "Calendar", blurb: "Office-week view of overlapping loans in Africa/Johannesburg." },
+  audit: { title: "Audit", blurb: "Newest changes to bookings and equipment." },
 };
 
 function describeFailure(caught: unknown, fallback: string): string {
@@ -94,6 +97,10 @@ export function App() {
   const [calendarTotal, setCalendarTotal] = useState(0);
   const [calendarLoading, setCalendarLoading] = useState(true);
   const [calendarError, setCalendarError] = useState<string | null>(null);
+  const [auditItems, setAuditItems] = useState<AuditItem[]>([]);
+  const [auditTotal, setAuditTotal] = useState(0);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditError, setAuditError] = useState<string | null>(null);
 
   /**
    * `/me` is loaded on its own so an employee session still knows who it is:
@@ -225,6 +232,25 @@ export function App() {
     }
   }, [api, week.from, week.to]);
 
+  const loadAudit = useCallback(async () => {
+    if (!api) {
+      return;
+    }
+    setAuditLoading(true);
+    setAuditError(null);
+    try {
+      const page = await api.listAudit({ page: 1, pageSize: PAGE_SIZE });
+      setAuditItems(page.items);
+      setAuditTotal(page.total);
+    } catch (caught) {
+      setAuditItems([]);
+      setAuditTotal(0);
+      setAuditError(describeFailure(caught, "Could not load the audit trail."));
+    } finally {
+      setAuditLoading(false);
+    }
+  }, [api]);
+
   useEffect(() => {
     if (!identity) {
       return;
@@ -251,6 +277,12 @@ export function App() {
       void loadCalendar();
     }
   }, [loadCalendar, tab]);
+
+  useEffect(() => {
+    if (tab === "audit") {
+      void loadAudit();
+    }
+  }, [loadAudit, tab]);
 
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const bookingPageCount = Math.max(1, Math.ceil(bookingTotal / PAGE_SIZE));
@@ -585,6 +617,17 @@ export function App() {
             setSelected(null);
             setCancelError(null);
           }}
+        />
+      ) : null}
+
+      {tab === "audit" ? (
+        <AuditView
+          isAdmin={isAdmin}
+          items={auditItems}
+          total={auditTotal}
+          loading={auditLoading}
+          error={auditError}
+          onRetry={() => void loadAudit()}
         />
       ) : null}
     </AppShell>

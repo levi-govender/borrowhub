@@ -53,6 +53,24 @@ export type Me = {
   role: "EMPLOYEE" | "ADMIN";
 };
 
+export type AuditItem = {
+  id: string;
+  occurredAt: string;
+  action: string;
+  actor: string;
+  entityType?: string;
+  entityId?: string;
+  correlationId?: string;
+  changeSummary?: Record<string, unknown>;
+};
+
+export type AuditPage = {
+  items: AuditItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
 export type AdminSummary = {
   reserved: number;
   checkedOut: number;
@@ -77,14 +95,6 @@ export type BookingPage = {
   page: number;
   pageSize: number;
   total: number;
-};
-
-export type AuditItem = {
-  id: string;
-  occurredAt: string;
-  action: string;
-  actor: string;
-  changeSummary: Record<string, unknown>;
 };
 
 export type BookingDetail = BookingListItem & {
@@ -259,6 +269,13 @@ export function createInventoryApi(
     },
     getBooking(id: string) {
       return request<BookingDetail>(`/api/v1/admin/bookings/${id}`);
+    },
+    listAudit(params: { page?: number; pageSize?: number } = {}) {
+      const search = new URLSearchParams();
+      if (params.page) search.set("page", String(params.page));
+      if (params.pageSize) search.set("pageSize", String(params.pageSize));
+      const suffix = search.size > 0 ? `?${search.toString()}` : "";
+      return request<AuditPage>(`/api/v1/admin/audit${suffix}`);
     },
     cancelBooking(id: string, reason: string) {
       return request<BookingDetail>(`/api/v1/admin/bookings/${id}/cancel`, {
