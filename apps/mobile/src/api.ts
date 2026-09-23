@@ -199,6 +199,58 @@ export function createCatalogueApi(baseUrl: string, fetchImpl: FetchLike = fetch
 
 export type CatalogueApi = ReturnType<typeof createCatalogueApi>;
 
+const OFFICE_OFFSET = "+02:00";
+
+/** `2026-09-24T09:00` in Africa/Johannesburg → ISO instant. */
+export function parseOfficeLocal(value: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) {
+    return null;
+  }
+  const instant = new Date(`${value}:00${OFFICE_OFFSET}`);
+  return Number.isNaN(instant.getTime()) ? null : instant.toISOString();
+}
+
+export function toOfficeLocalInput(iso: string): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Africa/Johannesburg",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(iso));
+  const read = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${read("year")}-${read("month")}-${read("day")}T${read("hour")}:${read("minute")}`;
+}
+
+export function validateReservationWindow(
+  startAt: string,
+  endAt: string,
+  policy: { minDurationMinutes: number; maxDurationDays: number; maxAdvanceDays: number },
+  now = Date.now(),
+): string | null {
+  const start = new Date(startAt).getTime();
+  const end = new Date(endAt).getTime();
+  if (Number.isNaN(start) || Number.isNaN(end) || end <= start) {
+    return "End must be after start.";
+  }
+  const durationMs = end - start;
+  if (durationMs < policy.minDurationMinutes * 60_000) {
+    return `Reservations must last at least ${policy.minDurationMinutes} minutes.`;
+  }
+  if (durationMs > policy.maxDurationDays * 24 * 60 * 60 * 1000) {
+    return `Reservations must last at most ${policy.maxDurationDays} days.`;
+  }
+  if (start <= now) {
+    return "Start must be in the future.";
+  }
+  if (start > now + policy.maxAdvanceDays * 24 * 60 * 60 * 1000) {
+    return `Start must be within ${policy.maxAdvanceDays} days.`;
+  }
+  return null;
+}
+
 export function defaultAvailabilityWindow(now = new Date()): { startAt: string; endAt: string } {
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 7, 0, 0));
   const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
