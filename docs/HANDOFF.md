@@ -5,13 +5,14 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-13-open-loan-from-inventory`
-- Task: `ENH-13` Open loan from inventory — DONE
+- Branch: `feature/enh-14-next-reservation`
+- Task: `ENH-14` Next reservation — DONE
 
 ## What changed
 
-- Admin equipment rows include `checkedOutBookingId` for the CHECKED_OUT loan
-- The inventory **With** name opens that booking
+- Admin equipment detail includes `nextReservation`: earliest `RESERVED` booking (borrower, start, end)
+- Inventory drawer shows it and opens that booking
+- Employee catalogue detail leaves `nextReservation` null
 
 ## Verification
 

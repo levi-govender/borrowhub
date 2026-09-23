@@ -110,7 +110,16 @@ public class AdminEquipmentService {
 						booking.getEndAt(),
 						booking.getEndAt().isBefore(now)))
 				.orElse(null);
-		return EquipmentResponses.toDetail(equipment, policy, currentLoan);
+		EquipmentResponses.NextReservation nextReservation = bookingRepository
+				.findFirstByEquipment_IdAndStatusOrderByStartAtAscIdAsc(
+						equipment.getId(), com.borrowhub.backend.booking.BookingStatus.RESERVED)
+				.map(booking -> new EquipmentResponses.NextReservation(
+						booking.getId(),
+						booking.getUser().getDisplayName(),
+						booking.getStartAt(),
+						booking.getEndAt()))
+				.orElse(null);
+		return EquipmentResponses.toDetail(equipment, policy, currentLoan, nextReservation);
 	}
 
 	@Transactional
@@ -132,7 +141,7 @@ public class AdminEquipmentService {
 				request.operationalStatus(),
 				now));
 		audit(actor, equipment, "EQUIPMENT_CREATED", now);
-		return EquipmentResponses.toDetail(equipment, policy, null);
+		return EquipmentResponses.toDetail(equipment, policy, null, null);
 	}
 
 	@Transactional
@@ -157,7 +166,7 @@ public class AdminEquipmentService {
 				request.operationalStatus(),
 				now);
 		audit(actor, equipment, "EQUIPMENT_UPDATED", now);
-		return EquipmentResponses.toDetail(equipment, policy, null);
+		return EquipmentResponses.toDetail(equipment, policy, null, null);
 	}
 
 	private void audit(
