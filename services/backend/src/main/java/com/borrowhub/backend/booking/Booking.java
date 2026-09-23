@@ -118,6 +118,10 @@ public class Booking {
 		return damageNote;
 	}
 
+	public String getCancellationReason() {
+		return cancellationReason;
+	}
+
 	public void cancel(Instant at, String reason) {
 		this.status = BookingStatus.CANCELLED;
 		this.cancelledAt = at;

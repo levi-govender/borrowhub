@@ -35,6 +35,7 @@ public final class AdminBookingResponses {
 			BookingStatus status,
 			boolean overdue,
 			String damageNote,
+			String cancellationReason,
 			List<String> allowedActions,
 			List<AuditItem> audit) {
 	}

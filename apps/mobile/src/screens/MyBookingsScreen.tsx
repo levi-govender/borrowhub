@@ -81,6 +81,7 @@ export function MyBookingsScreen({ api, onBack }: Props) {
                 <Text style={styles.rowMeta}>
                   {item.status} · {item.startAt} → {item.endAt}
                   {item.damageNote ? ` · ${item.damageNote}` : ""}
+                  {item.cancellationReason ? ` · ${item.cancellationReason}` : ""}
                 </Text>
                 {item.reminders?.map((kind) => (
                   <Text key={kind} style={styles.reminder} accessibilityLiveRegion="polite">

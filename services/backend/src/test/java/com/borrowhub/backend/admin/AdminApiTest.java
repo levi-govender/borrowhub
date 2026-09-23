@@ -184,7 +184,13 @@ class AdminApiTest extends PostgresIntegrationTest {
 						.content("{\"reason\":\"Asset needed for repair\"}"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("CANCELLED"))
+				.andExpect(jsonPath("$.cancellationReason").value("Asset needed for repair"))
 				.andExpect(jsonPath("$.audit[0].action").value("BOOKING_CANCELLED_ADMIN"));
+
+		mockMvc.perform(get("/v1/bookings/{id}", reservedPastStart.getId())
+						.header("X-Demo-Object-Id", "employee-a"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.cancellationReason").value("Asset needed for repair"));
 
 		mockMvc.perform(patch("/v1/admin/equipment/{id}", archived.getId())
 						.contentType(MediaType.APPLICATION_JSON)

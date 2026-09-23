@@ -55,6 +55,7 @@ export type Booking = {
   endAt: string;
   allowedActions: string[];
   damageNote?: string | null;
+  cancellationReason?: string | null;
   reminders?: string[];
 };
 

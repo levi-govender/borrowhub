@@ -56,6 +56,12 @@ export function BookingDrawer({
                   <dd>{selected.damageNote}</dd>
                 </>
               ) : null}
+              {selected.cancellationReason ? (
+                <>
+                  <dt>Cancellation reason</dt>
+                  <dd>{selected.cancellationReason}</dd>
+                </>
+              ) : null}
           <dt>Allowed now</dt>
           <dd>
             {selected.allowedActions.length === 0 ? (
