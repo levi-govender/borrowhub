@@ -12,6 +12,7 @@ import {
 type Props = {
   api: CatalogueApi;
   onBack: () => void;
+  onOpen: (id: string) => void;
 };
 
 const STATUS_FILTERS: { label: string; value?: string }[] = [
@@ -22,7 +23,7 @@ const STATUS_FILTERS: { label: string; value?: string }[] = [
   { label: "Cancelled", value: "CANCELLED" },
 ];
 
-export function MyBookingsScreen({ api, onBack }: Props) {
+export function MyBookingsScreen({ api, onBack, onOpen }: Props) {
   const [items, setItems] = useState<Booking[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -107,7 +108,9 @@ export function MyBookingsScreen({ api, onBack }: Props) {
             accessibilityLabel={`${total} bookings`}
             renderItem={({ item }) => (
               <View style={styles.row}>
-                <Text style={styles.rowTitle}>{item.assetTag}</Text>
+                <Pressable accessibilityRole="button" accessibilityLabel={`Open booking ${item.assetTag}`} onPress={() => onOpen(item.id)}>
+                  <Text style={styles.rowTitle}>{item.assetTag}</Text>
+                </Pressable>
                 <Text style={styles.rowMeta}>
                   {formatBookingStatus(item.status)} · {formatOfficeWindow(item.startAt, item.endAt)}
                   {item.damageNote ? ` · ${item.damageNote}` : ""}

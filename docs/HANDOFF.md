@@ -5,18 +5,19 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-26-open-audit-record`
-- Task: `ENH-26` Open audit record — DONE
+- Branch: `feature/enh-27-employee-booking-detail`
+- Task: `ENH-27` Employee booking detail — DONE
 
 ## What changed
 
-- A booking row on the Audit tab opens that booking
-- An equipment row opens that asset
+- Tapping a booking in My bookings loads that employee's booking
+- The screen shows the office window, reason, damage note, and reminders
+- Cancel, collect, and return stay on the actions Java allows
 
 ## Verification
 
-- `pnpm --filter @borrowhub/web exec tsc -p tsconfig.app.json --noEmit`
-- The Audit tab was not opened in a browser
+- `pnpm --filter @borrowhub/mobile test` — 13 passed; typecheck
+- Expo UI not run
 
 ## Next
 
