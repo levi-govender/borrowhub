@@ -13,6 +13,7 @@ export function MyBookingsScreen({ api, onBack }: Props) {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [damageNotes, setDamageNotes] = useState<Record<string, string>>({});
+  const [cancelReasons, setCancelReasons] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -89,15 +90,31 @@ export function MyBookingsScreen({ api, onBack }: Props) {
                   </Text>
                 ))}
                 {item.allowedActions.includes("CANCEL") ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Cancel booking ${item.assetTag}`}
-                    onPress={() => void act(item.id, () => api.cancelBooking(item.id), "Could not cancel this booking.")}
-                    disabled={busyId === item.id}
-                    style={styles.button}
-                  >
-                    <Text style={styles.buttonLabel}>{busyId === item.id ? "Working…" : "Cancel"}</Text>
-                  </Pressable>
+                  <>
+                    <TextInput
+                      accessibilityLabel={`Cancellation reason for ${item.assetTag}`}
+                      placeholder="Cancellation reason (optional)"
+                      value={cancelReasons[item.id] ?? ""}
+                      onChangeText={(value) => setCancelReasons((current) => ({ ...current, [item.id]: value }))}
+                      autoCapitalize="sentences"
+                      style={styles.note}
+                    />
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`Cancel booking ${item.assetTag}`}
+                      onPress={() =>
+                        void act(
+                          item.id,
+                          () => api.cancelBooking(item.id, undefined, cancelReasons[item.id] ?? ""),
+                          "Could not cancel this booking.",
+                        )
+                      }
+                      disabled={busyId === item.id}
+                      style={styles.button}
+                    >
+                      <Text style={styles.buttonLabel}>{busyId === item.id ? "Working…" : "Cancel"}</Text>
+                    </Pressable>
+                  </>
                 ) : null}
                 {item.allowedActions.includes("COLLECT") ? (
                   <Pressable

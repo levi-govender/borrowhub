@@ -106,10 +106,11 @@ export function createBackendClient(options: BackendClientOptions) {
     getBooking(id: string, extraHeaders: Record<string, string>, correlationId: string) {
       return request(`/v1/bookings/${id}`, new URLSearchParams(), correlationId, { extraHeaders });
     },
-    cancelBooking(id: string, extraHeaders: Record<string, string>, correlationId: string) {
+    cancelBooking(id: string, extraHeaders: Record<string, string>, correlationId: string, body?: unknown) {
       return request(`/v1/bookings/${id}/cancel`, new URLSearchParams(), correlationId, {
         method: "POST",
         extraHeaders,
+        body,
       });
     },
     collectBooking(id: string, extraHeaders: Record<string, string>, correlationId: string) {

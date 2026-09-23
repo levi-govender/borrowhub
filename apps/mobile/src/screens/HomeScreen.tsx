@@ -23,6 +23,7 @@ export function HomeScreen({ api, onOpenCatalogue, onOpenBookings, onOpenProfile
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [damageNotes, setDamageNotes] = useState<Record<string, string>>({});
+  const [cancelReason, setCancelReason] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -157,15 +158,27 @@ export function HomeScreen({ api, onOpenCatalogue, onOpenBookings, onOpenProfile
                 {next.status} · {formatOfficeWindow(next.startAt, next.endAt)}
               </Text>
               {next.allowedActions.includes("CANCEL") ? (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`Cancel booking ${next.assetTag}`}
-                  onPress={() => void act(next.id, () => api.cancelBooking(next.id), "Could not cancel this booking.")}
-                  disabled={busyId === next.id}
-                  style={styles.button}
-                >
-                  <Text style={styles.buttonLabel}>{busyId === next.id ? "Working…" : "Cancel"}</Text>
-                </Pressable>
+                <>
+                  <TextInput
+                    accessibilityLabel={`Cancellation reason for ${next.assetTag}`}
+                    placeholder="Cancellation reason (optional)"
+                    value={cancelReason}
+                    onChangeText={setCancelReason}
+                    autoCapitalize="sentences"
+                    style={styles.note}
+                  />
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Cancel booking ${next.assetTag}`}
+                    onPress={() =>
+                      void act(next.id, () => api.cancelBooking(next.id, undefined, cancelReason), "Could not cancel this booking.")
+                    }
+                    disabled={busyId === next.id}
+                    style={styles.button}
+                  >
+                    <Text style={styles.buttonLabel}>{busyId === next.id ? "Working…" : "Cancel"}</Text>
+                  </Pressable>
+                </>
               ) : null}
             </View>
           ) : (

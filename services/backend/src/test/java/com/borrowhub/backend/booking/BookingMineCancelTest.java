@@ -121,6 +121,20 @@ class BookingMineCancelTest extends PostgresIntegrationTest {
 	}
 
 	@Test
+	void cancelStoresAnOptionalReason() throws Exception {
+		String bookingId = create("employee-a", phone.getId(), "2026-09-22T07:00:00Z", "2026-09-22T10:00:00Z");
+
+		mockMvc.perform(post("/v1/bookings/{id}/cancel", bookingId)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"reason\":\"Plans changed\"}")
+						.header("X-Demo-Object-Id", "employee-a")
+						.header("Idempotency-Key", UUID.randomUUID()))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("CANCELLED"))
+				.andExpect(jsonPath("$.cancellationReason").value("Plans changed"));
+	}
+
+	@Test
 	void cancelRejectsOtherUsersAndIllegalTransitions() throws Exception {
 		String bookingId = create("employee-a", phone.getId(), "2026-09-22T07:00:00Z", "2026-09-22T10:00:00Z");
 

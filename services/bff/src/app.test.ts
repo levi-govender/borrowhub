@@ -127,6 +127,7 @@ test("lists own bookings and cancels through Java", async () => {
       if (url.endsWith(`/v1/bookings/${bookingId}/cancel`)) {
         assert.equal(init?.method, "POST");
         assert.equal(headers.get("idempotency-key"), "44444444-4444-4444-8444-444444444444");
+        assert.equal(JSON.parse(String(init?.body)).reason, "Plans changed");
         return new Response(JSON.stringify({ id: bookingId, status: "CANCELLED" }), {
           status: 200,
           headers: { "content-type": "application/json" },
@@ -150,6 +151,7 @@ test("lists own bookings and cancels through Java", async () => {
       "x-demo-object-id": "employee-a",
       "idempotency-key": "44444444-4444-4444-8444-444444444444",
     },
+    payload: { reason: "Plans changed" },
   });
   assert.equal(cancel.statusCode, 200);
   assert.equal(cancel.json().status, "CANCELLED");

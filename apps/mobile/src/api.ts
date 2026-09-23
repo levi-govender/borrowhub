@@ -171,9 +171,10 @@ export function createCatalogueApi(baseUrl: string, fetchImpl: FetchLike = fetch
       const suffix = search.size > 0 ? `?${search.toString()}` : "";
       return request<BookingPage>(`/api/v1/bookings${suffix}`);
     },
-    cancelBooking(id: string, idempotencyKey: string = crypto.randomUUID()) {
+    cancelBooking(id: string, idempotencyKey: string = crypto.randomUUID(), reason: string = "") {
       return request<Booking>(`/api/v1/bookings/${id}/cancel`, {
         method: "POST",
+        body: { reason },
         extraHeaders: { "idempotency-key": idempotencyKey },
       });
     },

@@ -116,13 +116,18 @@ test("listMine and cancelBooking call BFF with identity and idempotency key", as
       assert.equal(String(input), `http://bff.test/api/v1/bookings/${bookingId}/cancel`);
       assert.equal(init?.method, "POST");
       assert.equal(headers.get("idempotency-key"), "44444444-4444-4444-8444-444444444444");
+      assert.equal(JSON.parse(String(init?.body)).reason, "Plans changed");
       return new Response(JSON.stringify({ id: bookingId, status: "CANCELLED", allowedActions: [] }), { status: 200 });
     },
     { objectId: "employee-a" },
   );
   const page = await api.listMine({ page: 1, pageSize: 20 });
   assert.equal(page.total, 1);
-  const cancelled = await api.cancelBooking(bookingId, "44444444-4444-4444-8444-444444444444");
+  const cancelled = await api.cancelBooking(
+    bookingId,
+    "44444444-4444-4444-8444-444444444444",
+    "Plans changed",
+  );
   assert.equal(cancelled.status, "CANCELLED");
 });
 
