@@ -47,6 +47,7 @@ export type BookingListItem = {
   endAt: string;
   status: BookingStatus;
   overdue: boolean;
+  damaged?: boolean;
 };
 
 export type BookingPage = {
@@ -204,6 +205,7 @@ export function createInventoryApi(
         query?: string;
         status?: string;
         overdue?: boolean;
+        damaged?: boolean;
         from?: string;
         to?: string;
         page?: number;
@@ -214,6 +216,7 @@ export function createInventoryApi(
       if (params.query) search.set("query", params.query);
       if (params.status) search.set("status", params.status);
       if (params.overdue) search.set("overdue", "true");
+      if (params.damaged) search.set("damaged", "true");
       if (params.from) search.set("from", params.from);
       if (params.to) search.set("to", params.to);
       if (params.page) search.set("page", String(params.page));

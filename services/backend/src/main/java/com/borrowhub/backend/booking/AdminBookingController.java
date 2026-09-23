@@ -36,11 +36,12 @@ public class AdminBookingController {
 			@RequestParam(required = false) String query,
 			@RequestParam(required = false) String status,
 			@RequestParam(required = false, defaultValue = "false") boolean overdue,
+			@RequestParam(required = false, defaultValue = "false") boolean damaged,
 			@RequestParam(required = false) String from,
 			@RequestParam(required = false) String to,
 			@RequestParam(required = false) Integer page,
 			@RequestParam(required = false) Integer pageSize) {
-		return adminBookingService.list(tenantId, objectId, query, status, overdue, from, to, page, pageSize);
+		return adminBookingService.list(tenantId, objectId, query, status, overdue, damaged, from, to, page, pageSize);
 	}
 
 	@GetMapping("/bookings/{id}")

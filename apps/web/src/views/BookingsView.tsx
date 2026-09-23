@@ -1,5 +1,5 @@
 import { Icon } from "../components/Icon";
-import { BookingStatusBadge, OverdueBadge } from "../components/Badge";
+import { Badge, BookingStatusBadge, OverdueBadge } from "../components/Badge";
 import { Pager } from "../components/Figures";
 import { BookingDrawer } from "../components/BookingDrawer";
 import { EmptyState, ErrorState, LoadingRows } from "../components/States";
@@ -23,6 +23,8 @@ type Props = {
   onStatusChange: (value: string) => void;
   overdueOnly: boolean;
   onOverdueChange: (value: boolean) => void;
+  damagedOnly: boolean;
+  onDamagedChange: (value: boolean) => void;
   onReset: () => void;
   items: BookingListItem[];
   total: number;
@@ -51,6 +53,8 @@ export function BookingsView({
   onStatusChange,
   overdueOnly,
   onOverdueChange,
+  damagedOnly,
+  onDamagedChange,
   onReset,
   items,
   total,
@@ -111,6 +115,10 @@ export function BookingsView({
           <input type="checkbox" checked={overdueOnly} onChange={(event) => onOverdueChange(event.target.checked)} />
           Overdue only
         </label>
+        <label className="switch">
+          <input type="checkbox" checked={damagedOnly} onChange={(event) => onDamagedChange(event.target.checked)} />
+          Damage notes only
+        </label>
 
         <div className="toolbar__actions">
           <button type="submit" className="btn btn--primary">
@@ -132,7 +140,13 @@ export function BookingsView({
           </div>
         ) : items.length === 0 ? (
           <EmptyState
-            title={overdueOnly ? "No overdue loans" : "No bookings match those filters"}
+            title={
+              damagedOnly
+                ? "No damage notes"
+                : overdueOnly
+                  ? "No overdue loans"
+                  : "No bookings match those filters"
+            }
             body={
               overdueOnly
                 ? "Every checked-out asset is still inside its return window."
@@ -202,6 +216,7 @@ export function BookingsView({
                           <span className="pillrow">
                             <BookingStatusBadge status={item.status} />
                             {item.overdue ? <OverdueBadge label={formatLateness(item.endAt) || "Overdue"} /> : null}
+                            {item.damaged ? <Badge tone="serious">Damage note</Badge> : null}
                           </span>
                         </td>
                         <td data-optional="true">{item.overdue ? "Yes" : "No"}</td>

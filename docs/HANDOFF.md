@@ -5,19 +5,20 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-07-cancellation-reason`
-- Task: `ENH-07` Cancellation reason — DONE
+- Branch: `feature/enh-08-damage-filter`
+- Task: `ENH-08` Damage-note filter — DONE
 
 ## What changed
 
-- Booking JSON and admin booking detail include `cancellationReason`
-- Employee My bookings and the admin drawer show it when set (admin cancel)
+- `GET /v1/admin/bookings?damaged=true` keeps bookings whose `damage_note` is non-blank
+- List items include `damaged`
+- Admin bookings toolbar has **Damage notes only**
 
 ## Verification
 
 - `./gradlew test --tests com.borrowhub.backend.admin.AdminApiTest` BUILD SUCCESSFUL
-- `pnpm --filter @borrowhub/mobile test` — 12 passed; typecheck
-- `pnpm --filter @borrowhub/web typecheck`
+- `pnpm --filter @borrowhub/web test` — 15 passed; typecheck
+- `pnpm --filter @borrowhub/bff test` — 13 passed
 
 ## Next
 
