@@ -222,17 +222,24 @@ public class BookingService {
 	}
 
 	public BookingResponse cancel(
-			String tenantIdHeader, String objectIdHeader, String idempotencyKeyHeader, UUID bookingId) {
+			String tenantIdHeader,
+			String objectIdHeader,
+			String idempotencyKeyHeader,
+			UUID bookingId,
+			EmployeeCancelRequest request) {
 		AppUser user = identityService.requireUser(tenantIdHeader, objectIdHeader);
+		String reason = request == null || request.reason() == null || request.reason().isBlank()
+				? null
+				: request.reason().trim();
 		UUID key = parseIdempotencyKey(idempotencyKeyHeader);
-		String hash = RequestHash.forCancel(bookingId);
+		String hash = RequestHash.forCancel(bookingId, reason);
 		Optional<IdempotencyRecord> existing =
 				idempotencyRecordRepository.findByUserIdAndRouteAndKey(user.getId(), CANCEL_ROUTE, key.toString());
 		if (existing.isPresent()) {
 			return replay(existing.get(), hash);
 		}
 		try {
-			return transactionTemplate.execute(status -> persistCancel(user, key, hash, bookingId));
+			return transactionTemplate.execute(status -> persistCancel(user, key, hash, bookingId, reason));
 		}
 		catch (RuntimeException ex) {
 			if (!isUniqueConstraint(ex)) {
@@ -245,7 +252,7 @@ public class BookingService {
 		}
 	}
 
-	private BookingResponse persistCancel(AppUser user, UUID key, String hash, UUID bookingId) {
+	private BookingResponse persistCancel(AppUser user, UUID key, String hash, UUID bookingId, String reason) {
 		Booking booking = requireOwned(bookingId, user.getId());
 		Equipment equipment = equipmentRepository
 				.lockById(booking.getEquipment().getId())
@@ -263,10 +270,13 @@ public class BookingService {
 		if (!now.isBefore(booking.getStartAt())) {
 			throw ApiException.conflict("TOO_LATE_TO_CANCEL", "A reservation can only be cancelled before it starts.");
 		}
-		booking.cancel(now, null);
+		booking.cancel(now, reason);
 		bookingRepository.save(booking);
 		Map<String, Object> summary = new LinkedHashMap<>();
 		summary.put("status", BookingStatus.CANCELLED.name());
+		if (reason != null) {
+			summary.put("reason", reason);
+		}
 		summary.put("equipmentId", equipment.getId().toString());
 		String traceId = MDC.get(CorrelationIdFilter.MDC_KEY);
 		auditEventRepository.save(new AuditEvent(

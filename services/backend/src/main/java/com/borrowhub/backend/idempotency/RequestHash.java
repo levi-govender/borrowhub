@@ -16,8 +16,8 @@ public final class RequestHash {
 		return sha256(request.equipmentId() + "\n" + request.startAt() + "\n" + request.endAt());
 	}
 
-	public static String forCancel(UUID bookingId) {
-		return sha256("cancel\n" + bookingId);
+	public static String forCancel(UUID bookingId, String reason) {
+		return sha256("cancel\n" + bookingId + "\n" + (reason == null ? "" : reason));
 	}
 
 	public static String forCollect(UUID bookingId) {

@@ -58,10 +58,11 @@ public class BookingController {
 	@PostMapping("/{id}/cancel")
 	public BookingResponse cancel(
 			@PathVariable UUID id,
+			@Valid @RequestBody(required = false) EmployeeCancelRequest request,
 			@RequestHeader(value = DEMO_TENANT_HEADER, required = false) String tenantId,
 			@RequestHeader(value = DEMO_OBJECT_HEADER, required = false) String objectId,
 			@RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey) {
-		return bookingService.cancel(tenantId, objectId, idempotencyKey, id);
+		return bookingService.cancel(tenantId, objectId, idempotencyKey, id, request);
 	}
 
 	@PostMapping("/{id}/collect")
