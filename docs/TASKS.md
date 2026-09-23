@@ -104,3 +104,4 @@ Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
 | ENH-21 | Booking location search | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (`query=cupboard` returns the QA cupboard loan). Web typecheck. Employee booking list unchanged. |
 | ENH-22 | Office booking times | DONE | Evidence 2026-09-23: mobile typecheck + 13 tests. My bookings shows Johannesburg times; a window that crosses midnight includes the end date. Status labels are plain language. |
 | ENH-23 | Admin audit list | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (employee 403; admin list returns the cancel event). BFF 13 tests. Web typecheck. Browser not exercised. |
+| ENH-24 | Audit filter | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (`action` + `entityType=booking` keeps the cancel; `equipment` is empty; `user` is 400). BFF 13 tests. Web typecheck. Browser not exercised. |

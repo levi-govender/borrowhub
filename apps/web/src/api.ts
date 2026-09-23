@@ -270,8 +270,10 @@ export function createInventoryApi(
     getBooking(id: string) {
       return request<BookingDetail>(`/api/v1/admin/bookings/${id}`);
     },
-    listAudit(params: { page?: number; pageSize?: number } = {}) {
+    listAudit(params: { action?: string; entityType?: string; page?: number; pageSize?: number } = {}) {
       const search = new URLSearchParams();
+      if (params.action) search.set("action", params.action);
+      if (params.entityType) search.set("entityType", params.entityType);
       if (params.page) search.set("page", String(params.page));
       if (params.pageSize) search.set("pageSize", String(params.pageSize));
       const suffix = search.size > 0 ? `?${search.toString()}` : "";

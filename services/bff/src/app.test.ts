@@ -219,6 +219,8 @@ test("admin routes forward demo role and PATCH", async () => {
       assert.equal(headers.get("x-demo-role"), "ADMIN");
       if (url.includes("/v1/admin/audit")) {
         assert.equal(new URL(url).searchParams.get("page"), "1");
+        assert.equal(new URL(url).searchParams.get("action"), "BOOKING_CANCELLED_ADMIN");
+        assert.equal(new URL(url).searchParams.get("entityType"), "booking");
         return new Response(JSON.stringify({ items: [{ action: "BOOKING_CANCELLED_ADMIN" }], total: 1 }), {
           status: 200,
           headers: { "content-type": "application/json" },
@@ -257,7 +259,7 @@ test("admin routes forward demo role and PATCH", async () => {
   });
   const audit = await app.inject({
     method: "GET",
-    url: "/api/v1/admin/audit?page=1",
+    url: "/api/v1/admin/audit?page=1&action=BOOKING_CANCELLED_ADMIN&entityType=booking",
     headers: { "x-demo-object-id": "admin-1", "x-demo-role": "ADMIN" },
   });
   assert.equal(audit.statusCode, 200);

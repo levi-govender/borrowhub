@@ -423,7 +423,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
     const traceId = request.traceId;
     const query = request.query as Record<string, string | undefined>;
     const search = new URLSearchParams();
-    for (const key of ["page", "pageSize"] as const) {
+    for (const key of ["action", "entityType", "page", "pageSize"] as const) {
       const value = query[key];
       if (value) {
         search.set(key, value);
