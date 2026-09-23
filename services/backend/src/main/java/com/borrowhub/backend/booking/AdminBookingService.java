@@ -246,6 +246,7 @@ public class AdminBookingService {
 				booking.getStatus(),
 				AdminBookingResponses.isOverdue(booking, now),
 				booking.getDamageNote(),
+				booking.getCancellationReason(),
 				actions,
 				audit);
 	}

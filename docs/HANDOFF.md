@@ -5,17 +5,18 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-06-admin-damage-note`
-- Task: `ENH-06` Admin damage note — DONE
+- Branch: `feature/enh-07-cancellation-reason`
+- Task: `ENH-07` Cancellation reason — DONE
 
 ## What changed
 
-- Admin booking detail JSON includes `damageNote` from the booking row
-- Admin drawer shows it when the employee recorded one on return
+- Booking JSON and admin booking detail include `cancellationReason`
+- Employee My bookings and the admin drawer show it when set (admin cancel)
 
 ## Verification
 
 - `./gradlew test --tests com.borrowhub.backend.admin.AdminApiTest` BUILD SUCCESSFUL
+- `pnpm --filter @borrowhub/mobile test` — 12 passed; typecheck
 - `pnpm --filter @borrowhub/web typecheck`
 
 ## Next

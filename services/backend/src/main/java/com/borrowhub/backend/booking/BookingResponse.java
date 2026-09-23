@@ -17,6 +17,7 @@ public record BookingResponse(
 		List<String> allowedActions,
 		Instant createdAt,
 		String damageNote,
+		String cancellationReason,
 		List<String> reminders) {
 
 	static BookingResponse from(Booking booking, Instant now, int collectionLeadMinutes) {
@@ -31,6 +32,7 @@ public record BookingResponse(
 				BookingActions.allowed(booking, now, collectionLeadMinutes),
 				booking.getCreatedAt(),
 				booking.getDamageNote(),
+				booking.getCancellationReason(),
 				BookingReminders.kinds(booking, now, collectionLeadMinutes));
 	}
 
@@ -46,6 +48,7 @@ public record BookingResponse(
 		body.put("allowedActions", allowedActions);
 		body.put("createdAt", createdAt.toString());
 		body.put("damageNote", damageNote);
+		body.put("cancellationReason", cancellationReason);
 		body.put("reminders", reminders);
 		return body;
 	}
@@ -53,6 +56,7 @@ public record BookingResponse(
 	@SuppressWarnings("unchecked")
 	static BookingResponse fromStoredMap(Map<String, Object> body) {
 		Object note = body.get("damageNote");
+		Object reason = body.get("cancellationReason");
 		List<String> reminders = body.get("reminders") instanceof List<?> list ? (List<String>) list : List.of();
 		return new BookingResponse(
 				UUID.fromString(String.valueOf(body.get("id"))),
@@ -65,6 +69,7 @@ public record BookingResponse(
 				(List<String>) body.get("allowedActions"),
 				Instant.parse(String.valueOf(body.get("createdAt"))),
 				note == null ? null : String.valueOf(note),
+				reason == null ? null : String.valueOf(reason),
 				reminders);
 	}
 }
