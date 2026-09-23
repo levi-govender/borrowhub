@@ -5,19 +5,18 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-12-overdue-assets`
-- Task: `ENH-12` Overdue assets — DONE
+- Branch: `feature/enh-13-open-loan-from-inventory`
+- Task: `ENH-13` Open loan from inventory — DONE
 
 ## What changed
 
-- Admin equipment list accepts `loanOverdue=true` (CHECKED_OUT and end before the Java clock)
-- Inventory toolbar has **Overdue loans only**
+- Admin equipment rows include `checkedOutBookingId` for the CHECKED_OUT loan
+- The inventory **With** name opens that booking
 
 ## Verification
 
 - `./gradlew test --tests com.borrowhub.backend.admin.AdminApiTest --tests com.borrowhub.backend.equipment.EquipmentCatalogueTest` BUILD SUCCESSFUL
-- `pnpm --filter @borrowhub/web test` — 15 passed; typecheck
-- `pnpm --filter @borrowhub/bff test` — 13 passed
+- `pnpm --filter @borrowhub/web typecheck`
 
 ## Next
 
