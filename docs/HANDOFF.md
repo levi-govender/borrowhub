@@ -5,18 +5,18 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-31-my-bookings-pages`
-- Task: `ENH-31` My bookings pages — DONE
+- Branch: `feature/enh-32-home-open-loans`
+- Task: `ENH-32` Home open loans — DONE
 
 ## What changed
 
-- My bookings loads 20 at a time and can load the next page
-- Changing the status filter starts again at page 1
+- Home loads the employee's checked-out and reserved bookings, up to 100 of each
+- Returned and cancelled bookings stay off home
+- An older due loan is no longer hidden behind the newest 20 rows
 
 ## Verification
 
-- `./gradlew test --tests com.borrowhub.backend.booking.BookingMineCancelTest` BUILD SUCCESSFUL
-- `pnpm --filter @borrowhub/mobile test` — 13 passed; typecheck
+- `pnpm --filter @borrowhub/mobile test` — 14 passed; typecheck
 - Expo UI not run
 
 ## Next
