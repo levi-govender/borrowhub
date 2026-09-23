@@ -65,6 +65,17 @@ public interface BookingRepository extends JpaRepository<Booking, UUID>, JpaSpec
 			""")
 	List<Booking> findCheckedOutByEquipmentIds(@Param("equipmentIds") Collection<UUID> equipmentIds);
 
+	@Query(
+			"""
+			select b from Booking b
+			join fetch b.user
+			join fetch b.equipment
+			where b.status = com.borrowhub.backend.booking.BookingStatus.RESERVED
+			  and b.equipment.id in :equipmentIds
+			order by b.startAt asc, b.id asc
+			""")
+	List<Booking> findReservedByEquipmentIds(@Param("equipmentIds") Collection<UUID> equipmentIds);
+
 	long countByStatus(BookingStatus status);
 
 	long countByStatusAndEndAtBefore(BookingStatus status, Instant endAt);

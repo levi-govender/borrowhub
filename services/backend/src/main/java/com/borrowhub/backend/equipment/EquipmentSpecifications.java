@@ -33,7 +33,12 @@ final class EquipmentSpecifications {
 	}
 
 	static Specification<Equipment> adminCatalogue(
-			String query, String category, boolean checkedOutOnly, boolean loanOverdueOnly, Instant now) {
+			String query,
+			String category,
+			boolean checkedOutOnly,
+			boolean loanOverdueOnly,
+			boolean reservedOnly,
+			Instant now) {
 		return (root, criteriaQuery, cb) -> {
 			List<Predicate> predicates = new ArrayList<>();
 			if (loanOverdueOnly) {
@@ -45,6 +50,15 @@ final class EquipmentSpecifications {
 						cb.equal(booking.get("status"), BookingStatus.CHECKED_OUT),
 						cb.lessThan(booking.get("endAt"), now));
 				predicates.add(cb.exists(overdue));
+			}
+			if (reservedOnly) {
+				Subquery<Integer> reserved = criteriaQuery.subquery(Integer.class);
+				Root<Booking> booking = reserved.from(Booking.class);
+				reserved.select(cb.literal(1));
+				reserved.where(
+						cb.equal(booking.get("equipment").get("id"), root.get("id")),
+						cb.equal(booking.get("status"), BookingStatus.RESERVED));
+				predicates.add(cb.exists(reserved));
 			}
 			if (checkedOutOnly) {
 				Subquery<Integer> checkedOut = criteriaQuery.subquery(Integer.class);
