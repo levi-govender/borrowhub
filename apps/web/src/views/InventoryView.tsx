@@ -26,6 +26,8 @@ type Props = {
   onSubmitQuery: () => void;
   category: string;
   onCategoryChange: (value: string) => void;
+  checkedOutOnly: boolean;
+  onCheckedOutChange: (value: boolean) => void;
   onReset: () => void;
   items: EquipmentListItem[];
   total: number;
@@ -113,6 +115,8 @@ export function InventoryView({
   onSubmitQuery,
   category,
   onCategoryChange,
+  checkedOutOnly,
+  onCheckedOutChange,
   onReset,
   items,
   total,
@@ -179,6 +183,15 @@ export function InventoryView({
             </button>
           ))}
         </div>
+
+        <label className="switch">
+          <input
+            type="checkbox"
+            checked={checkedOutOnly}
+            onChange={(event) => onCheckedOutChange(event.target.checked)}
+          />
+          Checked out only
+        </label>
 
         <div className="toolbar__actions">
           <button type="submit" className="btn btn--primary">
@@ -285,6 +298,7 @@ export function InventoryView({
                     <th scope="col" data-optional="true">
                       Location
                     </th>
+                    <th scope="col">With</th>
                     <th scope="col">Status</th>
                   </tr>
                 </thead>
@@ -323,6 +337,16 @@ export function InventoryView({
                       </td>
                       <td data-optional="true">{humanize(item.category)}</td>
                       <td data-optional="true">{item.location}</td>
+                      <td>
+                        {item.checkedOutTo ? (
+                          <span className="pillrow">
+                            <span>{item.checkedOutTo}</span>
+                            {item.loanOverdue ? <OverdueBadge /> : null}
+                          </span>
+                        ) : (
+                          <span className="muted">—</span>
+                        )}
+                      </td>
                       <td>
                         <AssetStatusBadge status={item.operationalStatus} />
                       </td>

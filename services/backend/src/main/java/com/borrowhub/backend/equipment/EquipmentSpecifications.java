@@ -1,6 +1,10 @@
 package com.borrowhub.backend.equipment;
 
+import com.borrowhub.backend.booking.Booking;
+import com.borrowhub.backend.booking.BookingStatus;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
@@ -27,9 +31,18 @@ final class EquipmentSpecifications {
 		};
 	}
 
-	static Specification<Equipment> adminCatalogue(String query, String category) {
+	static Specification<Equipment> adminCatalogue(String query, String category, boolean checkedOutOnly) {
 		return (root, criteriaQuery, cb) -> {
 			List<Predicate> predicates = new ArrayList<>();
+			if (checkedOutOnly) {
+				Subquery<Integer> checkedOut = criteriaQuery.subquery(Integer.class);
+				Root<Booking> booking = checkedOut.from(Booking.class);
+				checkedOut.select(cb.literal(1));
+				checkedOut.where(
+						cb.equal(booking.get("equipment").get("id"), root.get("id")),
+						cb.equal(booking.get("status"), BookingStatus.CHECKED_OUT));
+				predicates.add(cb.exists(checkedOut));
+			}
 			if (category != null && !category.isBlank()) {
 				predicates.add(cb.equal(root.get("category"), category.trim()));
 			}

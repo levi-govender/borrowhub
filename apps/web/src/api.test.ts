@@ -13,7 +13,7 @@ test("resolveBffBaseUrl uses Vite env", () => {
 
 test("list calls the BFF admin catalogue with demo admin headers", async () => {
   const api = createInventoryApi("http://bff.test", async (input, init) => {
-    assert.equal(String(input), "http://bff.test/api/v1/admin/equipment?category=phone&page=1");
+    assert.equal(String(input), "http://bff.test/api/v1/admin/equipment?category=phone&checkedOut=true&page=1");
     const headers = new Headers(init?.headers);
     assert.equal(headers.get("x-demo-object-id"), "admin-1");
     assert.equal(headers.get("x-demo-role"), "ADMIN");
@@ -21,7 +21,7 @@ test("list calls the BFF admin catalogue with demo admin headers", async () => {
       status: 200,
     });
   });
-  const page = await api.list({ category: "phone", page: 1 });
+  const page = await api.list({ category: "phone", checkedOut: true, page: 1 });
   assert.equal(page.total, 1);
 });
 

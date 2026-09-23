@@ -49,7 +49,7 @@ public class EquipmentService {
 		Page<Equipment> result =
 				equipmentRepository.findAll(EquipmentSpecifications.employeeCatalogue(query, category), pageable);
 		return new PageResponse<>(
-				result.getContent().stream().map(EquipmentResponses::toListItem).toList(),
+				result.getContent().stream().map(item -> EquipmentResponses.toListItem(item, null, false)).toList(),
 				resolvedPage,
 				resolvedSize,
 				result.getTotalElements());
