@@ -56,11 +56,28 @@ export default function App() {
           }}
         />
       ) : screen === "bookings" && bookingId ? (
-        <BookingScreen api={api} id={bookingId} onBack={() => setBookingId(null)} />
+        <BookingScreen
+          api={api}
+          id={bookingId}
+          onBack={() => setBookingId(null)}
+          onOpenAsset={(equipmentId) => {
+            setSelectedId(equipmentId);
+            setScreen("catalogue");
+          }}
+        />
       ) : screen === "bookings" ? (
         <MyBookingsScreen api={api} onBack={goHome} onOpen={setBookingId} />
       ) : selectedId ? (
-        <DetailScreen api={api} id={selectedId} onBack={() => setSelectedId(null)} />
+        <DetailScreen
+          api={api}
+          id={selectedId}
+          onBack={() => {
+            setSelectedId(null);
+            if (bookingId) {
+              setScreen("bookings");
+            }
+          }}
+        />
       ) : screen === "catalogue" ? (
         <CatalogueScreen
           api={api}
