@@ -7,6 +7,14 @@ type Props = {
   onBack: () => void;
 };
 
+const STATUS_FILTERS: { label: string; value?: string }[] = [
+  { label: "All" },
+  { label: "Reserved", value: "RESERVED" },
+  { label: "Checked out", value: "CHECKED_OUT" },
+  { label: "Returned", value: "RETURNED" },
+  { label: "Cancelled", value: "CANCELLED" },
+];
+
 export function MyBookingsScreen({ api, onBack }: Props) {
   const [items, setItems] = useState<Booking[]>([]);
   const [total, setTotal] = useState(0);
@@ -14,13 +22,14 @@ export function MyBookingsScreen({ api, onBack }: Props) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [damageNotes, setDamageNotes] = useState<Record<string, string>>({});
   const [cancelReasons, setCancelReasons] = useState<Record<string, string>>({});
+  const [status, setStatus] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const page = await api.listMine({ page: 1, pageSize: 20 });
+      const page = await api.listMine({ status, page: 1, pageSize: 20 });
       setItems(page.items);
       setTotal(page.total);
     } catch (caught) {
@@ -30,7 +39,7 @@ export function MyBookingsScreen({ api, onBack }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [api]);
+  }, [api, status]);
 
   useEffect(() => {
     void load();
@@ -58,6 +67,19 @@ export function MyBookingsScreen({ api, onBack }: Props) {
         My bookings
       </Text>
       <Text style={styles.title}>Your reservations</Text>
+      <View style={styles.chips} accessibilityRole="tablist">
+        {STATUS_FILTERS.map((filter) => (
+          <Pressable
+            key={filter.label}
+            accessibilityRole="button"
+            accessibilityState={{ selected: status === filter.value }}
+            onPress={() => setStatus(filter.value)}
+            style={[styles.chip, status === filter.value && styles.chipSelected]}
+          >
+            <Text style={[styles.chipLabel, status === filter.value && styles.chipLabelSelected]}>{filter.label}</Text>
+          </Pressable>
+        ))}
+      </View>
       {loading ? (
         <ActivityIndicator accessibilityLabel="Loading bookings" />
       ) : error && items.length === 0 ? (
@@ -220,6 +242,27 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     fontSize: 16,
+  },
+  chips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 12,
+  },
+  chip: {
+    borderWidth: 1,
+    borderColor: "#1a1a1a",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  chipSelected: {
+    backgroundColor: "#1a1a1a",
+  },
+  chipLabel: {
+    fontSize: 14,
+  },
+  chipLabelSelected: {
+    color: "#fff",
   },
   note: {
     borderWidth: 1,

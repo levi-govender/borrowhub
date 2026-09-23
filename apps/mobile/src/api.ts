@@ -164,8 +164,9 @@ export function createCatalogueApi(baseUrl: string, fetchImpl: FetchLike = fetch
         extraHeaders: { "idempotency-key": idempotencyKey },
       });
     },
-    listMine(params: { page?: number; pageSize?: number } = {}) {
+    listMine(params: { status?: string; page?: number; pageSize?: number } = {}) {
       const search = new URLSearchParams();
+      if (params.status) search.set("status", params.status);
       if (params.page) search.set("page", String(params.page));
       if (params.pageSize) search.set("pageSize", String(params.pageSize));
       const suffix = search.size > 0 ? `?${search.toString()}` : "";

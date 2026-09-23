@@ -118,7 +118,8 @@ test("lists own bookings and cancels through Java", async () => {
       const url = String(input);
       const headers = new Headers(init?.headers);
       assert.equal(headers.get("x-demo-object-id"), "employee-a");
-      if (url.endsWith("/v1/bookings") && (init?.method ?? "GET") === "GET") {
+      if (url.includes("/v1/bookings?") && (init?.method ?? "GET") === "GET") {
+        assert.equal(new URL(url).searchParams.get("status"), "RESERVED");
         return new Response(JSON.stringify({ items: [{ id: bookingId }], page: 1, pageSize: 20, total: 1 }), {
           status: 200,
           headers: { "content-type": "application/json" },
@@ -139,7 +140,7 @@ test("lists own bookings and cancels through Java", async () => {
   });
   const list = await app.inject({
     method: "GET",
-    url: "/api/v1/bookings",
+    url: "/api/v1/bookings?status=RESERVED",
     headers: { "x-demo-object-id": "employee-a" },
   });
   assert.equal(list.statusCode, 200);

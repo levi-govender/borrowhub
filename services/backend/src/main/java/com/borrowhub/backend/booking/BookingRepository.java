@@ -18,6 +18,9 @@ public interface BookingRepository extends JpaRepository<Booking, UUID>, JpaSpec
 	@EntityGraph(attributePaths = {"equipment", "user"})
 	Page<Booking> findByUser_Id(UUID userId, Pageable pageable);
 
+	@EntityGraph(attributePaths = {"equipment", "user"})
+	Page<Booking> findByUser_IdAndStatus(UUID userId, BookingStatus status, Pageable pageable);
+
 	@Query(
 			"""
 			select b from Booking b
