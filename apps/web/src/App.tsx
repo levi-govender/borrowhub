@@ -101,6 +101,8 @@ export function App() {
   const [auditTotal, setAuditTotal] = useState(0);
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditError, setAuditError] = useState<string | null>(null);
+  const [auditAction, setAuditAction] = useState("");
+  const [auditEntityType, setAuditEntityType] = useState("");
 
   /**
    * `/me` is loaded on its own so an employee session still knows who it is:
@@ -239,7 +241,12 @@ export function App() {
     setAuditLoading(true);
     setAuditError(null);
     try {
-      const page = await api.listAudit({ page: 1, pageSize: PAGE_SIZE });
+      const page = await api.listAudit({
+        action: auditAction || undefined,
+        entityType: auditEntityType || undefined,
+        page: 1,
+        pageSize: PAGE_SIZE,
+      });
       setAuditItems(page.items);
       setAuditTotal(page.total);
     } catch (caught) {
@@ -249,7 +256,7 @@ export function App() {
     } finally {
       setAuditLoading(false);
     }
-  }, [api]);
+  }, [api, auditAction, auditEntityType]);
 
   useEffect(() => {
     if (!identity) {
@@ -623,6 +630,10 @@ export function App() {
       {tab === "audit" ? (
         <AuditView
           isAdmin={isAdmin}
+          action={auditAction}
+          entityType={auditEntityType}
+          onActionChange={setAuditAction}
+          onEntityTypeChange={setAuditEntityType}
           items={auditItems}
           total={auditTotal}
           loading={auditLoading}

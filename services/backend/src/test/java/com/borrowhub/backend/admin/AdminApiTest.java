@@ -261,6 +261,28 @@ class AdminApiTest extends PostgresIntegrationTest {
 				.andExpect(jsonPath("$.items[0].entityType").value("booking"))
 				.andExpect(jsonPath("$.items[0].entityId").value(reservedPastStart.getId().toString()));
 
+		mockMvc.perform(get("/v1/admin/audit")
+						.param("action", "BOOKING_CANCELLED_ADMIN")
+						.param("entityType", "booking")
+						.header("X-Demo-Object-Id", "admin-1")
+						.header("X-Demo-Role", "ADMIN"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.total").value(1));
+
+		mockMvc.perform(get("/v1/admin/audit")
+						.param("entityType", "equipment")
+						.header("X-Demo-Object-Id", "admin-1")
+						.header("X-Demo-Role", "ADMIN"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.total").value(0));
+
+		mockMvc.perform(get("/v1/admin/audit")
+						.param("entityType", "user")
+						.header("X-Demo-Object-Id", "admin-1")
+						.header("X-Demo-Role", "ADMIN"))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+
 		mockMvc.perform(get("/v1/bookings/{id}", reservedPastStart.getId())
 						.header("X-Demo-Object-Id", "employee-a"))
 				.andExpect(status().isOk())

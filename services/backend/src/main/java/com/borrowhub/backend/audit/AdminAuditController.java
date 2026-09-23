@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -31,9 +32,13 @@ public class AdminAuditController {
 	public PageResponse<AuditItem> list(
 			@RequestHeader(value = "X-Demo-Tenant-Id", required = false) String tenantId,
 			@RequestHeader(value = "X-Demo-Object-Id", required = false) String objectId,
+			@RequestParam(required = false) String action,
+			@RequestParam(required = false) String entityType,
 			@RequestParam(required = false) Integer page,
 			@RequestParam(required = false) Integer pageSize) {
 		identityService.requireAdmin(tenantId, objectId);
+		String parsedAction = blankToNull(action);
+		String parsedType = parseEntityType(entityType);
 		int resolvedPage = page == null ? 1 : page;
 		int resolvedSize = pageSize == null ? 20 : pageSize;
 		if (resolvedPage < 1) {
@@ -42,13 +47,32 @@ public class AdminAuditController {
 		if (resolvedSize < 1 || resolvedSize > 100) {
 			throw ApiException.badRequest("VALIDATION_ERROR", "pageSize must be between 1 and 100.");
 		}
-		var result = auditEventRepository.findAllByOrderByOccurredAtDesc(
-				PageRequest.of(resolvedPage - 1, resolvedSize));
+		var result = auditEventRepository.findAll(
+				AuditSpecifications.filter(parsedAction, parsedType),
+				PageRequest.of(resolvedPage - 1, resolvedSize, Sort.by("occurredAt").descending()));
 		return new PageResponse<>(
 				result.getContent().stream().map(AdminAuditController::toItem).toList(),
 				resolvedPage,
 				resolvedSize,
 				result.getTotalElements());
+	}
+
+	private static String blankToNull(String value) {
+		if (value == null || value.isBlank()) {
+			return null;
+		}
+		return value.trim().toUpperCase();
+	}
+
+	private static String parseEntityType(String entityType) {
+		String parsed = blankToNull(entityType);
+		if (parsed == null) {
+			return null;
+		}
+		if (!parsed.equals("BOOKING") && !parsed.equals("EQUIPMENT")) {
+			throw ApiException.badRequest("VALIDATION_ERROR", "entityType is invalid.");
+		}
+		return parsed.toLowerCase();
 	}
 
 	private static AuditItem toItem(AuditEvent event) {
