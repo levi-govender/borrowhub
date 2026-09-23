@@ -646,6 +646,19 @@ export function App() {
           page={auditPage}
           pageCount={Math.max(1, Math.ceil(auditTotal / PAGE_SIZE))}
           onPageChange={setAuditPage}
+          onOpen={(item) => {
+            if (!item.entityId) {
+              return;
+            }
+            if (item.entityType === "booking") {
+              setTab("bookings");
+              openBookingDetail(item.entityId);
+            }
+            if (item.entityType === "equipment") {
+              setTab("inventory");
+              openEquipmentDetail(item.entityId);
+            }
+          }}
           loading={auditLoading}
           error={auditError}
           onRetry={() => void loadAudit()}
