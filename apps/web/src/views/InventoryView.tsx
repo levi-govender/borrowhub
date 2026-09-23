@@ -28,6 +28,8 @@ type Props = {
   onCategoryChange: (value: string) => void;
   checkedOutOnly: boolean;
   onCheckedOutChange: (value: boolean) => void;
+  loanOverdueOnly: boolean;
+  onLoanOverdueChange: (value: boolean) => void;
   onReset: () => void;
   items: EquipmentListItem[];
   total: number;
@@ -117,6 +119,8 @@ export function InventoryView({
   onCategoryChange,
   checkedOutOnly,
   onCheckedOutChange,
+  loanOverdueOnly,
+  onLoanOverdueChange,
   onReset,
   items,
   total,
@@ -191,6 +195,14 @@ export function InventoryView({
             onChange={(event) => onCheckedOutChange(event.target.checked)}
           />
           Checked out only
+        </label>
+        <label className="switch">
+          <input
+            type="checkbox"
+            checked={loanOverdueOnly}
+            onChange={(event) => onLoanOverdueChange(event.target.checked)}
+          />
+          Overdue loans only
         </label>
 
         <div className="toolbar__actions">

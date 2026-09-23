@@ -52,6 +52,7 @@ public class AdminEquipmentService {
 			String query,
 			String category,
 			boolean checkedOut,
+			boolean loanOverdue,
 			Integer page,
 			Integer pageSize) {
 		identityService.requireAdmin(tenantId, objectId);
@@ -63,13 +64,14 @@ public class AdminEquipmentService {
 		if (resolvedSize < 1 || resolvedSize > EquipmentService.MAX_PAGE_SIZE) {
 			throw ApiException.badRequest("VALIDATION_ERROR", "pageSize must be between 1 and 100.");
 		}
+		Instant now = Instant.now(clock);
 		PageRequest pageable = PageRequest.of(
 				resolvedPage - 1,
 				resolvedSize,
 				Sort.by("name").ascending().and(Sort.by("id").ascending()));
 		Page<Equipment> result =
-				equipmentRepository.findAll(EquipmentSpecifications.adminCatalogue(query, category, checkedOut), pageable);
-		Instant now = Instant.now(clock);
+				equipmentRepository.findAll(
+						EquipmentSpecifications.adminCatalogue(query, category, checkedOut, loanOverdue, now), pageable);
 		Map<UUID, com.borrowhub.backend.booking.Booking> loans = result.getContent().isEmpty()
 				? Map.of()
 				: bookingRepository

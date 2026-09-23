@@ -32,9 +32,10 @@ public class AdminEquipmentController {
 			@RequestParam(required = false) String query,
 			@RequestParam(required = false) String category,
 			@RequestParam(required = false, defaultValue = "false") boolean checkedOut,
+			@RequestParam(required = false, defaultValue = "false") boolean loanOverdue,
 			@RequestParam(required = false) Integer page,
 			@RequestParam(required = false) Integer pageSize) {
-		return adminEquipmentService.list(tenantId, objectId, query, category, checkedOut, page, pageSize);
+		return adminEquipmentService.list(tenantId, objectId, query, category, checkedOut, loanOverdue, page, pageSize);
 	}
 
 	@GetMapping("/{id}")

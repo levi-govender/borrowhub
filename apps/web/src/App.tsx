@@ -61,6 +61,7 @@ export function App() {
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [category, setCategory] = useState("");
   const [checkedOutOnly, setCheckedOutOnly] = useState(false);
+  const [loanOverdueOnly, setLoanOverdueOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<EquipmentListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -157,6 +158,7 @@ export function App() {
         query: submittedQuery || undefined,
         category: category || undefined,
         checkedOut: checkedOutOnly,
+        loanOverdue: loanOverdueOnly,
         page,
         pageSize: PAGE_SIZE,
       });
@@ -169,7 +171,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [api, category, checkedOutOnly, page, submittedQuery]);
+  }, [api, category, checkedOutOnly, loanOverdueOnly, page, submittedQuery]);
 
   const loadBookings = useCallback(async () => {
     if (!api) {
@@ -400,11 +402,17 @@ export function App() {
             setPage(1);
             setCheckedOutOnly(value);
           }}
+          loanOverdueOnly={loanOverdueOnly}
+          onLoanOverdueChange={(value) => {
+            setPage(1);
+            setLoanOverdueOnly(value);
+          }}
           onReset={() => {
             setQuery("");
             setSubmittedQuery("");
             setCategory("");
             setCheckedOutOnly(false);
+            setLoanOverdueOnly(false);
             setPage(1);
           }}
           items={items}

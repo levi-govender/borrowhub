@@ -5,6 +5,7 @@ import com.borrowhub.backend.booking.BookingStatus;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
@@ -31,9 +32,20 @@ final class EquipmentSpecifications {
 		};
 	}
 
-	static Specification<Equipment> adminCatalogue(String query, String category, boolean checkedOutOnly) {
+	static Specification<Equipment> adminCatalogue(
+			String query, String category, boolean checkedOutOnly, boolean loanOverdueOnly, Instant now) {
 		return (root, criteriaQuery, cb) -> {
 			List<Predicate> predicates = new ArrayList<>();
+			if (loanOverdueOnly) {
+				Subquery<Integer> overdue = criteriaQuery.subquery(Integer.class);
+				Root<Booking> booking = overdue.from(Booking.class);
+				overdue.select(cb.literal(1));
+				overdue.where(
+						cb.equal(booking.get("equipment").get("id"), root.get("id")),
+						cb.equal(booking.get("status"), BookingStatus.CHECKED_OUT),
+						cb.lessThan(booking.get("endAt"), now));
+				predicates.add(cb.exists(overdue));
+			}
 			if (checkedOutOnly) {
 				Subquery<Integer> checkedOut = criteriaQuery.subquery(Integer.class);
 				Root<Booking> booking = checkedOut.from(Booking.class);
