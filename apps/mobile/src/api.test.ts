@@ -12,6 +12,7 @@ import {
   validateReservationWindow,
   formatAvailabilityReason,
   formatBookingReminder,
+  formatBookingStatus,
   formatOperationalStatus,
   resolveBffBaseUrl,
 } from "./api.ts";
@@ -166,6 +167,11 @@ test("default availability window is 3 hours from tomorrow 07:00 UTC", () => {
   assert.equal(window.startAt, "2026-09-22T07:00:00.000Z");
   assert.equal(window.endAt, "2026-09-22T10:00:00.000Z");
   assert.equal(formatOfficeWindow(window.startAt, window.endAt), "Tue, 22 Sept, 09:00–12:00 (Africa/Johannesburg)");
+  assert.equal(
+    formatOfficeWindow("2026-09-22T07:00:00.000Z", "2026-09-23T07:00:00.000Z"),
+    "Tue, 22 Sept, 09:00–Wed, 23 Sept, 09:00 (Africa/Johannesburg)",
+  );
+  assert.equal(formatBookingStatus("CHECKED_OUT"), "Checked out");
   assert.equal(isBookable("ACTIVE"), true);
   assert.equal(isBookable("MAINTENANCE"), false);
   assert.equal(toOfficeLocalInput(window.startAt), "2026-09-22T09:00");

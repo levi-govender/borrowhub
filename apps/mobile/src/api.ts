@@ -263,22 +263,55 @@ export function isBookable(status: OperationalStatus): boolean {
   return status === "ACTIVE";
 }
 
-export function formatOfficeWindow(startAt: string, endAt: string): string {
-  const start = new Date(startAt);
-  const end = new Date(endAt);
-  const datePart = new Intl.DateTimeFormat("en-ZA", {
-    timeZone: "Africa/Johannesburg",
+const OFFICE_TIME_ZONE = "Africa/Johannesburg";
+
+function officeDateLabel(value: Date): string {
+  return new Intl.DateTimeFormat("en-ZA", {
+    timeZone: OFFICE_TIME_ZONE,
     weekday: "short",
     day: "numeric",
     month: "short",
-  }).format(start);
+  }).format(value);
+}
+
+function officeDayKey(value: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: OFFICE_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(value);
+}
+
+export function formatOfficeWindow(startAt: string, endAt: string): string {
+  const start = new Date(startAt);
+  const end = new Date(endAt);
   const time = new Intl.DateTimeFormat("en-ZA", {
-    timeZone: "Africa/Johannesburg",
+    timeZone: OFFICE_TIME_ZONE,
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
   });
-  return `${datePart}, ${time.format(start)}–${time.format(end)} (Africa/Johannesburg)`;
+  const startLabel = `${officeDateLabel(start)}, ${time.format(start)}`;
+  const endLabel =
+    officeDayKey(start) === officeDayKey(end) ? time.format(end) : `${officeDateLabel(end)}, ${time.format(end)}`;
+  return `${startLabel}–${endLabel} (Africa/Johannesburg)`;
+}
+
+export function formatBookingStatus(status: string): string {
+  if (status === "RESERVED") {
+    return "Reserved";
+  }
+  if (status === "CHECKED_OUT") {
+    return "Checked out";
+  }
+  if (status === "RETURNED") {
+    return "Returned";
+  }
+  if (status === "CANCELLED") {
+    return "Cancelled";
+  }
+  return status;
 }
 
 export function formatBookingReminder(kind: string): string {

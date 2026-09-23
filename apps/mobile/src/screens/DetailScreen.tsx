@@ -4,6 +4,7 @@ import {
   CatalogueApiError,
   defaultAvailabilityWindow,
   formatAvailabilityReason,
+  formatBookingStatus,
   formatOperationalStatus,
   isBookable,
   parseOfficeLocal,
@@ -198,7 +199,7 @@ export function DetailScreen({ api, id, onBack }: Props) {
           </Pressable>
           {booking ? (
             <Text style={styles.body} accessibilityLiveRegion="polite">
-              Reserved. Booking {booking.id} is {booking.status}.
+              Reserved. Booking {booking.id} is {formatBookingStatus(booking.status)}.
             </Text>
           ) : null}
           {error ? <Text style={styles.body}>{error}</Text> : null}
