@@ -5,18 +5,16 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-29-booking-equipment-name`
-- Task: `ENH-29` Booking equipment name — DONE
+- Branch: `feature/enh-30-open-asset-from-booking`
+- Task: `ENH-30` Open asset from booking — DONE
 
 ## What changed
 
-- Employee booking JSON includes `equipmentName`
-- Home, My bookings, and the booking screen show that name, with the asset tag still available
-- An idempotency replay stored before this field returns an empty name
+- The asset tag on an employee booking opens that catalogue item
+- Back from the asset returns to the booking
 
 ## Verification
 
-- `./gradlew test --tests com.borrowhub.backend.booking.BookingMineCancelTest` BUILD SUCCESSFUL
 - `pnpm --filter @borrowhub/mobile test` — 13 passed; typecheck
 - Expo UI not run
 

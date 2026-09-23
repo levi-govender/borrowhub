@@ -13,9 +13,10 @@ type Props = {
   api: CatalogueApi;
   id: string;
   onBack: () => void;
+  onOpenAsset: (equipmentId: string) => void;
 };
 
-export function BookingScreen({ api, id, onBack }: Props) {
+export function BookingScreen({ api, id, onBack, onOpenAsset }: Props) {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -72,7 +73,13 @@ export function BookingScreen({ api, id, onBack }: Props) {
           <Text style={styles.title} accessibilityRole="header">
             {booking.equipmentName || booking.assetTag}
           </Text>
-          <Text style={styles.body}>{booking.assetTag}</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Open asset ${booking.assetTag}`}
+            onPress={() => onOpenAsset(booking.equipmentId)}
+          >
+            <Text style={styles.body}>{booking.assetTag}</Text>
+          </Pressable>
           <Text style={styles.body}>{formatOfficeWindow(booking.startAt, booking.endAt)}</Text>
           {booking.cancellationReason ? <Text style={styles.body}>Cancelled: {booking.cancellationReason}</Text> : null}
           {booking.damageNote ? <Text style={styles.body}>Damage: {booking.damageNote}</Text> : null}
