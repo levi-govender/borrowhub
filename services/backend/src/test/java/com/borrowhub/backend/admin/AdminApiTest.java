@@ -197,4 +197,36 @@ class AdminApiTest extends PostgresIntegrationTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.operationalStatus").value("MAINTENANCE"));
 	}
+
+	@Test
+	void adminBookingDetailIncludesDamageNote() throws Exception {
+		Instant now = Instant.parse("2026-09-21T10:00:00Z");
+		Equipment camera = equipmentRepository.save(new Equipment(
+				UUID.randomUUID(),
+				"CAM-009",
+				"Studio camera",
+				"camera",
+				"Returned with a note",
+				"Studio",
+				OperationalStatus.ACTIVE,
+				now));
+		AppUser employee = appUserRepository.findAll().getFirst();
+		Booking returned = bookingRepository.save(new Booking(
+				UUID.randomUUID(),
+				camera,
+				employee,
+				Instant.parse("2026-09-19T08:00:00Z"),
+				Instant.parse("2026-09-19T10:00:00Z"),
+				BookingStatus.CHECKED_OUT,
+				now));
+		returned.markReturned(now, "Scratched corner");
+		bookingRepository.save(returned);
+
+		mockMvc.perform(get("/v1/admin/bookings/{id}", returned.getId())
+						.header("X-Demo-Object-Id", "admin-1")
+						.header("X-Demo-Role", "ADMIN"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("RETURNED"))
+				.andExpect(jsonPath("$.damageNote").value("Scratched corner"));
+	}
 }

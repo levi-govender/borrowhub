@@ -48,8 +48,14 @@ export function BookingDrawer({
           <dd>{selected.borrower}</dd>
           <dt>From</dt>
           <dd>{formatInstant(selected.startAt)}</dd>
-          <dt>Until</dt>
-          <dd>{formatInstant(selected.endAt)}</dd>
+              <dt>Until</dt>
+              <dd>{formatInstant(selected.endAt)}</dd>
+              {selected.damageNote ? (
+                <>
+                  <dt>Damage note</dt>
+                  <dd>{selected.damageNote}</dd>
+                </>
+              ) : null}
           <dt>Allowed now</dt>
           <dd>
             {selected.allowedActions.length === 0 ? (

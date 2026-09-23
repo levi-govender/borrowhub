@@ -245,6 +245,7 @@ public class AdminBookingService {
 				booking.getEndAt(),
 				booking.getStatus(),
 				AdminBookingResponses.isOverdue(booking, now),
+				booking.getDamageNote(),
 				actions,
 				audit);
 	}
