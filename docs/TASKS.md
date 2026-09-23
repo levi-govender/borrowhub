@@ -101,3 +101,4 @@ Local demo identity until Entra exists (`P0-01`). Live PKCE is blocked.
 | ENH-18 | Employee cancel reason | DONE | Evidence 2026-09-23: `BookingMineCancelTest` BUILD SUCCESSFUL (optional reason stored; blank body still cancels). BFF 13 tests. Mobile typecheck + 12 tests. Admin cancel still requires a reason. |
 | ENH-19 | Availability copy | DONE | Evidence 2026-09-23: mobile typecheck + 13 tests. Catalogue and detail show plain status and availability reasons. Java codes unchanged. |
 | ENH-20 | My bookings status | DONE | Evidence 2026-09-23: `BookingMineCancelTest` BUILD SUCCESSFUL (`RESERVED` keeps the booking, `RETURNED` is empty, unknown status is 400). BFF 13 tests. Mobile typecheck + 13 tests. Filter is still only the caller's bookings. |
+| ENH-21 | Booking location search | DONE | Evidence 2026-09-23: `AdminApiTest` BUILD SUCCESSFUL (`query=cupboard` returns the QA cupboard loan). Web typecheck. Employee booking list unchanged. |

@@ -5,20 +5,18 @@ A new session should continue from here without reconstructing chat history.
 ## Current
 
 - Phase: Enhancements
-- Branch: `feature/enh-20-my-bookings-status`
-- Task: `ENH-20` My bookings status — DONE
+- Branch: `feature/enh-21-booking-location-search`
+- Task: `ENH-21` Booking location search — DONE
 
 ## What changed
 
-- `GET /v1/bookings?status=` filters the signed-in employee's bookings
-- Unknown status is a validation error
-- My bookings has All, Reserved, Checked out, Returned, and Cancelled chips
+- Admin booking search matches equipment location as well as tag, name, and borrower
+- Bookings search placeholder mentions location
 
 ## Verification
 
-- `./gradlew test --tests com.borrowhub.backend.booking.BookingMineCancelTest` BUILD SUCCESSFUL
-- `pnpm --filter @borrowhub/bff test` — 13 passed
-- `pnpm --filter @borrowhub/mobile test` — 13 passed; typecheck
+- `./gradlew test --tests com.borrowhub.backend.admin.AdminApiTest` BUILD SUCCESSFUL
+- `pnpm --filter @borrowhub/web exec tsc --noEmit`
 
 ## Next
 
