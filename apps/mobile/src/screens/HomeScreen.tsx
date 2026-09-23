@@ -9,7 +9,7 @@ import {
   type CatalogueApi,
   type Me,
 } from "../api";
-import { bookingsNeedingAttention, nextUpcomingReservation } from "../home";
+import { bookingsNeedingAttention, loadHomeBookings, nextUpcomingReservation } from "../home";
 
 type Props = {
   api: CatalogueApi;
@@ -32,9 +32,9 @@ export function HomeScreen({ api, onOpenCatalogue, onOpenBookings, onOpenBooking
     setLoading(true);
     setError(null);
     try {
-      const [profile, page] = await Promise.all([api.me(), api.listMine({ page: 1, pageSize: 20 })]);
+      const [profile, bookings] = await Promise.all([api.me(), loadHomeBookings(api)]);
       setMe(profile);
-      setItems(page.items);
+      setItems(bookings);
     } catch (caught) {
       setMe(null);
       setItems([]);

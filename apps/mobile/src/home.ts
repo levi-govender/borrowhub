@@ -27,6 +27,19 @@ function rank(item: Booking): number {
   return 9;
 }
 
+type HomeBookingSource = {
+  listMine(params: { status?: string; page?: number; pageSize?: number }): Promise<{ items: Booking[] }>;
+};
+
+/** Checked-out and reserved loans, so an older due item is not hidden behind newer history. */
+export async function loadHomeBookings(source: HomeBookingSource): Promise<Booking[]> {
+  const [checkedOut, reserved] = await Promise.all([
+    source.listMine({ status: "CHECKED_OUT", page: 1, pageSize: 100 }),
+    source.listMine({ status: "RESERVED", page: 1, pageSize: 100 }),
+  ]);
+  return [...checkedOut.items, ...reserved.items];
+}
+
 /** Next reserved window that is not already in the due-now list. */
 export function nextUpcomingReservation(items: Booking[], now: number = Date.now()): Booking | null {
   const attentionIds = new Set(bookingsNeedingAttention(items).map((item) => item.id));

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Booking } from "./api.ts";
-import { bookingsNeedingAttention, nextUpcomingReservation } from "./home.ts";
+import { bookingsNeedingAttention, loadHomeBookings, nextUpcomingReservation } from "./home.ts";
 
 function booking(partial: Partial<Booking> & Pick<Booking, "id" | "status">): Booking {
   return {
@@ -13,6 +13,21 @@ function booking(partial: Partial<Booking> & Pick<Booking, "id" | "status">): Bo
     ...partial,
   };
 }
+
+test("loadHomeBookings asks for checked-out and reserved loans", async () => {
+  const requested: string[] = [];
+  const items = await loadHomeBookings({
+    async listMine(params) {
+      requested.push(`${params.status}:${params.pageSize}`);
+      return { items: [booking({ id: params.status ?? "x", status: params.status === "CHECKED_OUT" ? "CHECKED_OUT" : "RESERVED" })] };
+    },
+  });
+  assert.deepEqual(requested, ["CHECKED_OUT:100", "RESERVED:100"]);
+  assert.deepEqual(
+    items.map((item) => item.id),
+    ["CHECKED_OUT", "RESERVED"],
+  );
+});
 
 test("bookingsNeedingAttention ranks overdue before collect", () => {
   const items = [
