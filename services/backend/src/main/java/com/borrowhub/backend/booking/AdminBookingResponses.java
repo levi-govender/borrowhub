@@ -34,6 +34,7 @@ public final class AdminBookingResponses {
 			Instant endAt,
 			BookingStatus status,
 			boolean overdue,
+			String damageNote,
 			List<String> allowedActions,
 			List<AuditItem> audit) {
 	}

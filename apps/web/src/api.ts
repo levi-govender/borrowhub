@@ -67,6 +67,7 @@ export type AuditItem = {
 export type BookingDetail = BookingListItem & {
   equipmentId: string;
   userId: string;
+  damageNote: string | null;
   allowedActions: string[];
   audit: AuditItem[];
 };
