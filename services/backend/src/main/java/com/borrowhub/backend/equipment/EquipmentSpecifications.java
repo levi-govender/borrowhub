@@ -74,9 +74,18 @@ final class EquipmentSpecifications {
 			}
 			if (query != null && !query.isBlank()) {
 				String pattern = "%" + query.trim().toLowerCase() + "%";
+				Subquery<Integer> holder = criteriaQuery.subquery(Integer.class);
+				Root<Booking> booking = holder.from(Booking.class);
+				holder.select(cb.literal(1));
+				holder.where(
+						cb.equal(booking.get("equipment").get("id"), root.get("id")),
+						booking.get("status").in(BookingStatus.RESERVED, BookingStatus.CHECKED_OUT),
+						cb.like(cb.lower(booking.get("user").get("displayName")), pattern));
 				predicates.add(cb.or(
 						cb.like(cb.lower(root.get("name")), pattern),
-						cb.like(cb.lower(root.get("assetTag")), pattern)));
+						cb.like(cb.lower(root.get("assetTag")), pattern),
+						cb.like(cb.lower(root.get("location")), pattern),
+						cb.exists(holder)));
 			}
 			return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(Predicate[]::new));
 		};
