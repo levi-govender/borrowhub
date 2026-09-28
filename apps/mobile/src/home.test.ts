@@ -18,15 +18,16 @@ test("loadHomeBookings asks for checked-out and reserved loans", async () => {
   const requested: string[] = [];
   const items = await loadHomeBookings({
     async listMine(params) {
-      requested.push(`${params.status}:${params.pageSize}`);
-      return { items: [booking({ id: params.status ?? "x", status: params.status === "CHECKED_OUT" ? "CHECKED_OUT" : "RESERVED" })] };
+      requested.push(`${params.status}:${params.page}:${params.pageSize}`);
+      const id = `${params.status}-${params.page}`;
+      return {
+        items: [booking({ id, status: params.status === "CHECKED_OUT" ? "CHECKED_OUT" : "RESERVED" })],
+        total: params.status === "RESERVED" ? 150 : 1,
+      };
     },
   });
-  assert.deepEqual(requested, ["CHECKED_OUT:100", "RESERVED:100"]);
-  assert.deepEqual(
-    items.map((item) => item.id),
-    ["CHECKED_OUT", "RESERVED"],
-  );
+  assert.deepEqual(requested.sort(), ["CHECKED_OUT:1:100", "RESERVED:1:100", "RESERVED:2:100"]);
+  assert.deepEqual(items.map((item) => item.id).sort(), ["CHECKED_OUT-1", "RESERVED-1", "RESERVED-2"]);
 });
 
 test("bookingsNeedingAttention ranks overdue before collect", () => {
